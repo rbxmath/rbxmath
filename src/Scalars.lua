@@ -124,6 +124,36 @@ _rational.__tostring = function (rational)
     return tostring(rational[1]) .. "/" .. tostring(rational[2])
 end
 
+local _rationalFromContinuedFraction = function (continuedFraction)
+    local n = #continuedFraction
+    local rational = _rationalFromTwoInputs(1, continuedFraction[n])
+
+    for i = n - 1, 1, -1 do
+        rational = _rationalFromTwoInputs(continuedFraction[i], 1) + _rationalFromTwoInputs(rational[2], rational[1])
+    end
+
+    return rational
+end
+
+local _rationalApproximation = function (float, tolerance)
+    local n = -math.floor(math.log(tolerance, 10) + 0.5)
+
+    if n <= 0 then
+        return math.floor(float)
+    end
+
+    local continuedFraction = Tools.continuedFractions.compute(float, n)
+
+    local i = 1;
+
+    while math.abs(float - Tools.continuedFractions.evaluate(continuedFraction)) > tolerance and i < math.maxinteger do
+        continuedFraction = Tools.continuedFractions.compute(float, n + i)
+        i = i + 1
+    end
+
+    return _rationalFromContinuedFraction(continuedFraction)
+end
+
 local _ZmodP = {}
 
 local _ZmodPFromArray = function (array)
@@ -174,6 +204,83 @@ _ZmodP.__tostring = function (zinteger)
     return tostring(zinteger[1])
 end
 
+--- Credit to Wikipedia https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm#Computing_multiplicative_inverses_in_modular_structures
 local _ZmodPInverse = function (zinteger)
-    
+    local t = 0
+    local r = zinteger[2]
+    local newt = 1
+    local newr = zinteger[1]
+
+    local quotient
+    while newr ~= 0 do
+        quotient = r % newr
+        t, newt = newt, t - quotient * newt
+        r, newr = newr, r - quotient * newr
+    end
+
+    if r > 1 then
+        error("Input is not invertible!", -1)
+    end
+
+    return _ZmodPFromTwoInputs(t + zinteger[2], zinteger[2])
+end
+
+_ZmodP.__div = function (left, right)
+    return left * _ZmodPInverse(right)
+end
+
+Scalars.Complex = {}
+
+Scalars.Complex.new = function (a, b)
+    return _complexFromTwoInputs(a, b)
+end
+
+Scalars.Complex.newFromArray = function (array)
+    return _complexFromArray(array)
+end
+
+Scalars.Complex.norm = function (complex)
+    return _complexNorm(complex)
+end
+
+Scalars.Complex.conjugate = function (complex)
+    return _complexConjugate(complex)
+end
+
+Scalars.Complex.inverse = function (complex)
+    return _complexInverse(complex)
+end
+
+Scalars.Rational = {}
+
+Scalars.Rational.new = function (a, b)
+    return _rationalFromTwoInputs(a, b)
+end
+
+Scalars.Rational.newFromArray = function (array)
+    return _rationalFromArray(array)
+end
+
+Scalars.Rational.toReal = function (rational)
+    return rational[1] / rational[2]
+end
+
+Scalars.Rational.rationalApproximation = function (float, tolerance)
+    return _rationalApproximation(float, tolerance)
+end
+
+Scalars.Rational.inverse = function (rational)
+    return _rationalFromTwoInputs(rational[2], rational[1])
+end
+
+Scalars.ZmodP.new = function (a, b)
+    return _ZmodPFromTwoInputs(a, b)
+end
+
+Scalars.ZmodP.newFromArray = function (array)
+    return _ZmodPFromArray(array)
+end
+
+Scalars.ZmodP.inverse = function (zinteger)
+    return _ZmodPInverse(zinteger)
 end
