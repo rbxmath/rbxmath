@@ -360,6 +360,76 @@ local _linearlyIndexedSparseInverse = function (matrix)
     return result
 end
 
+local _linearlyIndexedSparseMatrixSquareSolve
+_linearlyIndexedSparseMatrixSquareSolve = function (matrix, vector)
+    local numberOfRows = matrix.dimensions[1]
+    local numberOfColumns = matrix.dimensions[2]
+
+    if numberOfRows ~= numberOfColumns then
+        error("Cannot solve sparse rectangular system with this function.")
+    end
+
+    local columnVector = _linearlyIndexedSparseTranspose(_linearlyIndexedSparseMatrixFromTableOfTables({vector}))
+
+    for i = 1, numberOfColumns - 1 do
+        local maxRow = i
+        local max = matrix[numberOfColumns * (i - 1) + i] or 0
+
+        for j = i, numberOfRows do
+            local maxCandidate = matrix[numberOfColumns * (j - 1) + i] or 0
+            maxCandidate = math.abs(maxCandidate)
+            if maxCandidate ~= nil and maxCandidate > max then
+                max = maxCandidate
+                maxRow = j
+            end
+        end
+
+        if max == 0 then
+            error("Sparse matrix system is not solvable")
+        end
+
+        if maxRow ~= i then
+            _linearlyIndexedSparseRowSwap(matrix, i, maxRow)
+            _linearlyIndexedSparseRowSwap(columnVector, i, maxRow)
+        end
+
+        max = matrix[numberOfColumns * (i - 1) + i]
+
+        for j = i + 1, numberOfRows do
+            local val = matrix[numberOfColumns * (j - 1) + i]
+            if val ~= nil then
+                local valOverMax = val / max
+                local columnVal1, columnVal2 = columnVector[j], columnVector[i]
+                if columnVal1 ~= nil and columnVal2 ~= nil then
+                    columnVector[j] = columnVal1 - valOverMax * columnVal2
+                elseif columnVal2 ~= nil then
+                    columnVector[j] = -valOverMax * columnVal2
+                end
+                matrix[numberOfColumns * (j - 1) + i] = nil
+                for k = i + 1, numberOfColumns do
+                    local val1 = matrix[numberOfColumns * (j - 1) + k]
+                    local val2 = matrix[numberOfColumns * (i - 1) + k]
+                    if val1 ~= nil and val2 ~= nil then
+                        matrix[numberOfColumns * (j - 1) + k] = val1 - val2 * valOverMax
+                    elseif val2 ~= nil then
+                        matrix[numberOfColumns * (j - 1) + k] = -val2 * valOverMax
+                    end
+                end
+            end
+        end
+    end
+
+    for i = numberOfRows, 1, -1 do
+        local temp = 0
+        for j = i+1, numberOfColumns, 1 do
+            temp = temp + matrix[numberOfColumns * (i - 1) + j] * columnVector[j]
+        end
+        columnVector[i] = (columnVector[i] - temp) / matrix[numberOfColumns * (i - 1) + i]
+    end
+
+    return columnVector
+end
+
 local _linearlyIndexedSparseMatrixSparsify = function (matrix, tol)
     tol = tol or 0
 
@@ -1153,6 +1223,11 @@ end
 MatrixAlgebra.liSparseMatrix.inverse = function (input)
     local matrix = _linearlyIndexedSparseCopy(input)
     return _linearlyIndexedSparseInverse(matrix)
+end
+
+MatrixAlgebra.liSparseMatrix.solve = function (matrix, vector)
+    local mat = _linearlyIndexedSparseCopy(matrix)
+    return _linearlyIndexedSparseMatrixSquareSolve(mat, vector)
 end
 
 MatrixAlgebra.liSparseMatrix.transpose = function (input)

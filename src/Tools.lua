@@ -179,4 +179,14 @@ Tools.list.linspace = function (a, b, n)
     end
 end
 
+Tools.list.copy = function (array)
+    local result = {}
+
+    for i = 1, #array, 1 do
+        result[i] = array[i]
+    end
+
+    return result
+end
+
 return Tools
