@@ -20,8 +20,6 @@ local phiRationalToReal = Scalars.Rational.toReal(phiRational)
 print(phiRationalToReal)
 print()
 
-print(Tools.list.tostring(Interpolation.Chebyshev.grid(10)))
-
 local stepFunction = function (x)
     if x < 0 then
         return 0
@@ -35,8 +33,9 @@ for i = 0, 999, 1 do
 end
 local mark1 = os.clock()
 local degreeOnehundredInterpolationEvaluatedAtAThousandPoints = Interpolation.Chebyshev.evaluateAtPointList(stepFunction, thousandPointGrid, 100)
+print(degreeOnehundredInterpolationEvaluatedAtAThousandPoints)
 local mark2 = os.clock()
-print(Tools.list.tostring(degreeOnehundredInterpolationEvaluatedAtAThousandPoints))
+print("Approximating step function with degree 99 at 1000 points")
 print("Time Taken: " .. tostring(mark2 - mark1))
 print("Error: " .. tostring(Tools.list.error(degreeOnehundredInterpolationEvaluatedAtAThousandPoints, Tools.list.map(stepFunction, thousandPointGrid))))
 print()
@@ -47,7 +46,7 @@ end
 mark1 = os.clock()
 degreeOnehundredInterpolationEvaluatedAtAThousandPoints = Interpolation.Chebyshev.evaluateAtPointList(exponential, thousandPointGrid, 100)
 mark2 = os.clock()
-print(Tools.list.tostring(degreeOnehundredInterpolationEvaluatedAtAThousandPoints))
+print("Approximating exponential function with degree 99 at 1000 points")
 print("Time Taken: " .. tostring(mark2 - mark1))
 print("Error: " .. tostring(Tools.list.error(degreeOnehundredInterpolationEvaluatedAtAThousandPoints, Tools.list.map(exponential, thousandPointGrid))))
 print()
@@ -58,14 +57,14 @@ end
 mark1 = os.clock()
 local degreeOnehundredInterpolationEvaluatedAtAHundredPoints = Interpolation.Chebyshev.evaluateAtPointList(exponential, hundredPointGrid, 100)
 mark2 = os.clock()
-print(Tools.list.tostring(degreeOnehundredInterpolationEvaluatedAtAHundredPoints))
+print("Approximating exponential function with degree 99 at 100 points")
 print("Time Taken: " .. tostring(mark2 - mark1))
 print("Error: " .. tostring(Tools.list.error(degreeOnehundredInterpolationEvaluatedAtAHundredPoints, Tools.list.map(exponential, hundredPointGrid))))
 print()
 mark1 = os.clock()
 local degreeTenInterpolationEvaluatedAtAHundredPoints = Interpolation.Chebyshev.evaluateAtPointList(exponential, hundredPointGrid, 10)
 mark2 = os.clock()
-print(Tools.list.tostring(degreeTenInterpolationEvaluatedAtAHundredPoints))
+print("Approximating exponential function with degree 9 at 100 points")
 print("Time Taken: " .. tostring(mark2 - mark1))
 print("Error: " .. tostring(Tools.list.error(degreeTenInterpolationEvaluatedAtAHundredPoints, Tools.list.map(exponential, hundredPointGrid))))
 print()
@@ -80,7 +79,7 @@ end
 mark1 = os.clock()
 degreeOnehundredInterpolationEvaluatedAtAThousandPoints = Interpolation.Chebyshev.evaluateAtPointList(splineArcLength, thousandPointGrid, 100)
 mark2 = os.clock()
-print(Tools.list.tostring(degreeOnehundredInterpolationEvaluatedAtAThousandPoints))
+print("Approximating splineArcLength type function with degree 99 at 1000 points")
 print("Time Taken: " .. tostring(mark2 - mark1))
 print("Error: " .. tostring(Tools.list.error(degreeOnehundredInterpolationEvaluatedAtAThousandPoints, Tools.list.map(splineArcLength, thousandPointGrid))))
 print()
@@ -91,17 +90,55 @@ end
 mark1 = os.clock()
 degreeOnehundredInterpolationEvaluatedAtAHundredPoints = Interpolation.Chebyshev.evaluateAtPointList(splineArcLength, hundredPointGrid, 100)
 mark2 = os.clock()
-print(Tools.list.tostring(degreeOnehundredInterpolationEvaluatedAtAHundredPoints))
+print("Approximating splineArcLength type function with degree 99 at 100 points")
 print("Time Taken: " .. tostring(mark2 - mark1))
 print("Error: " .. tostring(Tools.list.error(degreeOnehundredInterpolationEvaluatedAtAHundredPoints, Tools.list.map(splineArcLength, hundredPointGrid))))
 print()
 mark1 = os.clock()
 degreeTenInterpolationEvaluatedAtAHundredPoints = Interpolation.Chebyshev.evaluateAtPointList(splineArcLength, hundredPointGrid, 10)
 mark2 = os.clock()
-print(Tools.list.tostring(degreeTenInterpolationEvaluatedAtAHundredPoints))
+print("Approximating splineArcLength type function with degree 9 at 100 points")
 print("Time Taken: " .. tostring(mark2 - mark1))
 print("Error: " .. tostring(Tools.list.error(degreeTenInterpolationEvaluatedAtAHundredPoints, Tools.list.map(splineArcLength, hundredPointGrid))))
 print()
-local errorVec, timeVec = Interpolation.Chebyshev.benchmark(splineArcLength, hundredPointGrid, 1, 100)
+local errorVec, timeVec = Interpolation.Chebyshev.benchmark(splineArcLength, hundredPointGrid, 1, 25)
+print("Benchmarking algorithm on splineArcLength function")
 print("Error: " .. Tools.list.tostring(errorVec))
 print("Time: " .. Tools.list.tostring(timeVec))
+print()
+
+local spline = function (x)
+    return math.abs(x)^3
+end
+errorVec, timeVec = Interpolation.Chebyshev.benchmark(spline, hundredPointGrid, 1, 100)
+print("Benchmarking algorithm on cubic spline")
+print("Error: " .. Tools.list.tostring(errorVec))
+print("Time: " .. Tools.list.tostring(timeVec))
+print()
+
+local randomVectorOfLength100 = {}
+for i = 1, 100, 1 do
+    randomVectorOfLength100[i] = 1 - 2 * math.random()
+end
+mark1 = os.clock()
+local rootList = Interpolation.Chebyshev.solveFromData(randomVectorOfLength100, 0)
+mark2 = os.clock()
+print("Computing roots through random data")
+print(Tools.list.tostring(randomVectorOfLength100))
+print("Roots: " .. Tools.list.tostring(rootList))
+print("Time: " .. tostring(mark2 - mark1))
+print()
+
+randomVectorOfLength100 = {}
+randomVectorOfLength100[1] = -2
+for i = 2, 100, 1 do
+    randomVectorOfLength100[i] = randomVectorOfLength100[i - 1] + math.random()
+end
+mark1 = os.clock()
+rootList = Interpolation.Chebyshev.solveFromData(randomVectorOfLength100, 0)
+mark2 = os.clock()
+print("Computing roots through random increasing data")
+print(Tools.list.tostring(randomVectorOfLength100))
+print("Roots: " .. Tools.list.tostring(rootList))
+print("Time: " .. tostring(mark2 - mark1))
+print()
