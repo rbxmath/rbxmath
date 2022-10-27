@@ -1,4 +1,4 @@
-local Tools = require("Tools")
+local Tools = require("src.Tools")
 
 local Scalars = {}
 
@@ -71,7 +71,7 @@ local _rationalFromArray = function (array)
         error("Division by zero!", -1)
     end
 
-    local result = {array[1], array[2]}
+    local result = {math.tointeger(array[1]), math.tointeger(array[2])}
 
     setmetatable(result, _rational)
 
@@ -83,7 +83,7 @@ local _rationalFromTwoInputs = function (a, b)
         error("Division by zero!", -1)
     end
 
-    local result = {a, b}
+    local result = {math.tointeger(a), math.tointeger(b)}
 
     setmetatable(result, _rational)
 
@@ -269,9 +269,15 @@ Scalars.Rational.rationalApproximation = function (float, tolerance)
     return _rationalApproximation(float, tolerance)
 end
 
+Scalars.Rational.rationalFromContinuedFraction = function (continuedFraction)
+    return _rationalFromContinuedFraction(continuedFraction)
+end
+
 Scalars.Rational.inverse = function (rational)
     return _rationalFromTwoInputs(rational[2], rational[1])
 end
+
+Scalars.ZmodP = {}
 
 Scalars.ZmodP.new = function (a, b)
     return _ZmodPFromTwoInputs(a, b)
@@ -284,3 +290,5 @@ end
 Scalars.ZmodP.inverse = function (zinteger)
     return _ZmodPInverse(zinteger)
 end
+
+return Scalars
