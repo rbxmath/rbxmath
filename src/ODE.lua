@@ -51,31 +51,22 @@ local _chebyshevSpectralDifferentionMatrix = function (n, chebyshevGridPoints)
     return MA.liSparseMatrix.new(D)
 end
 
-local _chebyshevFirstOrderSpectralMethod = function (fList, a, b, chebyshevGridPoints)
+local _chebyshevFirstOrderSpectralMethod = function (fList, a, chebyshevGridPoints)
     local n = #fList
     local chebyshevGrid = chebyshevGridPoints or cheb.grid(n - 1)
 
     local D = _chebyshevSpectralDifferentionMatrix(n - 1, chebyshevGrid)
     for i = 1, n, 1 do
-        if i == 1 and i == n then
+        if i == 1 then
             D[i] = 1
-            D[n] = 1
-            break
-        elseif i == 1 then
-            D[1] = 1
-            D[n * (n - 1) + 1] = 0
-        elseif i == n then
-            D[n * n] = 1
-            D[n] = 0
         else
             D[i] = 0
-            D[n * (n - 1) + i] = 0
         end
     end
 
     local vector = Tools.list.copy(fList)
 
-    vector[1], vector[n] = a, b
+    vector[1] = a
 
     return MA.liSparseMatrix.solve(D, vector)
 end
@@ -86,10 +77,10 @@ ODE.SpectralMethods.chebyshevDerivativeMatrix = function (n, chebyshevGridPoints
     return _chebyshevSpectralDifferentionMatrix(n, chebyshevGridPoints)
 end
 
-ODE.SpectralMethods.chebyshevFirstOrder = function (f, a, b, n, chebyshevGridPoints)
+ODE.SpectralMethods.chebyshevFirstOrder = function (f, a, n, chebyshevGridPoints)
     local chebyshevGrid = chebyshevGridPoints or cheb.grid(n)
     local fList = Tools.list.map(f, chebyshevGrid)
-    return _chebyshevFirstOrderSpectralMethod(fList, a, b, chebyshevGrid)
+    return _chebyshevFirstOrderSpectralMethod(fList, a, chebyshevGrid)
 end
 
 return ODE
