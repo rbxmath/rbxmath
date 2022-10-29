@@ -1,3 +1,5 @@
+local Tools = require("src.Tools")
+
 local MatrixAlgebra = {}
 
 local _linearlyIndexedSparseMatrix = {}
@@ -424,6 +426,7 @@ _linearlyIndexedSparseMatrixSquareSolve = function (matrix, vector)
         for j = i+1, numberOfColumns, 1 do
             temp = temp + matrix[numberOfColumns * (i - 1) + j] * columnVector[j]
         end
+        columnVector[i] = columnVector[i] or 0
         columnVector[i] = (columnVector[i] - temp) / matrix[numberOfColumns * (i - 1) + i]
     end
 
@@ -1242,6 +1245,20 @@ end
 
 MatrixAlgebra.liSparseMatrix.unflatten = function (matrix)
     return _sparseMatrixUnFlatten(matrix)
+end
+
+MatrixAlgebra.liSparseMatrix.apply = function (matrix, vector)
+    local columnVector = _linearlyIndexedSparseTranspose(_linearlyIndexedSparseMatrixFromTableOfTables({vector}))
+    columnVector = matrix * columnVector;
+    return Tools.list.copy(columnVector)
+end
+
+MatrixAlgebra.liSparseMatrix.scale = function (matrix, constant)
+    local copy = _linearlyIndexedSparseCopy(matrix)
+    for i, v in ipairs(matrix) do
+        copy[i] = constant * v
+    end
+    return copy
 end
 
 MatrixAlgebra.matrix = {}
