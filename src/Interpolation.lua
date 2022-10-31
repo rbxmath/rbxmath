@@ -200,6 +200,13 @@ local _linearRescalingFunction = function (a, b)
     end
 end
 
+local _chebyshevAntiderivative = function (f, n, chebyshevGrid, fList)
+    chebyshevGrid = chebyshevGrid or _chebyshevGrid(n)
+    fList = fList or Tools.list.map(f, chebyshevGrid)
+
+    
+end
+
 Interpolation.Chebyshev = {}
 
 Interpolation.Chebyshev.grid = function (n)

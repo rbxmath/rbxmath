@@ -1046,10 +1046,24 @@ _linearlyIndexedSparseMatrix.__add = function (left, right)
         error("Attempting to add sparse matrices of different sizes.")
     end
 
-    local inflatedLeft = _sparseMatrixUnFlatten(left)
-    local inflatedRight = _sparseMatrixUnFlatten(right)
+    local size = left.dimensions[1] * left.dimensions[2]
+    local copy = _linearlyIndexedSparseCopy(left)
 
-    return _sparseMatrixFlatten(inflatedLeft + inflatedRight)
+    for i = 1, size, 1 do
+        local leftVal = left[i]
+        local rightVal = right[i]
+        if leftVal then
+            if rightVal then
+                copy[i] = leftVal + rightVal
+            else
+                copy[i] = leftVal
+            end
+        elseif rightVal then
+            copy[i] = rightVal
+        end
+    end
+
+    return copy
 end
 
 _linearlyIndexedSparseMatrix.__sub = function (left, right)
@@ -1057,10 +1071,24 @@ _linearlyIndexedSparseMatrix.__sub = function (left, right)
         error("Attempting to add sparse matrices of different sizes.")
     end
 
-    local inflatedLeft = _sparseMatrixUnFlatten(left)
-    local inflatedRight = _sparseMatrixUnFlatten(right)
+    local size = left.dimensions[1] * left.dimensions[2]
+    local copy = _linearlyIndexedSparseCopy(left)
 
-    return _sparseMatrixFlatten(inflatedLeft - inflatedRight)
+    for i = 1, size, 1 do
+        local leftVal = left[i]
+        local rightVal = right[i]
+        if leftVal then
+            if rightVal then
+                copy[i] = leftVal - rightVal
+            else
+                copy[i] = leftVal
+            end
+        elseif rightVal then
+            copy[i] = -rightVal
+        end
+    end
+
+    return copy
 end
 
 _linearlyIndexedSparseMatrix.__mul = function (left, right)
@@ -1255,10 +1283,29 @@ end
 
 MatrixAlgebra.liSparseMatrix.scale = function (matrix, constant)
     local copy = _linearlyIndexedSparseCopy(matrix)
-    for i, v in ipairs(matrix) do
-        copy[i] = constant * v
+    local size = matrix.dimensions[1] * matrix.dimensions[2]
+    for i = 1, size, 1 do
+        local v = copy[i]
+        if v ~= nil then
+            copy[i] = constant * v
+        end
     end
     return copy
+end
+
+MatrixAlgebra.liSparseMatrix.toArrayOfArrays = function (matrix)
+    local result = {}
+    local numberOfRows = matrix.dimensions[1]
+    local numberOfColumns = matrix.dimensions[2]
+
+    for i = 1, numberOfRows, 1 do
+        result[i] = {}
+        for j = 1, numberOfColumns, 1 do
+            result[i][j] = matrix[numberOfRows * (i - 1) + j]
+        end
+    end
+
+    return result
 end
 
 MatrixAlgebra.matrix = {}
