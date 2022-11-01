@@ -5,6 +5,12 @@ local cheb = Interpolation.Chebyshev
 
 local ODE = {}
 
+local _linearRescalingFunction = function (a, b)
+    return function (x)
+        return (b - a) / 2 * (x - 1) + b
+    end
+end
+
 local _chebyshevSpectralDifferentionMatrix = function (n, p, chebyshevGridPoints)
     local chebyshevGrid = chebyshevGridPoints or cheb.grid(n)
     local d = {}
@@ -175,15 +181,33 @@ ODE.SpectralMethods.chebyshevFirstOrder = function (f, a, n, chebyshevGridPoints
     return _chebyshevFirstOrderSpectralMethod(fList, a, chebyshevGrid)
 end
 
-ODE.SpectralMethods.chebyshevSecondOrderBoundaryValueProblem = function (coeffList, f, a, b, n, chebyshevGridPoints)
+ODE.SpectralMethods.chebyshevSecondOrderBoundaryValueProblem = function (coeffList, f, boundary, boundaryValues, n, chebyshevGridPoints)
     local chebyshevGrid = chebyshevGridPoints or cheb.grid(n)
-    local fList = Tools.list.map(f, chebyshevGrid)
+    local y, x = boundary[1], boundary[2]
+    for i, v in ipairs(coeffList) do
+        if type(v) == "function" then
+            coeffList[i] = Tools.list.map(function (t) return ((x - y) / 2)^(i - #coeffList) * t end, Tools.list.map(v, Tools.list.map(_linearRescalingFunction(y, x), chebyshevGrid)))
+        elseif type(v) == "number" then
+            coeffList[i] = ((x - y) / 2)^(i - #coeffList) * coeffList[i]
+        end
+    end
+    local a, b = boundaryValues[1], boundaryValues[2]
+    local fList = Tools.list.map(f, Tools.list.map(_linearRescalingFunction(y, x), chebyshevGrid))
     return _chebyshevSecondtOrderBoundaryValueProblemSpectralMethod(coeffList, fList, a, b, chebyshevGrid)
 end
 
-ODE.SpectralMethods.chebyshevSecondOrderInitialValueProblem = function (coeffList, f, a, b, n, chebyshevGridPoints)
+ODE.SpectralMethods.chebyshevSecondOrderInitialValueProblem = function (coeffList, f, boundary, boundaryValues, n, chebyshevGridPoints)
     local chebyshevGrid = chebyshevGridPoints or cheb.grid(n)
-    local fList = Tools.list.map(f, chebyshevGrid)
+    local y, x = boundary[1], boundary[2]
+    for i, v in ipairs(coeffList) do
+        if type(v) == "function" then
+            coeffList[i] = Tools.list.map(function (t) return ((x - y) / 2)^(i - #coeffList) * t end, Tools.list.map(v, Tools.list.map(_linearRescalingFunction(y, x), chebyshevGrid)))
+        elseif type(v) == "number" then
+            coeffList[i] = ((x - y) / 2)^(i - #coeffList) * coeffList[i]
+        end
+    end
+    local a, b = boundaryValues[1], (x - y) * boundaryValues[2] / 2
+    local fList = Tools.list.map(f, Tools.list.map(_linearRescalingFunction(y, x), chebyshevGrid))
     return _chebyshevSecondtOrderInitialValueProblemSpectralMethod(coeffList, fList, a, b, chebyshevGrid)
 end
 

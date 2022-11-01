@@ -1281,13 +1281,26 @@ MatrixAlgebra.liSparseMatrix.apply = function (matrix, vector)
     return Tools.list.copy(columnVector)
 end
 
-MatrixAlgebra.liSparseMatrix.scale = function (matrix, constant)
+MatrixAlgebra.liSparseMatrix.scale = function (matrix, c)
     local copy = _linearlyIndexedSparseCopy(matrix)
-    local size = matrix.dimensions[1] * matrix.dimensions[2]
-    for i = 1, size, 1 do
-        local v = copy[i]
-        if v ~= nil then
-            copy[i] = constant * v
+    local numberOfRows = matrix.dimensions[1]
+    local numberOfColumns = matrix.dimensions[2]
+    local size = numberOfRows * numberOfColumns
+    if type(c) == "number" then
+        for i = 1, size, 1 do
+            local v = copy[i]
+            if v ~= nil then
+                copy[i] = c * v
+            end
+        end
+    elseif type(c) == "table" then
+        for i = 1, numberOfRows, 1 do
+            for j = 1, numberOfColumns, 1 do
+                local v = copy[numberOfRows * (i - 1) + j]
+                if v ~= nil then
+                    copy[numberOfRows * (i - 1) + j] = c[i] * v
+                end
+            end
         end
     end
     return copy
