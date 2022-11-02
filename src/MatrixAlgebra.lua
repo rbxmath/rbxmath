@@ -454,12 +454,12 @@ local _sparseVectorFromArray = function (array)
 
     rawset(result, "keys", {})
 
-    rawset(result, "length", 0)
+    rawset(result, "length", #array)
 
     for i = 1, #array do
         if array[i] ~= 0 then
             result[i] = array[i]
-            result.keys[result.keys.length + 1] = i
+            result.keys[#result.keys + 1] = i
         end
     end
 
@@ -492,8 +492,11 @@ local _sparseVectorCopy = function (vector)
 
     rawset(copy, "length", vector.length)
 
-    for k in vector.keys do
-        copy.keys[#copy.keys + 1] = k
+    for _, k in ipairs(vector.keys) do
+        if vector[k] ~= nil then
+            copy.keys[#copy.keys + 1] = k
+            copy[k] = vector[k]
+        end
     end
 
     return copy
@@ -557,41 +560,59 @@ local _sparseOnesVector = function (n)
 end
 
 local _keyUnion = function (left, right)
-    local j = 1
+    table.sort(left)
+    table.sort(right)
 
-    if #left < #right then
-        left, right = right, left
-    end
+    local result = {}
 
-    local keys = {}
-
+    local i = 0
+    local j = 0
     local index = 1
 
-    for i = 1, #left do
-        local val1 = left[i]
-        local val2 = right[j]
-
-        while val2 and val1 > val2 do
-            keys[index] = val2
-            index = index + 1
+    while i < #left or j < #right do
+        if i == #left then
+            result[index] = right[j + 1]
             j = j + 1
-            val2 = right[j]
-        end
-        if val1 == val2 then
-            keys[index] = val1
             index = index + 1
+        elseif j == #right then
+            result[index] = left[i + 1]
+            i = i + 1
+            index = index + 1
+        elseif left[i + 1] < right[j + 1] then
+            result[index] = left[i + 1]
+            i = i + 1
+            index = index + 1
+        elseif left[i + 1] == right[j + 1] then
+            result[index] = left[i + 1]
+            i = i + 1
             j = j + 1
+            index = index + 1
         else
-            keys[index] = val1
+            result[index] = right[j + 1]
+            j = j + 1
             index = index + 1
         end
     end
 
-    return keys
+    return result
 end
 
 local _sparseVectorSwap = function (vector, n, m)
     vector[n], vector[m] = vector[m], vector[n]
+
+    return vector
+end
+
+local _sparseVectorScale = function (vector, scale)
+    if type(scale) == "table" then
+        for i, v in ipairs(vector.keys) do
+            vector[v] = scale[v] * vector[v]
+        end
+    elseif type(scale) == "number" then
+        for i, v in ipairs(vector.keys) do
+            vector[v] = scale * vector[v]
+        end
+    end
 
     return vector
 end
@@ -607,6 +628,25 @@ local _sparseMatrixFromArrayOfArrays = function (ArrayOfArrays)
 
     for i = 1, #ArrayOfArrays do
         local row = _sparseVectorFromArray(ArrayOfArrays[i])
+        if #row.keys ~= 0 then
+            result[i] = row
+            result.keys[#result.keys+1] = i
+        end
+    end
+
+    return result
+end
+
+local _sparseMatrixFromNumericArrayOfArrays = function (ArrayOfArrays, tol)
+    tol = tol or 0
+    local result = setmetatable({}, _sparseMatrix)
+
+    rawset(result, "dimensions", {#ArrayOfArrays, #ArrayOfArrays[1]})
+
+    rawset(result, "keys", {})
+
+    for i = 1, #ArrayOfArrays do
+        local row = _sparseVectorFromNumericArray(ArrayOfArrays[i], tol)
         if #row.keys ~= 0 then
             result[i] = row
             result.keys[#result.keys+1] = i
@@ -653,8 +693,239 @@ local _sparseLeftPermutationMatrix = function (n, permuations)
     return _sparseMatrixRowPermute(result, permuations)
 end
 
+local _sparseMatrixTranspose = function (matrix)
+    local result = setmetatable({}, _sparseMatrix)
+
+    result.dimensions = {}
+    result.dimensions[1], result.dimensions[2] = matrix.dimensions[2], matrix.dimensions[1]
+
+    result.keys = {}
+
+    for i = 1, matrix.dimensions[2] do
+        local array = {}
+        for j = 1, matrix.dimensions[1] do
+            array[j] = matrix[j][i] or 0
+        end
+        local row = _sparseVectorFromArray(array)
+        if #row.keys ~= 0 then
+            result[i] = row
+            result.keys[#result.keys+1] = i
+        end
+    end
+
+    return result
+end
+
 local _sparseMatrixLU = function (matrix)
-    
+    local numberOfRows = matrix.dimensions[1]
+    local numberOfColumns = matrix.dimensions[2]
+
+    if numberOfRows ~= numberOfColumns then
+        error("Cannot compute LU of sparse rectangular matrix.")
+    end
+
+    local permuations = {}
+
+    local l = _sparseMatrixIdentity(numberOfRows)
+
+    for i = 1, numberOfColumns - 1 do
+        local maxRow = i
+        local max = matrix[i][i] or 0
+
+        for j = i, numberOfRows do
+            local maxCandidate = matrix[j][i] or 0
+            maxCandidate = math.abs(maxCandidate)
+            if maxCandidate ~= nil and maxCandidate > max then
+                max = maxCandidate
+                maxRow = j
+            end
+        end
+
+        if max == 0 then
+            error("Sparse matrix is not invertible")
+        end
+
+        if maxRow ~= i then
+            matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+            for k = 1, i - 1 do
+                l[i][k], l[maxRow][k] = l[maxRow][k], l[i][k]
+            end
+            permuations[i] = maxRow
+        end
+
+        max = matrix[i][i]
+
+        for j = i + 1, numberOfRows do
+            local val = matrix[j][i]
+            if val ~= nil then
+                local valOverMax = val / max
+                l[j][i] = valOverMax
+                matrix[j][i] = nil
+                for k = i + 1, numberOfColumns do
+                    local val1 = matrix[j][k]
+                    local val2 = matrix[i][k]
+                    if val1 ~= nil and val2 ~= nil then
+                        matrix[j][k] = val1 - val2 * valOverMax
+                    elseif val2 ~= nil then
+                        matrix[j][k] = -val2 * valOverMax
+                    end
+                end
+            end
+        end
+    end
+
+    local permuationMatrix = _linearlyIndexedSparsePermutationMatrix(numberOfRows, permuations)
+
+    return {l, matrix, permuationMatrix}
+end
+
+local _sparseMatrixInverse = function (matrix)
+    local numberOfRows = matrix.dimensions[1]
+    local numberOfColumns = matrix.dimensions[2]
+
+    if numberOfRows ~= numberOfColumns then
+        error("Cannot compute inverse of sparse rectangular matrix.")
+    end
+
+    local result = _sparseMatrixIdentity(numberOfRows)
+
+    for i = 1, numberOfColumns - 1 do
+        local maxRow = i
+        local max = matrix[i][i] or 0
+
+        for j = i, numberOfRows do
+            local maxCandidate = matrix[j][i] or 0
+            maxCandidate = math.abs(maxCandidate)
+            if maxCandidate ~= nil and maxCandidate > max then
+                max = maxCandidate
+                maxRow = j
+            end
+        end
+
+        if max == 0 then
+            error("Sparse matrix is not invertible")
+        end
+
+        if maxRow ~= i then
+            matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+            result[i], result[maxRow] = result[maxRow], result[i]
+        end
+
+        max = matrix[i][i]
+
+        for j = i + 1, numberOfRows do
+            local val = matrix[j][i]
+            if val ~= nil then
+                local valOverMax = val / max
+                matrix[j][i] = nil
+                result[j] = result[j] + _sparseVectorScale(_sparseVectorCopy(result[i]), -valOverMax)
+                for k = i + 1, numberOfColumns do
+                    local val1 = matrix[j][k]
+                    local val2 = matrix[i][k]
+                    if val1 ~= nil and val2 ~= nil then
+                        matrix[j][k] = val1 - val2 * valOverMax
+                    elseif val2 ~= nil then
+                        matrix[j][k] = -val2 * valOverMax
+                    end
+                end
+            end
+        end
+    end
+
+    for i = numberOfRows, 1, -1 do
+        local val = matrix[i][i]
+        for j = 1, i - 1 do
+            local val1 = matrix[i - j][i]
+            if val1 ~= nil then
+                result[i - j] = result[i - j] + _sparseVectorScale(_sparseVectorCopy(result[i]), -val1 / val)
+            end
+        end
+        for j = 1, numberOfColumns do
+            if result[i][j] then
+                result[i][j] = result[i][j] / val
+            end
+        end
+    end
+
+    return result
+end
+
+local _sparseMatrixSquareSolve
+_sparseMatrixSquareSolve = function (matrix, vector)
+    local numberOfRows = matrix.dimensions[1]
+    local numberOfColumns = matrix.dimensions[2]
+
+    if numberOfRows ~= numberOfColumns then
+        error("Cannot solve sparse rectangular system with this function.")
+    end
+
+    if #matrix.keys ~= numberOfRows then
+        error("Cannot solve degenerate system with this function.")
+    end
+
+    local columnVector = _sparseMatrixTranspose(_sparseMatrixFromArrayOfArrays({vector}))
+
+    for i = 1, numberOfColumns - 1 do
+        local maxRow = i
+        local max = matrix[i][i] or 0
+
+        for j = i, numberOfRows do
+            local maxCandidate = matrix[j][i] or 0
+            maxCandidate = math.abs(maxCandidate)
+            if maxCandidate ~= nil and maxCandidate > max then
+                max = maxCandidate
+                maxRow = j
+            end
+        end
+
+        if max == 0 then
+            error("Sparse matrix system is not solvable")
+        end
+
+        if maxRow ~= i then
+            matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+            columnVector[i], columnVector[maxRow] = columnVector[maxRow], columnVector[i]
+        end
+
+        max = matrix[i][i]
+
+        for j = i + 1, numberOfRows do
+            local val = matrix[j][i]
+            if val ~= nil then
+                local valOverMax = val / max
+                local columnVal1, columnVal2 = columnVector[j][1], columnVector[i][1]
+                if columnVal1 ~= nil and columnVal2 ~= nil then
+                    columnVector[j][1] = columnVal1 - valOverMax * columnVal2
+                elseif columnVal2 ~= nil then
+                    columnVector[j][1] = -valOverMax * columnVal2
+                end
+                matrix[j][i] = nil
+                for k = i + 1, numberOfColumns do
+                    local val1 = matrix[j][k]
+                    local val2 = matrix[i][k]
+                    if val1 ~= nil and val2 ~= nil then
+                        matrix[j][k] = val1 - val2 * valOverMax
+                    elseif val2 ~= nil then
+                        matrix[j][k] = -val2 * valOverMax
+                    end
+                end
+            end
+        end
+    end
+
+    for i = numberOfRows, 1, -1 do
+        local temp = 0
+        for j = i+1, numberOfColumns, 1 do
+            temp = temp + matrix[i][j] * columnVector[j][1]
+        end
+        columnVector[i][1] = columnVector[i][1] or 0
+        if matrix[i][i] == nil then
+            error("Sparse matrix system is not solvable")
+        end
+        columnVector[i][1] = (columnVector[i][1] - temp) / matrix[i][i]
+    end
+
+    return columnVector
 end
 
 local _sparseMatrixColumn = function (matrix, n)
@@ -739,6 +1010,19 @@ local _sparseMatrixUnFlatten = function (matrix)
     end
 
     rawset(result, "keys", keys)
+
+    return result
+end
+
+local _sparseMatrixCopy = function (matrix)
+    local result = {}
+    setmetatable(result, _sparseMatrix)
+    result.keys = Tools.list.copy(matrix.keys)
+    result.dimensions = Tools.list.copy(matrix.dimensions)
+
+    for _, v in ipairs(matrix.keys) do
+        result[v] = _sparseVectorCopy(matrix[v])
+    end
 
     return result
 end
@@ -1006,10 +1290,30 @@ _sparseMatrix.__sub = function (left, right)
 end
 
 _sparseMatrix.__mul = function (left, right)
-    local liLeft = _sparseMatrixFlatten(left)
-    local liRight = _sparseMatrixFlatten(right)
+    if left.dimensions[2] ~= right.dimensions[1] then
+        error("Attempting to multiply incompatible sparse matrices.")
+    end
 
-    local result = _sparseMatrixUnFlatten(liLeft * liRight)
+    local rightTranspose = _sparseMatrixTranspose(right)
+
+    local result = setmetatable({}, _sparseMatrix)
+    result.keys, result.dimensions = {}, {}
+    result.dimensions[1], result.dimensions[2] = left.dimensions[1], right.dimensions[2]
+
+    for _, i in ipairs(left.keys) do
+        local row = _sparseZeroVector(result.dimensions[2])
+        for _, j in ipairs(rightTranspose.keys) do
+            local val = left[i] * rightTranspose[j]
+            if val ~= nil then
+                row[j] = val
+                row.keys[#row.keys+1] = j
+            end
+        end
+        if #row.keys ~= 0 then
+            result[i] = row
+            result.keys[#result.keys+1] = i
+        end
+    end
 
     return result
 end
@@ -1216,12 +1520,56 @@ MatrixAlgebra.sparseMatrix.new = function (ArrayOfArrays)
     return _sparseMatrixFromArrayOfArrays(ArrayOfArrays)
 end
 
+MatrixAlgebra.sparseMatrix.newNumeric = function (ArrayOfArrays, tol)
+    return _sparseMatrixFromNumericArrayOfArrays(ArrayOfArrays, tol)
+end
+
+MatrixAlgebra.sparseMatrix.zero = function (n, m)
+    local ArrayOfArrays = {}
+    for i = 1, n, 1 do
+        ArrayOfArrays[i] = {}
+        for j = 1, m, 1 do
+            ArrayOfArrays[i][j] = 0
+        end
+    end
+
+    return _sparseMatrixFromArrayOfArrays(ArrayOfArrays)
+end
+
 MatrixAlgebra.sparseMatrix.identity = function (n)
     return _sparseMatrixIdentity(n)
 end
 
 MatrixAlgebra.sparseMatrix.flatten = function (matrix)
     return _sparseMatrixFlatten(matrix)
+end
+
+MatrixAlgebra.sparseMatrix.lu = function (matrix)
+    local temp = _sparseMatrixCopy(matrix)
+    return _sparseMatrixLU(temp)
+end
+
+MatrixAlgebra.sparseMatrix.inverse = function (matrix)
+    local temp = _sparseMatrixCopy(matrix)
+    return _sparseMatrixInverse(temp)
+end
+
+MatrixAlgebra.sparseMatrix.solve = function (matrix, vector)
+    local temp = _sparseMatrixCopy(matrix)
+    return _sparseMatrixSquareSolve(temp, vector)
+end
+
+MatrixAlgebra.sparseMatrix.random = function (n, m, a, b, tol)
+    local ArrayOfArrays = {}
+
+    for i = 1, n do
+        ArrayOfArrays[i] = {}
+        for j = 1, m do
+            ArrayOfArrays[i][j] = (b - a) * math.random() + a
+        end
+    end
+
+    return _sparseMatrixFromNumericArrayOfArrays(ArrayOfArrays, tol)
 end
 
 MatrixAlgebra.liSparseMatrix = {}
