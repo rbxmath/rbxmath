@@ -1030,7 +1030,16 @@ end
 local _matrix = {}
 
 local _matrixFromTableOfTables = function (tableOfTables)
-    local result = setmetatable(tableOfTables, _matrix)
+    local result = {}
+
+    for i = 1, #tableOfTables do
+        result[i] = {}
+        for j = 1, #tableOfTables[1] do
+            result[i][j] = tableOfTables[i][j]
+        end
+    end
+
+    result = setmetatable(result, _matrix)
 
     return result
 end
@@ -1147,7 +1156,7 @@ local _matrixLU = function (matrix)
             local val = matrix[j][i]
             local valOverMax = val / max
             l[j][i] = valOverMax
-            matrix[j][i] = nil
+            matrix[j][i] = 0
             for k = i + 1, numberOfColumns do
                 matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
             end
@@ -1196,8 +1205,7 @@ local _matrixInverse = function (matrix)
         for j = i + 1, numberOfRows do
             local val = matrix[j][i]
             local valOverMax = val / max
-            matrix[j][i] = nil
-            result[j] = result[j] + _sparseVectorScale(_sparseVectorCopy(result[i]), -valOverMax)
+            matrix[j][i] = 0
             for k = 1, numberOfColumns do
                 if k > i then
                     matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
@@ -1282,7 +1290,10 @@ _matrixSquareSolve = function (matrix, vector)
             error("Sparse matrix system is not solvable")
         end
         columnVector[i][1] = (columnVector[i][1] - temp) / matrix[i][i]
-        result[i] = (columnVector[i][1] - temp) / matrix[i][i]
+    end
+
+    for i = 1, numberOfRows do
+        result[i] = columnVector[i][1]
     end
 
     return result
@@ -1761,6 +1772,28 @@ _matrix.__sub = function (left, right)
     return _matrixFromTableOfTables(result)
 end
 
+_matrix.__mul = function (left, right)
+    if #left[1] ~= #right then
+        error("Attempting to multiply incompatible sparse matrices.")
+    end
+
+    local result = setmetatable({}, _matrix)
+
+    for i = 1, #left do
+        local row = {}
+        for j = 1, #right[1] do
+            local val = 0
+            for k = 1, #left[1] do
+                val = val + left[i][k] * right[k][j]
+            end
+            row[j] = val
+        end
+        result[i] = row
+    end
+
+    return result
+end
+
 _matrix.__tostring = function (matrix)
     local result = "{"
 
@@ -2005,7 +2038,13 @@ end
 MatrixAlgebra.matrix.apply = function (matrix, vector)
     local columnVector = _matrixTranspose(_matrixFromTableOfTables({vector}))
     columnVector = matrix * columnVector;
-    return Tools.list.copy(columnVector)
+
+    local result = {}
+    for i = 1, #columnVector do
+        result[i] = columnVector[i][1]
+    end
+
+    return result
 end
 
 MatrixAlgebra.matrix.scale = function (matrix, c)
