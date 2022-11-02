@@ -84,7 +84,7 @@ local _chebyshevSpectralDifferentionMatrix = function (n, p, chebyshevGridPoints
 
     local result = {}
     for i = 1, p+1, 1 do
-        result[i] = MA.liSparseMatrix.newNumeric(D[i], 10^-14)
+        result[i] = MA.matrix.new(D[i])
     end
 
     return result
@@ -97,9 +97,9 @@ local _chebyshevFirstOrderSpectralMethod = function (fList, a, chebyshevGridPoin
     local D = cheb.derivativeMatrix(n - 1, chebyshevGrid)
     for i = 1, n, 1 do
         if i == 1 then
-            D[i] = 1
+            D[1][i] = 1
         else
-            D[i] = 0
+            D[1][i] = 0
         end
     end
 
@@ -107,7 +107,7 @@ local _chebyshevFirstOrderSpectralMethod = function (fList, a, chebyshevGridPoin
 
     vector[1] = a
 
-    return MA.liSparseMatrix.solve(D, vector)
+    return MA.matrix.solve(D, vector)
 end
 
 local _chebyshevSecondtOrderBoundaryValueProblemSpectralMethod = function (coeffList, fList, a, b, chebyshevGridPoints)
@@ -117,18 +117,18 @@ local _chebyshevSecondtOrderBoundaryValueProblemSpectralMethod = function (coeff
     b = b or 0
 
     local DList = _chebyshevSpectralDifferentionMatrix(n - 1, 2, chebyshevGrid)
-    local D = MA.liSparseMatrix.scale(DList[3], coeffList[1]) + MA.liSparseMatrix.scale(DList[2], coeffList[2]) + MA.liSparseMatrix.scale(DList[1], coeffList[3])
+    local D = MA.matrix.scale(DList[3], coeffList[1]) + MA.matrix.scale(DList[2], coeffList[2]) + MA.matrix.scale(DList[1], coeffList[3])
 
     for i = 1, n, 1 do
         if i == 1 then
-            D[i] = 1
-            D[n * (n-1) + i] = 0
+            D[1][1] = 1
+            D[n][1] = 0
         elseif i == n then
-            D[i] = 0
-            D[n * (n-1) + i] = 1
+            D[1][i] = 0
+            D[n][i] = 1
         else
-            D[i] = 0
-            D[n * (n-1) + i] = 0
+            D[1][i] = 0
+            D[n][i] = 0
         end
     end
     local vector = Tools.list.copy(fList)
@@ -136,7 +136,7 @@ local _chebyshevSecondtOrderBoundaryValueProblemSpectralMethod = function (coeff
     vector[1] = a
     vector[n] = b
 
-    return MA.liSparseMatrix.solve(D, vector)
+    return MA.matrix.solve(D, vector)
 end
 
 local _chebyshevSecondtOrderInitialValueProblemSpectralMethod = function (coeffList, fList, a, b, chebyshevGridPoints)
@@ -146,15 +146,15 @@ local _chebyshevSecondtOrderInitialValueProblemSpectralMethod = function (coeffL
     b = b or 0
 
     local DList = _chebyshevSpectralDifferentionMatrix(n - 1, 2, chebyshevGrid)
-    local D = MA.liSparseMatrix.scale(DList[3], coeffList[1]) + MA.liSparseMatrix.scale(DList[2], coeffList[2]) + MA.liSparseMatrix.scale(DList[1], coeffList[3])
+    local D = MA.matrix.scale(DList[3], coeffList[1]) + MA.matrix.scale(DList[2], coeffList[2]) + MA.matrix.scale(DList[1], coeffList[3])
 
     for i = 1, n, 1 do
         if i == 1 then
-            D[i] = 1
-            D[n + i] = DList[2][i]
+            D[1][i] = 1
+            D[2][i] = DList[2][1][i]
         else
-            D[i] = 0
-            D[n + i] = DList[2][i]
+            D[1][i] = 0
+            D[2][i] = DList[2][1][i]
         end
     end
     local vector = Tools.list.copy(fList)
@@ -162,7 +162,7 @@ local _chebyshevSecondtOrderInitialValueProblemSpectralMethod = function (coeffL
     vector[1] = a
     vector[2] = b
 
-    return MA.liSparseMatrix.solve(D, vector)
+    return MA.matrix.solve(D, vector)
 end
 
 ODE.SpectralMethods = {}

@@ -774,7 +774,7 @@ local _sparseMatrixLU = function (matrix)
         end
     end
 
-    local permuationMatrix = _linearlyIndexedSparsePermutationMatrix(numberOfRows, permuations)
+    local permuationMatrix = _sparseLeftPermutationMatrix(numberOfRows, permuations)
 
     return {l, matrix, permuationMatrix}
 end
@@ -1032,8 +1032,6 @@ local _matrix = {}
 local _matrixFromTableOfTables = function (tableOfTables)
     local result = setmetatable(tableOfTables, _matrix)
 
-    rawset(result, "dimensions", {#tableOfTables,#tableOfTables[1]})
-
     return result
 end
 
@@ -1076,6 +1074,277 @@ local _matrixZero = function (n, m)
 
     for i = 1, n do
         result[i] = _zeroVector(m)
+    end
+
+    return _matrixFromTableOfTables(result)
+end
+
+local _matrixRowPermute = function (matrix, permuations)
+    for n, m in ipairs(permuations) do
+        matrix[n], matrix[m] = matrix[m], matrix[n]
+    end
+    return matrix
+end
+
+local _leftPermutationMatrix = function (n, permuations)
+    local result = _matrixIdentity(n)
+
+    return _matrixRowPermute(result, permuations)
+end
+
+local _matrixTranspose = function (matrix)
+    local arrayOfArrays = _matrixZero(#matrix[1], #matrix)
+
+    for i = 1, #matrix do
+        for j = 1, #matrix[1] do
+            arrayOfArrays[j][i] = matrix[i][j]
+        end
+    end
+
+    return _matrixFromTableOfTables(arrayOfArrays)
+end
+
+local _matrixLU = function (matrix)
+    local numberOfRows = #matrix
+    local numberOfColumns = #matrix[1]
+
+    if numberOfRows ~= numberOfColumns then
+        error("Cannot compute LU of rectangular matrix.")
+    end
+
+    local permuations = {}
+
+    local l = _matrixIdentity(numberOfRows)
+
+    for i = 1, numberOfColumns - 1 do
+        local maxRow = i
+        local max = matrix[i][i]
+
+        for j = i, numberOfRows do
+            local maxCandidate = matrix[j][i]
+            maxCandidate = math.abs(maxCandidate)
+            if maxCandidate > max then
+                max = maxCandidate
+                maxRow = j
+            end
+        end
+
+        if max == 0 then
+            error("Sparse matrix is not invertible")
+        end
+
+        if maxRow ~= i then
+            matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+            for k = 1, i - 1 do
+                l[i][k], l[maxRow][k] = l[maxRow][k], l[i][k]
+            end
+            permuations[i] = maxRow
+        end
+
+        max = matrix[i][i]
+
+        for j = i + 1, numberOfRows do
+            local val = matrix[j][i]
+            local valOverMax = val / max
+            l[j][i] = valOverMax
+            matrix[j][i] = nil
+            for k = i + 1, numberOfColumns do
+                matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
+            end
+        end
+    end
+
+    local permuationMatrix = _leftPermutationMatrix(numberOfRows, permuations)
+
+    return {l, matrix, permuationMatrix}
+end
+
+local _matrixInverse = function (matrix)
+    local numberOfRows = #matrix
+    local numberOfColumns = #matrix[1]
+
+    if numberOfRows ~= numberOfColumns then
+        error("Cannot compute inverse of sparse rectangular matrix.")
+    end
+
+    local result = _matrixIdentity(numberOfRows)
+
+    for i = 1, numberOfColumns - 1 do
+        local maxRow = i
+        local max = matrix[i][i] or 0
+
+        for j = i, numberOfRows do
+            local maxCandidate = matrix[j][i]
+            maxCandidate = math.abs(maxCandidate)
+            if maxCandidate > max then
+                max = maxCandidate
+                maxRow = j
+            end
+        end
+
+        if max == 0 then
+            error("Sparse matrix is not invertible")
+        end
+
+        if maxRow ~= i then
+            matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+            result[i], result[maxRow] = result[maxRow], result[i]
+        end
+
+        max = matrix[i][i]
+
+        for j = i + 1, numberOfRows do
+            local val = matrix[j][i]
+            local valOverMax = val / max
+            matrix[j][i] = nil
+            result[j] = result[j] + _sparseVectorScale(_sparseVectorCopy(result[i]), -valOverMax)
+            for k = 1, numberOfColumns do
+                if k > i then
+                    matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
+                end
+                result[j][k] = result[j][k] - result[i][k] * valOverMax
+            end
+        end
+    end
+
+    for i = numberOfRows, 1, -1 do
+        local val = matrix[i][i]
+        for j = 1, i - 1 do
+            local val1 = matrix[i - j][i]
+            for k = 1, numberOfColumns do
+                result[i - j][k] = result[i - j][k] - val1 * result[i][k] / val
+            end
+        end
+        for j = 1, numberOfColumns do
+            result[i][j] = result[i][j] / val
+        end
+    end
+
+    return result
+end
+
+local _matrixSquareSolve
+_matrixSquareSolve = function (matrix, vector)
+    local numberOfRows = #matrix
+    local numberOfColumns = #matrix[1]
+
+    if numberOfRows ~= numberOfColumns then
+        error("Cannot solve sparse rectangular system with this function.")
+    end
+
+    local columnVector = _matrixTranspose(_matrixFromTableOfTables({vector}))
+
+    for i = 1, numberOfColumns - 1 do
+        local maxRow = i
+        local max = matrix[i][i]
+
+        for j = i, numberOfRows do
+            local maxCandidate = matrix[j][i]
+            maxCandidate = math.abs(maxCandidate)
+            if maxCandidate > max then
+                max = maxCandidate
+                maxRow = j
+            end
+        end
+
+        if max == 0 then
+            error("Sparse matrix system is not solvable")
+        end
+
+        if maxRow ~= i then
+            matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+            columnVector[i], columnVector[maxRow] = columnVector[maxRow], columnVector[i]
+        end
+
+        max = matrix[i][i]
+
+        for j = i + 1, numberOfRows do
+            local val = matrix[j][i]
+            local valOverMax = val / max
+            local columnVal1, columnVal2 = columnVector[j][1], columnVector[i][1]
+            columnVector[j][1] = columnVal1 - valOverMax * columnVal2
+            matrix[j][i] = 0
+            for k = i + 1, numberOfColumns do
+                matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
+            end
+        end
+    end
+
+    local result = {}
+
+    for i = numberOfRows, 1, -1 do
+        local temp = 0
+        for j = i+1, numberOfColumns, 1 do
+            temp = temp + matrix[i][j] * columnVector[j][1]
+        end
+        columnVector[i][1] = columnVector[i][1]
+        if matrix[i][i] == 0 then
+            error("Sparse matrix system is not solvable")
+        end
+        columnVector[i][1] = (columnVector[i][1] - temp) / matrix[i][i]
+        result[i] = (columnVector[i][1] - temp) / matrix[i][i]
+    end
+
+    return result
+end
+
+local _matrixFlatten = function (matrix)
+    local result = setmetatable({}, _linearlyIndexedSparseMatrix)
+
+    local numberOfRows = #matrix
+    local numberOfColumns = #matrix[1]
+
+    rawset(result, "dimensions", {numberOfRows, numberOfColumns})
+
+    for i = 1, numberOfRows do
+        local row = matrix[i]
+        local rowConstant = numberOfColumns * (i - 1)
+        for ii = 1, numberOfColumns do
+            result[rowConstant + ii] = row[ii]
+        end
+    end
+
+    return result
+end
+
+local _matrixUnFlatten = function (matrix)
+    local result = setmetatable({}, _matrix)
+
+    local numberOfRows = matrix.dimensions[1]
+    local numberOfColumns = matrix.dimensions[2]
+
+    local rowNumber = 0
+
+    for k, v in pairs(matrix) do
+        if type(k) == "number" then
+            local columnNumber = k % numberOfColumns
+            if columnNumber == 0 then
+                columnNumber = numberOfColumns
+            end
+            local tempRowNumber = math.floor((k - columnNumber) / numberOfColumns + 1.1)
+            if tempRowNumber > rowNumber then
+                local row = _zeroVector(numberOfColumns)
+                row[columnNumber] = v
+                result[tempRowNumber] = row
+                rowNumber = tempRowNumber
+            else
+                local row = result[rowNumber]
+                row[columnNumber] = v
+            end
+        end
+    end
+
+    return result
+end
+
+local _matrixCopy = function (matrix)
+    local result = {}
+
+    for i = 1, #matrix do
+        result[i] = {}
+        for j = 1, #matrix[1] do
+            result[i][j] = matrix[i][j]
+        end
     end
 
     return _matrixFromTableOfTables(result)
@@ -1459,16 +1728,16 @@ _linearlyIndexedSparseMatrix.__tostring = function (matrix)
 end
 
 _matrix.__add = function (left, right)
-    if left.dimensions[1] ~= right.dimensions[1] or left.dimensions[2] ~= right.dimensions[2] then
+    if #left ~= #right or #left[1] ~= #right[1] then
         error("Attempting to add matrices of different sizes.")
     end
 
     local result = {}
 
-    for k, v in ipairs(left) do
-        result[k] = {}
-        for kk, vv in ipairs(v) do
-            result[k] = vv + right[k][kk]
+    for i = 1, #left do
+        result[i] = {}
+        for j = 1, #left[1] do
+            result[i][j] = left[i][j] + right[i][j]
         end
     end
 
@@ -1476,20 +1745,38 @@ _matrix.__add = function (left, right)
 end
 
 _matrix.__sub = function (left, right)
-    if left.dimensions[1] ~= right.dimensions[1] or left.dimensions[2] ~= right.dimensions[2] then
+    if #left ~= #right or #left[1] ~= #right[1] then
         error("Attempting to add matrices of different sizes.")
     end
 
     local result = {}
 
-    for k, v in ipairs(left) do
-        result[k] = {}
-        for kk, vv in ipairs(v) do
-            result[k] = vv - right[k][kk]
+    for i = 1, #left do
+        result[i] = {}
+        for j = 1, #left[1] do
+            result[i][j] = left[i][j] - right[i][j]
         end
     end
 
     return _matrixFromTableOfTables(result)
+end
+
+_matrix.__tostring = function (matrix)
+    local result = "{"
+
+    local length = #matrix
+
+    for i = 1, length - 1 do
+        local val = matrix[i]
+        result = result .. Tools.list.tostring(val) .. ","
+    end
+
+    local val = matrix[length]
+    result = result .. Tools.list.tostring(val)
+
+    result = result .. "}"
+
+    return result
 end
 
 MatrixAlgebra.sparseVector = {}
@@ -1681,6 +1968,91 @@ end
 
 MatrixAlgebra.matrix.zero = function (n, m)
     return _matrixZero(n, m)
+end
+
+MatrixAlgebra.matrix.flatten = function (matrix)
+    return _matrixFlatten(matrix)
+end
+
+MatrixAlgebra.matrix.lu = function (matrix)
+    local temp = _matrixCopy(matrix)
+    return _matrixLU(temp)
+end
+
+MatrixAlgebra.matrix.inverse = function (matrix)
+    local temp = _matrixCopy(matrix)
+    return _matrixInverse(temp)
+end
+
+MatrixAlgebra.matrix.solve = function (matrix, vector)
+    local temp = _matrixCopy(matrix)
+    return _matrixSquareSolve(temp, vector)
+end
+
+MatrixAlgebra.matrix.random = function (n, m, a, b)
+    local ArrayOfArrays = {}
+
+    for i = 1, n do
+        ArrayOfArrays[i] = {}
+        for j = 1, m do
+            ArrayOfArrays[i][j] = (b - a) * math.random() + a
+        end
+    end
+
+    return _matrixFromTableOfTables(ArrayOfArrays)
+end
+
+MatrixAlgebra.matrix.apply = function (matrix, vector)
+    local columnVector = _matrixTranspose(_matrixFromTableOfTables({vector}))
+    columnVector = matrix * columnVector;
+    return Tools.list.copy(columnVector)
+end
+
+MatrixAlgebra.matrix.scale = function (matrix, c)
+    local copy = _matrixCopy(matrix)
+    local numberOfRows = #matrix
+    local numberOfColumns = #matrix[1]
+    if type(c) == "number" then
+        for i = 1, numberOfRows, 1 do
+            for j = 1, numberOfColumns, 1 do
+                copy[i][j] = c * copy[i][j]
+            end
+        end
+    elseif type(c) == "table" then
+        for i = 1, numberOfRows, 1 do
+            for j = 1, numberOfColumns, 1 do
+                copy[i][j] = c[i] * copy[i][j]
+            end
+        end
+    end
+    return copy
+end
+
+MatrixAlgebra.matrix.map = function (matrix, f)
+    local copy = _matrixCopy(matrix)
+    local numberOfRows = #matrix
+    local numberOfColumns = #matrix[1]
+    for i = 1, numberOfRows, 1 do
+        for j = 1, numberOfColumns, 1 do
+            copy[i][j] = f(copy[i][j])
+        end
+    end
+    return copy
+end
+
+MatrixAlgebra.matrix.toArrayOfArrays = function (matrix)
+    local result = {}
+    local numberOfRows = #matrix
+    local numberOfColumns = #matrix[1]
+
+    for i = 1, numberOfRows, 1 do
+        result[i] = {}
+        for j = 1, numberOfColumns, 1 do
+            result[i][j] = matrix[i][j]
+        end
+    end
+
+    return result
 end
 
 return MatrixAlgebra

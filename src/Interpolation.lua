@@ -191,7 +191,7 @@ local _chebyshevSpectralDifferentionMatrix = function (n, chebyshevGridPoints)
         end
     end
 
-    return MA.liSparseMatrix.new(D)
+    return MA.matrix.new(D)
 end
 
 local _linearRescalingFunction = function (a, b)
@@ -204,7 +204,7 @@ local _chebyshevAntiderivative = function (f, n, chebyshevGrid, fList)
     chebyshevGrid = chebyshevGrid or _chebyshevGrid(n)
     fList = fList or Tools.list.map(f, chebyshevGrid)
 
-    
+
 end
 
 Interpolation.Chebyshev = {}
