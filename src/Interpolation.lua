@@ -24,20 +24,20 @@ local _barycentricInterpolationInChebyshevPointsAtAPoint = function (fList, x, c
         if diff == 0 then
             return fList[i]
         end
-        xDiffList[i] = diff
+        xDiffList[i] = (-1)^(i - 1) / diff
     end
 
-    local numerator = 0.5 * fList[1] / (xDiffList[1])
+    local val = 0.5 * (xDiffList[1])
+    local denominator = val
+    local numerator = fList[1] * val
     for i = 2, n-1, 1 do
-        numerator = numerator + (-1)^(i - 1) * fList[i] / (xDiffList[i])
+        val = xDiffList[i]
+        numerator = numerator + fList[i] * val
+        denominator = denominator + val
     end
-    numerator = numerator + 0.5 * (-1)^(n - 1) * fList[n] / (xDiffList[n])
-
-    local denominator = 0.5 / (xDiffList[1])
-    for i = 2, n-1, 1 do
-        denominator = denominator + (-1)^(i - 1) / (xDiffList[i])
-    end
-    denominator = denominator + 0.5 * (-1)^(n - 1) / (xDiffList[n])
+    val = 0.5 * (xDiffList[n])
+    numerator = numerator + fList[n] * val
+    denominator = denominator + val
 
     return numerator / denominator
 end
@@ -56,23 +56,23 @@ local _barycentricInterpolationInChebyshevPointsAtPointList = function (fList, x
             if diff == 0 then
                 index = i
             end
-            xDiffList[i] = diff
+            xDiffList[i] = (-1)^(i - 1) / diff
         end
 
         if index ~= -1 then
             result[j] = fList[index]
         else
-            local numerator = 0.5 * fList[1] / (xDiffList[1])
+            local val = 0.5 * (xDiffList[1])
+            local denominator = val
+            local numerator = fList[1] * val
             for i = 2, n-1, 1 do
-                numerator = numerator + (-1)^(i - 1) * fList[i] / (xDiffList[i])
+                val = xDiffList[i]
+                numerator = numerator + fList[i] * val
+                denominator = denominator + val
             end
-            numerator = numerator + 0.5 * (-1)^(n - 1) * fList[n] / (xDiffList[n])
-
-            local denominator = 0.5 / (xDiffList[1])
-            for i = 2, n-1, 1 do
-                denominator = denominator + (-1)^(i - 1) / (xDiffList[i])
-            end
-            denominator = denominator + 0.5 * (-1)^(n - 1) / (xDiffList[n])
+            val = 0.5 * (xDiffList[n])
+            numerator = numerator + fList[n] * val
+            denominator = denominator + val
 
             result[j] = numerator / denominator
         end
@@ -213,17 +213,17 @@ Interpolation.Chebyshev.grid = function (n)
     return _chebyshevGrid(n)
 end
 
-Interpolation.Chebyshev.evaluate = function (f, x, n)
-    local chebyshevGrid = _chebyshevGrid(n)
+Interpolation.Chebyshev.evaluate = function (f, x, n, chebyshevGrid)
+    chebyshevGrid = chebyshevGrid or _chebyshevGrid(n)
     local fList = {}
     for i = 1, n+1, 1 do
         fList[i] = f(chebyshevGrid[i])
     end
-    return _barycentricInterpolationInChebyshevPointsAtAPoint(fList, x)
+    return _barycentricInterpolationInChebyshevPointsAtAPoint(fList, x, chebyshevGrid)
 end
 
-Interpolation.Chebyshev.rescaleAndEvaluate = function (f, a, b, x, n)
-    local chebyshevGrid = _chebyshevGrid(n - 1)
+Interpolation.Chebyshev.rescaleAndEvaluate = function (f, a, b, x, n, chebyshevGrid)
+    chebyshevGrid = chebyshevGrid or _chebyshevGrid(n - 1)
     local rescalingFunction = _linearRescalingFunction(a, b)
     local fList = {}
     for i = 1, n, 1 do
@@ -232,8 +232,8 @@ Interpolation.Chebyshev.rescaleAndEvaluate = function (f, a, b, x, n)
     return _barycentricInterpolationInChebyshevPointsAtAPoint(fList, x)
 end
 
-Interpolation.Chebyshev.evaluateOnData = function (fList, x)
-    return _barycentricInterpolationInChebyshevPointsAtAPoint(fList, x)
+Interpolation.Chebyshev.evaluateOnData = function (fList, x, chebyshevGrid)
+    return _barycentricInterpolationInChebyshevPointsAtAPoint(fList, x, chebyshevGrid)
 end
 
 Interpolation.Chebyshev.evaluateAtPointList = function (f, xList, n, chebyshevGridPoints)
@@ -246,13 +246,9 @@ Interpolation.Chebyshev.evaluateAtPointList = function (f, xList, n, chebyshevGr
     return _barycentricInterpolationInChebyshevPointsAtPointList(fList, xList, chebyshevGrid)
 end
 
-Interpolation.Chebyshev.evaluateAtPointListOnData = function (fList, xList)
-    local chebyshevGrid = _chebyshevGrid(#fList - 1)
-    local pList = {}
-    for i = 1, #xList, 1 do
-        pList[i] = _barycentricInterpolationInChebyshevPointsAtAPoint(fList, xList[i], chebyshevGrid)
-    end
-    return pList
+Interpolation.Chebyshev.evaluateAtPointListOnData = function (fList, xList, chebyshevGrid)
+    chebyshevGrid = chebyshevGrid or _chebyshevGrid(#fList - 1)
+    return _barycentricInterpolationInChebyshevPointsAtPointList(fList, xList, chebyshevGrid)
 end
 
 Interpolation.Chebyshev.benchmark = function (f, xList, deltaMax, maxIters)

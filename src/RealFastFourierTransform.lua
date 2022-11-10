@@ -1,3 +1,0 @@
-local RealFastFourierTransform = {}
-
-return RealFastFourierTransform

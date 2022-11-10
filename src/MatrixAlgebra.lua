@@ -2,6 +2,13 @@ local Tools = require("src.Tools")
 
 local MatrixAlgebra = {}
 
+--[[
+    The following section of code concerns linearly indexed sparse matrices. These matrices do two things to attempt to be more efficient.
+    The first is, they are "linearly indexed" meaning that instead of being a table of tables, as one would usually have with a matrix,
+    the liSparseMatrix is stored in a single table. Moreover, liSparseMatrices have the property that only non-zero entries are stored.
+    This cuts down on memory use and should overall be faster.
+]]
+
 local _linearlyIndexedSparseMatrix = {}
 
 local _linearlyIndexedSparseMatrixFromTableOfTables = function (tableOfTables)
@@ -10,16 +17,19 @@ local _linearlyIndexedSparseMatrixFromTableOfTables = function (tableOfTables)
 
     local sparseForm = setmetatable({}, _linearlyIndexedSparseMatrix)
 
+    rawset(sparseForm, "dimensions", {numberOfRows, numberOfColumns})
+    rawset(sparseForm, "data", {})
+
+    local data = sparseForm.data
+
     for i = 1, numberOfRows do
         local rowConstant = numberOfColumns * (i - 1)
         for j = 1, numberOfColumns do
             if tableOfTables[i][j] ~= 0 then
-                sparseForm[rowConstant + j] = tableOfTables[i][j]
+                data[rowConstant + j] = tableOfTables[i][j]
             end
         end
     end
-
-    rawset(sparseForm, "dimensions", {numberOfRows, numberOfColumns})
 
     return sparseForm
 end
@@ -32,16 +42,19 @@ local _linearlyIndexedSparseMatrixFromNumericTableOfTables = function (tableOfTa
 
     local sparseForm = setmetatable({}, _linearlyIndexedSparseMatrix)
 
+    rawset(sparseForm, "dimensions", {numberOfRows, numberOfColumns})
+    rawset(sparseForm, "data", {})
+
+    local data = sparseForm.data
+
     for i = 1, numberOfRows do
         local rowConstant = numberOfColumns * (i - 1)
         for j = 1, numberOfColumns do
             if math.abs(tableOfTables[i][j]) >= tol then
-                sparseForm[rowConstant + j] = tableOfTables[i][j]
+                data[rowConstant + j] = tableOfTables[i][j]
             end
         end
     end
-
-    rawset(sparseForm, "dimensions", {numberOfRows, numberOfColumns})
 
     return sparseForm
 end
@@ -50,10 +63,13 @@ local _linearlyIndexedSparseCopy = function (matrix)
     local copy = setmetatable({}, _linearlyIndexedSparseMatrix)
 
     rawset(copy, "dimensions", {matrix.dimensions[1], matrix.dimensions[2]})
+    rawset(copy, "data", {})
+
+    local data = copy.data
 
     for k, v in pairs(matrix) do
         if type(k) == "number" then
-            copy[k] = v
+            data[k] = v
         end
     end
 
@@ -64,9 +80,12 @@ local _linearlyIndexedSparseIdentity = function (n)
     local result = setmetatable({}, _linearlyIndexedSparseMatrix)
 
     rawset(result, "dimensions", {n, n})
+    rawset(result, "data", {})
+
+    local data = result.data
 
     for i = 1, n do
-        result[n * (i - 1) + i] = 1
+        data[n * (i - 1) + i] = 1
     end
 
     return result
@@ -75,7 +94,8 @@ end
 local _linearlyIndexedSparseZero = function (n, m)
     local result = setmetatable({}, _linearlyIndexedSparseMatrix)
 
-    rawset(result, "dimensions", {n,m})
+    rawset(result, "dimensions", {n, m})
+    rawset(result, "data", {})
 
     return result
 end
@@ -86,13 +106,16 @@ local _linearlyIndexedSparseRandom = function (n, m, a, b, tol)
     local result = setmetatable({}, _linearlyIndexedSparseMatrix)
 
     rawset(result, "dimensions", {n, m})
+    rawset(result, "data", {})
+
+    local data = result.data
 
     for i = 1, n do
         local rowConstant = m * (i - 1)
         for j = 1, m do
             local val = (b - a) * (math.random()) + a
             if math.abs(val) >= tol then
-                result[rowConstant + j] = val
+                data[rowConstant + j] = val
             end
         end
     end
@@ -103,10 +126,11 @@ end
 local _linearlyIndexedSparseColumnSwap = function (matrix, n, m)
     local numberOfRows = matrix.dimensions[1]
     local numberOfColumns = matrix.dimensions[2]
+    local data = matrix.data
 
     for i = 1, numberOfRows do
         local rowConstant = numberOfColumns * (i - 1)
-        matrix[rowConstant + n],  matrix[rowConstant + m] =  matrix[rowConstant + m],  matrix[rowConstant + n]
+        data[rowConstant + n],  data[rowConstant + m] =  data[rowConstant + m],  data[rowConstant + n]
     end
 
     return matrix
@@ -128,11 +152,12 @@ end
 local _linearlyIndexedSparseRowSwap = function (matrix, n, m)
     local numberOfRows = matrix.dimensions[1]
     local numberOfColumns = matrix.dimensions[2]
+    local data = matrix.data
 
     for i = 1, numberOfColumns do
         local rowConstant = numberOfColumns * (n - 1)
         local rowConstant2 = numberOfColumns * (m - 1)
-        matrix[rowConstant + i],  matrix[rowConstant2 + i] =  matrix[rowConstant2 + i],  matrix[rowConstant + i]
+        data[rowConstant + i],  data[rowConstant2 + i] =  data[rowConstant2 + i],  data[rowConstant + i]
     end
 
     return matrix
@@ -151,33 +176,43 @@ local _linearlyIndexedSparsePermutationMatrix = function (n, permutations)
     return result
 end
 
+--[[
+    Adds the nth row times c to the mth row of matrix.
+]]
+
 local _linearlyIndexedSparseShear = function (matrix, n, m, c, tol)
     tol = tol or 0
 
     local numberOfColumns = matrix.dimensions[2]
+    local data = matrix.data
 
     for i = 1, numberOfColumns do
-        local val1 = matrix[numberOfColumns * (n - 1) + i]
-        local val2 = matrix[numberOfColumns * (m - 1) + i]
+        local cm = numberOfColumns * (m - 1) + i
+        local val1 = data[numberOfColumns * (n - 1) + i]
+        local val2 = data[cm]
         if val1 ~= nil and val2 ~= nil then
             local val3 = val2 + c * val1
             if math.abs(val3) < tol then
-                matrix[numberOfColumns * (m - 1) + i] = nil
+                data[cm] = nil
             else
-                matrix[numberOfColumns * (m - 1) + i] = val3
+                data[cm] = val3
             end
         elseif val1 ~= nil then
             local val3 = c * val1
             if math.abs(val3) < tol then
-                matrix[numberOfColumns * (m - 1) + i] = nil
+                data[cm] = nil
             else
-                matrix[numberOfColumns * (m - 1) + i] = val3
+                data[cm] = val3
             end
         end
     end
 
     return matrix
 end
+
+--[[
+    Adds some row vector times c to the mth row of matrix.
+]]
 
 local _linearlyIndexedSparseRowAdd = function (matrix, row, n, c, tol)
     tol = tol or 0
@@ -214,16 +249,17 @@ local _linearlyIndexedSparseTranspose = function (matrix)
     local result = setmetatable({}, _linearlyIndexedSparseMatrix)
 
     rawset(result, "dimensions", {numberOfColumns, numberOfRows})
+    rawset(result, "data", {})
 
-    for k, v in pairs(matrix) do
-        if type(k) == "number" then
-            local columnNumber = k % numberOfColumns
-            if columnNumber == 0 then
-                columnNumber = numberOfColumns
-            end
-            local rowNumber = (k - columnNumber) / numberOfColumns + 1
-            result[numberOfRows * (columnNumber - 1) + rowNumber] = v
+    local data = result.data
+
+    for k, v in pairs(data) do
+        local columnNumber = k % numberOfColumns
+        if columnNumber == 0 then
+            columnNumber = numberOfColumns
         end
+        local rowNumber = (k - columnNumber) / numberOfColumns + 1
+        data[numberOfRows * (columnNumber - 1) + rowNumber] = v
     end
 
     return result
@@ -237,16 +273,20 @@ local _linearlyIndexedSparseLU = function (matrix)
         error("Cannot compute LU of sparse rectangular matrix.")
     end
 
+    local data = matrix.data
+
     local permuations = {}
 
     local l = _linearlyIndexedSparseIdentity(numberOfRows)
+    local lData = l.data
 
     for i = 1, numberOfColumns - 1 do
         local maxRow = i
-        local max = matrix[numberOfColumns * (i - 1) + i] or 0
+        local ii = numberOfColumns * (i - 1) + i
+        local max = data[ii] or 0
 
         for j = i, numberOfRows do
-            local maxCandidate = matrix[numberOfColumns * (j - 1) + i] or 0
+            local maxCandidate = data[numberOfColumns * (j - 1) + i] or 0
             maxCandidate = math.abs(maxCandidate)
             if maxCandidate ~= nil and maxCandidate > max then
                 max = maxCandidate
@@ -261,26 +301,30 @@ local _linearlyIndexedSparseLU = function (matrix)
         if maxRow ~= i then
             _linearlyIndexedSparseRowSwap(matrix, i, maxRow)
             for k = 1, i - 1 do
-                l[numberOfColumns * (i - 1) + k], l[numberOfColumns * (maxRow - 1) + k] = l[numberOfColumns * (maxRow - 1) + k], l[numberOfColumns * (i - 1) + k]
+                local ik = numberOfColumns * (i - 1) + k
+                local mrk = numberOfColumns * (maxRow - 1) + k
+                lData[ik], l[mrk] = l[mrk], l[ik]
             end
             permuations[i] = maxRow
         end
 
-        max = matrix[numberOfColumns * (i - 1) + i]
+        max = data[ii]
 
         for j = i + 1, numberOfRows do
-            local val = matrix[numberOfColumns * (j - 1) + i]
+            local ji = numberOfColumns * (j - 1) + i
+            local val = data[ji]
             if val ~= nil then
                 local valOverMax = val / max
-                l[numberOfColumns * (j - 1) + i] = valOverMax
-                matrix[numberOfColumns * (j - 1) + i] = nil
+                lData[ji] = valOverMax
+                data[ji] = nil
                 for k = i + 1, numberOfColumns do
-                    local val1 = matrix[numberOfColumns * (j - 1) + k]
-                    local val2 = matrix[numberOfColumns * (i - 1) + k]
+                    local jk = numberOfColumns * (j - 1) + k
+                    local val1 = data[jk]
+                    local val2 = data[numberOfColumns * (i - 1) + k]
                     if val1 ~= nil and val2 ~= nil then
-                        matrix[numberOfColumns * (j - 1) + k] = val1 - val2 * valOverMax
+                        data[jk] = val1 - val2 * valOverMax
                     elseif val2 ~= nil then
-                        matrix[numberOfColumns * (j - 1) + k] = -val2 * valOverMax
+                        data[jk] = -val2 * valOverMax
                     end
                 end
             end
@@ -302,12 +346,16 @@ local _linearlyIndexedSparseInverse = function (matrix)
 
     local result = _linearlyIndexedSparseIdentity(numberOfRows)
 
+    local data = matrix.data
+    local resultData = result.data
+
     for i = 1, numberOfColumns - 1 do
         local maxRow = i
-        local max = matrix[numberOfColumns * (i - 1) + i] or 0
+        local ii = numberOfColumns * (i - 1) + i
+        local max = data[ii] or 0
 
         for j = i, numberOfRows do
-            local maxCandidate = matrix[numberOfColumns * (j - 1) + i] or 0
+            local maxCandidate = data[numberOfColumns * (j - 1) + i] or 0
             maxCandidate = math.abs(maxCandidate)
             if maxCandidate ~= nil and maxCandidate > max then
                 max = maxCandidate
@@ -324,21 +372,22 @@ local _linearlyIndexedSparseInverse = function (matrix)
             _linearlyIndexedSparseRowSwap(result, i, maxRow)
         end
 
-        max = matrix[numberOfColumns * (i - 1) + i]
+        max = data[ii]
 
         for j = i + 1, numberOfRows do
-            local val = matrix[numberOfColumns * (j - 1) + i]
+            local ji = numberOfColumns * (j - 1) + i
+            local val = data[ji]
             if val ~= nil then
                 local valOverMax = val / max
-                matrix[numberOfColumns * (j - 1) + i] = nil
+                data[ji] = nil
                 _linearlyIndexedSparseShear(result, i, j, -valOverMax)
                 for k = i + 1, numberOfColumns do
-                    local val1 = matrix[numberOfColumns * (j - 1) + k]
-                    local val2 = matrix[numberOfColumns * (i - 1) + k]
+                    local val1 = data[ji]
+                    local val2 = data[numberOfColumns * (i - 1) + k]
                     if val1 ~= nil and val2 ~= nil then
-                        matrix[numberOfColumns * (j - 1) + k] = val1 - val2 * valOverMax
+                        data[ji] = val1 - val2 * valOverMax
                     elseif val2 ~= nil then
-                        matrix[numberOfColumns * (j - 1) + k] = -val2 * valOverMax
+                        data[ji] = -val2 * valOverMax
                     end
                 end
             end
@@ -347,15 +396,16 @@ local _linearlyIndexedSparseInverse = function (matrix)
 
     for i = numberOfRows, 1, -1 do
         local rowConstant = numberOfColumns * (i - 1)
-        local val = matrix[rowConstant + i]
+        local ij = rowConstant + j
+        local val = data[rowConstant + i]
         for j = 1, i - 1 do
-            local val1 = matrix[numberOfColumns * (i - j - 1) + i]
+            local val1 = data[numberOfColumns * (i - j - 1) + i]
             if val1 ~= nil then
                 _linearlyIndexedSparseShear(result, i, i - j, -val1 / val)
             end
         end
         for j = 1, numberOfColumns do
-            result[rowConstant + j] = result[rowConstant + j] / val
+            resultData[ij] = resultData[ij] / val
         end
     end
 
@@ -373,12 +423,15 @@ _linearlyIndexedSparseMatrixSquareSolve = function (matrix, vector)
 
     local columnVector = _linearlyIndexedSparseTranspose(_linearlyIndexedSparseMatrixFromTableOfTables({vector}))
 
+    local data = matrix.data
+
     for i = 1, numberOfColumns - 1 do
         local maxRow = i
-        local max = matrix[numberOfColumns * (i - 1) + i] or 0
+        local ii = numberOfColumns * (i - 1) + i
+        local max = data[ii] or 0
 
         for j = i, numberOfRows do
-            local maxCandidate = matrix[numberOfColumns * (j - 1) + i] or 0
+            local maxCandidate = data[numberOfColumns * (j - 1) + i] or 0
             maxCandidate = math.abs(maxCandidate)
             if maxCandidate ~= nil and maxCandidate > max then
                 max = maxCandidate
@@ -395,10 +448,11 @@ _linearlyIndexedSparseMatrixSquareSolve = function (matrix, vector)
             _linearlyIndexedSparseRowSwap(columnVector, i, maxRow)
         end
 
-        max = matrix[numberOfColumns * (i - 1) + i]
+        max = data[ii]
 
         for j = i + 1, numberOfRows do
-            local val = matrix[numberOfColumns * (j - 1) + i]
+            local ji = numberOfColumns * (j - 1) + i
+            local val = data[ji]
             if val ~= nil then
                 local valOverMax = val / max
                 local columnVal1, columnVal2 = columnVector[j], columnVector[i]
@@ -407,14 +461,15 @@ _linearlyIndexedSparseMatrixSquareSolve = function (matrix, vector)
                 elseif columnVal2 ~= nil then
                     columnVector[j] = -valOverMax * columnVal2
                 end
-                matrix[numberOfColumns * (j - 1) + i] = nil
+                data[ji] = nil
                 for k = i + 1, numberOfColumns do
-                    local val1 = matrix[numberOfColumns * (j - 1) + k]
-                    local val2 = matrix[numberOfColumns * (i - 1) + k]
+                    local jk = numberOfColumns * (j - 1) + k
+                    local val1 = data[jk]
+                    local val2 = data[numberOfColumns * (i - 1) + k]
                     if val1 ~= nil and val2 ~= nil then
-                        matrix[numberOfColumns * (j - 1) + k] = val1 - val2 * valOverMax
+                        data[jk] = val1 - val2 * valOverMax
                     elseif val2 ~= nil then
-                        matrix[numberOfColumns * (j - 1) + k] = -val2 * valOverMax
+                        data[jk] = -val2 * valOverMax
                     end
                 end
             end
@@ -424,10 +479,10 @@ _linearlyIndexedSparseMatrixSquareSolve = function (matrix, vector)
     for i = numberOfRows, 1, -1 do
         local temp = 0
         for j = i+1, numberOfColumns, 1 do
-            temp = temp + matrix[numberOfColumns * (i - 1) + j] * columnVector[j]
+            temp = temp + data[numberOfColumns * (i - 1) + j] * columnVector[j]
         end
         columnVector[i] = columnVector[i] or 0
-        columnVector[i] = (columnVector[i] - temp) / matrix[numberOfColumns * (i - 1) + i]
+        columnVector[i] = (columnVector[i] - temp) / data[numberOfColumns * (i - 1) + i]
     end
 
     return columnVector
@@ -436,11 +491,11 @@ end
 local _linearlyIndexedSparseMatrixSparsify = function (matrix, tol)
     tol = tol or 0
 
-    for k, v in pairs(matrix) do
-        if type(k) == "number" then
-            if v < tol then
-                matrix[k] = nil
-            end
+    local data = matrix.data
+
+    for k, v in pairs(data) do
+        if v < tol then
+            data[k] = nil
         end
     end
 
@@ -1361,6 +1416,24 @@ local _matrixCopy = function (matrix)
     return _matrixFromTableOfTables(result)
 end
 
+local _matrixToHess = function (matrix)
+    local n = #matrix
+
+    if n ~= #matrix[1] then
+        error("Cannot reduce non-square matrix to upper Hessenberg form")
+    end
+
+    for i = 1, n - 2 do
+        local max = math.abs(matrix[i + 1][i])
+        for j = i + 2, n do
+            local val = math.abs(matrix[j][i])
+            if val > max then
+                max = val
+            end
+        end
+    end
+end
+
 _sparseVector.__add = function (left, right)
     if left.length ~= right.length then
         error("Cannot add sparse vectors of unequal length.", 2)
@@ -1630,20 +1703,17 @@ _linearlyIndexedSparseMatrix.__add = function (left, right)
         error("Attempting to add sparse matrices of different sizes.")
     end
 
-    local size = left.dimensions[1] * left.dimensions[2]
     local copy = _linearlyIndexedSparseCopy(left)
+    local data = copy.data
+    local rData = right.data
+    local lData = left.data
 
-    for i = 1, size, 1 do
-        local leftVal = left[i]
-        local rightVal = right[i]
+    for i, rightVal in pairs(rData) do
+        local leftVal = lData[i]
         if leftVal then
-            if rightVal then
-                copy[i] = leftVal + rightVal
-            else
-                copy[i] = leftVal
-            end
+            data[i] = leftVal + rightVal
         elseif rightVal then
-            copy[i] = rightVal
+            data[i] = rightVal
         end
     end
 
@@ -1655,20 +1725,17 @@ _linearlyIndexedSparseMatrix.__sub = function (left, right)
         error("Attempting to add sparse matrices of different sizes.")
     end
 
-    local size = left.dimensions[1] * left.dimensions[2]
     local copy = _linearlyIndexedSparseCopy(left)
+    local data = copy.data
+    local rData = right.data
+    local lData = left.data
 
-    for i = 1, size, 1 do
-        local leftVal = left[i]
-        local rightVal = right[i]
+    for i, rightVal in pairs(rData) do
+        local leftVal = lData[i]
         if leftVal then
-            if rightVal then
-                copy[i] = leftVal - rightVal
-            else
-                copy[i] = leftVal
-            end
+            data[i] = leftVal - rightVal
         elseif rightVal then
-            copy[i] = -rightVal
+            data[i] = -rightVal
         end
     end
 
@@ -1683,25 +1750,48 @@ _linearlyIndexedSparseMatrix.__mul = function (left, right)
     local result = setmetatable({}, _linearlyIndexedSparseMatrix)
 
     rawset(result, "dimensions", {left.dimensions[1], right.dimensions[2]})
+    rawset(result, "data", {})
+    local data = result.data
+    local lData = left.data
+    local rData = right.data
+    local length = left.dimensions[2]
+    local width = right.dimensions[2]
 
-    for k, v in pairs(left) do
-        if type(k) == "number" then
-            local columnNumber = k % left.dimensions[2]
-            if columnNumber == 0 then
-                columnNumber = left.dimensions[2]
+    --[[for k, v in pairs(lData) do
+        local columnNumber = k % length
+        if columnNumber == 0 then
+            columnNumber = length
+        end
+        local rowNumber = (k - columnNumber) / length
+        local rc = width * (columnNumber - 1)
+        local rc2 = width * rowNumber
+        for i = 1, width do
+            local rowConstant = rc + i
+            local rowConstant2 = rc2 + i
+            local val1 = data[rowConstant2]
+            local val2 = rData[rowConstant]
+            if type(val1) == "number" and val2 ~= nil then
+                val1 = val1 + v * rData[rowConstant]
+                data[rowConstant2] = val1
+            elseif val2 ~= nil then
+                data[rowConstant2] = v * rData[rowConstant]
             end
-            local rowNumber = (k - columnNumber) / left.dimensions[2]
-            local rowConstant = right.dimensions[2] * (columnNumber - 1)
-            local rowConstant2 = right.dimensions[2] * rowNumber
-            for i = 1, right.dimensions[2] do
-                local val1 = result[rowConstant2 + i]
-                local val2 = right[rowConstant + i]
-                if type(val1) == "number" and val2 ~= nil then
-                    val1 = val1 + v * right[rowConstant + i]
-                    result[rowConstant2 + i] = val1
-                elseif val2 ~= nil then
-                    result[rowConstant2 + i] = v * right[rowConstant + i]
-                end
+        end
+    end]]
+
+    for k, v in pairs(lData) do
+        local c = k % length
+        local r = (k - c) / length
+        local rc = width * r
+        for kk, vv in pairs(rData) do
+            local cc = kk % width
+            local val = v * vv
+            local rcc = rc + cc
+            local temp = data[rcc]
+            if temp ~= nil then
+                data[rcc] = temp + val
+            else
+                data[rcc] = val
             end
         end
     end
@@ -1714,23 +1804,24 @@ _linearlyIndexedSparseMatrix.__tostring = function (matrix)
 
     local numberOfRows = matrix.dimensions[1]
     local numberOfColumns = matrix.dimensions[2]
+    local data = matrix.data
 
     for i = 1, numberOfRows - 1 do
         result = result .. "{"
         for j = 1, numberOfColumns - 1 do
-            local val = matrix[numberOfColumns * (i - 1) + j] or 0
+            local val = data[numberOfColumns * (i - 1) + j] or 0
             result = result .. tostring(val) .. ","
         end
-        local val = matrix[numberOfColumns * (i - 1) + numberOfColumns] or 0
+        local val = data[numberOfColumns * (i - 1) + numberOfColumns] or 0
         result = result .. tostring(val) .. "},"
     end
 
     result = result .. "{"
     for j = 1, numberOfColumns - 1 do
-        local val = matrix[numberOfColumns * (numberOfRows - 1) + j] or 0
+        local val = data[numberOfColumns * (numberOfRows - 1) + j] or 0
         result = result .. tostring(val) .. ","
     end
-    local val = matrix[numberOfColumns * (numberOfRows - 1) + numberOfColumns] or 0
+    local val = data[numberOfColumns * (numberOfRows - 1) + numberOfColumns] or 0
     result = result .. tostring(val) .. "}"
 
     result = result .. "}"
