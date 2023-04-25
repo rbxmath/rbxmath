@@ -67,7 +67,7 @@ local _linearlyIndexedSparseCopy = function (matrix)
 
     local data = copy.data
 
-    for k, v in pairs(matrix) do
+    for k, v in pairs(matrix.data) do
         if type(k) == "number" then
             data[k] = v
         end
@@ -396,15 +396,16 @@ local _linearlyIndexedSparseInverse = function (matrix)
 
     for i = numberOfRows, 1, -1 do
         local rowConstant = numberOfColumns * (i - 1)
-        local ij = rowConstant + j
         local val = data[rowConstant + i]
         for j = 1, i - 1 do
+            local ij = rowConstant + j
             local val1 = data[numberOfColumns * (i - j - 1) + i]
             if val1 ~= nil then
                 _linearlyIndexedSparseShear(result, i, i - j, -val1 / val)
             end
         end
         for j = 1, numberOfColumns do
+            local ij = rowConstant + j
             resultData[ij] = resultData[ij] / val
         end
     end

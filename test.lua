@@ -169,6 +169,7 @@ print()
 local ones = MatrixAlgebra.liSparseMatrix.new({{1, 1}, {1, 1}})
 local twos = ones * ones
 local rand = MatrixAlgebra.liSparseMatrix.random(2, 2, -1, 1, 0)
+print(tostring(rand))
 local rinv = MatrixAlgebra.liSparseMatrix.inverse(rand)
 local oneC = MatrixAlgebra.liSparseMatrix.new({{1}, {1}})
 local solv = MatrixAlgebra.liSparseMatrix.solve(rand, {1, 1})

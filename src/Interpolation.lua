@@ -81,7 +81,7 @@ local _barycentricInterpolationInChebyshevPointsAtPointList = function (fList, x
     return result
 end
 
-local _barycentricInterpolationSolve = function (fList, t, tol, chebyshevGridPoints, gapTol)
+local _barycentricInterpolationSolve = function (fList, t, tol, gapTol, chebyshevGridPoints)
     local n = #fList
     local chebyshevGrid = chebyshevGridPoints or _chebyshevGrid(n)
     local tolerance = tol or (10^-13)
@@ -200,11 +200,106 @@ local _linearRescalingFunction = function (a, b)
     end
 end
 
-local _chebyshevAntiderivative = function (f, n, chebyshevGrid, fList)
+function _inverseLinearRescalingFunction (a, b)
+    return function (x)
+        return 2 * (x - a) / (b - a) - 1
+    end
+end
+
+local _makeChebyshevInterpolant
+
+_makeChebyshevInterpolant = function (f, a, b, n, chebyshevGrid)
     chebyshevGrid = chebyshevGrid or _chebyshevGrid(n)
-    fList = fList or Tools.list.map(f, chebyshevGrid)
+    local fList = {}
+    local rescalingFunction = _linearRescalingFunction(a, b)
+    if type(f) == "function" then
+        for i = 1, n + 1, 1 do
+            fList[i] = f(rescalingFunction(chebyshevGrid[i]))
+        end
+    else
+        fList = f
+    end
+    local result = {
+        grid = chebyshevGrid,
+        gridValues = fList,
+        numPoints = n,
+        linearRescalingFunction = rescalingFunction,
+        inverseLinearRescalingFunction = _inverseLinearRescalingFunction(a, b),
+        leftBound = a,
+        rightBound = b
+    }
 
+    function result:evaluate (x)
+        return _barycentricInterpolationInChebyshevPointsAtAPoint(self.gridValues, self.inverseLinearRescalingFunction(x), self.grid)
+    end
 
+    function result:solve (t, tol, gapTol)
+        return Tools.list.map(self.linearRescalingFunction, _barycentricInterpolationSolve(self.gridValues, t, tol, gapTol, self.grid))
+    end
+
+    function result:derivative ()
+        local derivativeMatrix = _chebyshevSpectralDifferentionMatrix (self.numPoints, self.grid)
+        local fVector = {}
+        for key, value in ipairs(self.gridValues) do
+            fVector[key] = {value}
+        end
+        local fColumn = MA.matrix.scale(MA.matrix.new(fVector), 2 * (self.rightBound - self.leftBound))
+        local fList = MA.matrix.flatten(derivativeMatrix * fColumn)
+        return _makeChebyshevInterpolant(fList, self.leftBound, self.rightBound, self.numPoints, self.grid)
+    end
+
+    function result:max ()
+        local derivative = self:derivative()
+        local extrema = derivative:solve(0)
+        extrema[#extrema + 1] = self.leftBound
+        extrema[#extrema + 1] = self.rightBound
+        local fList = {}
+        for i = 1, #extrema, 1 do
+            fList[i] = self:evaluate(extrema[i])
+        end
+        return math.max(table.unpack(fList))
+    end
+
+    function result:min ()
+        local derivative = self:derivative()
+        local extrema = derivative:solve(0)
+        extrema[#extrema + 1] = self.leftBound
+        extrema[#extrema + 1] = self.rightBound
+        local fList = {}
+        for i = 1, #extrema, 1 do
+            fList[i] = self:evaluate(extrema[i])
+        end
+        return math.min(table.unpack(fList))
+    end
+
+    function result:extremes ()
+        local derivative = self:derivative()
+        local extrema = derivative:solve(0)
+        extrema[#extrema + 1] = self.leftBound + 10^-16
+        extrema[#extrema + 1] = self.rightBound - 10^-16
+        local fList = {}
+        for i = 1, #extrema, 1 do
+            fList[i] = self:evaluate(extrema[i])
+        end
+        return math.max(table.unpack(fList)), math.min(table.unpack(fList))
+    end
+    
+    function result:inverse ()
+        local max, min = self:extremes()
+        local fList = {}
+        linearRescalingFunction = _linearRescalingFunction(min, max)
+        for key, value in ipairs(self.grid) do
+            local save = self:solve(linearRescalingFunction(value))
+            if #save > 1 or #save == 0 then
+                error("Function is not invertible!", -1)
+            else
+                fList[key] = save[1]
+            end
+        end
+        return _makeChebyshevInterpolant(fList, min, max, self.numPoints, self.grid)
+    end
+
+    return(result)
 end
 
 Interpolation.Chebyshev = {}
@@ -281,7 +376,7 @@ Interpolation.Chebyshev.solve = function (f, t, n, method, tol, chebyshevGridPoi
     local methodToUse = method or "RegulaFalsi"
 
     if methodToUse == "RegulaFalsi" then
-        return _barycentricInterpolationSolve(fList, t, tolerance, chebyshevGrid)
+        return _barycentricInterpolationSolve(fList, t, tolerance, nil, chebyshevGrid)
     end
 end
 
@@ -293,13 +388,17 @@ Interpolation.Chebyshev.solveFromData = function (fList, t, method, tol, chebysh
     local methodToUse = method or "Secant"
 
     if methodToUse == "Secant" then
-        return _barycentricInterpolationSolve(fList, t, tolerance, chebyshevGrid)
+        return _barycentricInterpolationSolve(fList, t, tolerance, nil, chebyshevGrid)
     end
 end
 
 Interpolation.Chebyshev.derivativeMatrix = function (n, chebyshexGridPoints)
     local chebyshevGrid = chebyshexGridPoints or _chebyshevGrid(n)
     return _chebyshevSpectralDifferentionMatrix(n, chebyshevGrid)
+end
+
+Interpolation.Chebyshev.makeInterpolant = function (f, a, b, n, chebyshevGrid)
+    return _makeChebyshevInterpolant(f, a, b, n, chebyshevGrid)
 end
 
 return Interpolation
