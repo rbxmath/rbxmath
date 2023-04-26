@@ -1362,12 +1362,15 @@ local _matrixFlatten = function (matrix)
     local numberOfColumns = #matrix[1]
 
     rawset(result, "dimensions", {numberOfRows, numberOfColumns})
+    rawset(result, "data", {})
+
+    local data = result.data
 
     for i = 1, numberOfRows do
         local row = matrix[i]
         local rowConstant = numberOfColumns * (i - 1)
         for ii = 1, numberOfColumns do
-            result[rowConstant + ii] = row[ii]
+            data[#data + ii] = row[ii]
         end
     end
 
@@ -2142,7 +2145,7 @@ end
 MatrixAlgebra.matrix.scale = function (matrix, c)
     local copy = _matrixCopy(matrix)
     local numberOfRows = #matrix
-    local numberOfColumns = #matrix[1]
+    local numberOfColumns = #(matrix[1])
     if type(c) == "number" then
         for i = 1, numberOfRows, 1 do
             for j = 1, numberOfColumns, 1 do

@@ -103,6 +103,40 @@ _binarySearch = function (element, array)
     end
 end
 
+function _regulaFalsi (f, t, a, b, tol)
+    tolerance = tol or 10^(-13)
+    local leftValue, rightValue, middleValue = f(a) - t, f(b) - t, 0
+    local left, right, middle = a, b, (a + b) / 2
+    if leftValue * rightValue > 0 then
+        return nil
+    elseif math.abs(leftValue) < tolerance then
+        return left
+    elseif math.abs(rightValue) < tolerance then
+        return right
+    end
+
+    while math.abs(leftValue - rightValue) >= tolerance and math.abs(left - right) >= tolerance do
+        middle = (right * leftValue - left * rightValue)/(leftValue - rightValue)
+        middleValue = f(middle) - t
+        --print(left, leftValue, middle, middleValue, right, rightValue)
+        if math.abs(middleValue) < tolerance or math.abs(left - middle) / math.abs(leftValue - rightValue) < tolerance or math.abs(right - middle) / math.abs(leftValue - rightValue) < tolerance then
+            return middle
+        elseif math.abs(leftValue) < tolerance then
+            return left
+        elseif math.abs(rightValue) < tolerance then
+            return right
+        elseif leftValue * middleValue > 0 then
+            leftValue = middleValue
+            left = middle
+        else
+            rightValue = middleValue
+            right = middle
+        end
+    end
+    
+    return middle
+end
+
 Tools.integers = {}
 
 Tools.integers.gcd = function (a, b)
@@ -187,6 +221,12 @@ Tools.list.copy = function (array)
     end
 
     return result
+end
+
+Tools.solve = {}
+
+Tools.solve.regulaFalsi = function (f, t, a, b, tol)
+    return _regulaFalsi(f, t, a, b, tol)
 end
 
 return Tools
