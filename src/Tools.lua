@@ -118,7 +118,6 @@ function _regulaFalsi (f, t, a, b, tol)
     while math.abs(leftValue - rightValue) >= tolerance and math.abs(left - right) >= tolerance do
         middle = (right * leftValue - left * rightValue)/(leftValue - rightValue)
         middleValue = f(middle) - t
-        --print(left, leftValue, middle, middleValue, right, rightValue)
         if math.abs(middleValue) < tolerance or math.abs(left - middle) / math.abs(leftValue - rightValue) < tolerance or math.abs(right - middle) / math.abs(leftValue - rightValue) < tolerance then
             return middle
         elseif math.abs(leftValue) < tolerance then
