@@ -59,7 +59,9 @@ NumericalMethods.integration.fivePointGaussianWeights = {(322 - 13 * math.sqrt(7
 function NumericalMethods.integration.fivePointGaussianQuadrature (f, a, b)
     local sum = 0
     for i = 1, 5, 1 do
-        sum = sum + f(((b - a) * x + b + a) / 2)
+        local x = NumericalMethods.integration.fivePointGaussianGrid[i]
+        local w = NumericalMethods.integration.fivePointGaussianWeights[i]
+        sum = sum + w * f(((b - a) * x + b + a) / 2)
     end
     return (b - a) * sum / 2
 end
