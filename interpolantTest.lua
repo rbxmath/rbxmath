@@ -82,3 +82,7 @@ print("Time taken:                            ", os.clock() - tic)
 tic = os.clock()
 print("Solve test(x) = 2 with Newton's method:", NM.solvers.newtonsMethod(test.evaluationFunction, test:derivative().evaluationFunction, 2))
 print("Time taken:                            ", os.clock() - tic, "\n")
+
+print("Integration Test\n")
+print("True value of integral of exp from 0 to 1:         ", math.exp(1) - 1)
+print("Five point Gaussian quadrature for exp from 0 to 1:", NM.integration.fivePointGaussianQuadrature(function (x) return math.exp(x) end, 0, 1))

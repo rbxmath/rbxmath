@@ -53,7 +53,7 @@ end
 
 NumericalMethods.integration = {}
 
-NumericalMethods.integration.fivePointGaussianGrid = {-1 * math.sqrt(5 + 2 * math.sqrt(10 / 7))/3, -1 * math.sqrt(5 - 2 * math.sqrt(10 / 7))/3, 0, math.sqrt(5 - 2 * math.sqrt(10 / 7))/3, -1 * math.sqrt(5 + 2 * math.sqrt(10 / 7))/3}
+NumericalMethods.integration.fivePointGaussianGrid = {-1 * math.sqrt(5 + 2 * math.sqrt(10 / 7))/3, -1 * math.sqrt(5 - 2 * math.sqrt(10 / 7))/3, 0, math.sqrt(5 - 2 * math.sqrt(10 / 7))/3, math.sqrt(5 + 2 * math.sqrt(10 / 7))/3}
 NumericalMethods.integration.fivePointGaussianWeights = {(322 - 13 * math.sqrt(70)) / 900, (322 + 13 * math.sqrt(70)) / 900, 128 / 225, (322 + 13 * math.sqrt(70)) / 900, (322 - 13 * math.sqrt(70)) / 900}
 
 function NumericalMethods.integration.fivePointGaussianQuadrature (f, a, b)
@@ -61,7 +61,8 @@ function NumericalMethods.integration.fivePointGaussianQuadrature (f, a, b)
     for i = 1, 5, 1 do
         local x = NumericalMethods.integration.fivePointGaussianGrid[i]
         local w = NumericalMethods.integration.fivePointGaussianWeights[i]
-        sum = sum + w * f(((b - a) * x + b + a) / 2)
+        local trueX = ((b - a) * x + b + a) / 2
+        sum = sum + w * f(trueX)
     end
     return (b - a) * sum / 2
 end
