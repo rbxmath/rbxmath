@@ -556,6 +556,10 @@ Interpolation.Chebyshev.derivativeMatrix = function (n, chebyshexGridPoints)
     return _chebyshevSpectralDifferentionMatrix(n, chebyshevGrid)
 end
 
+Interpolation.Chebyshev.linearRescalingFunction = function (a, b)
+    return _linearRescalingFunction(a, b)
+end
+
 Interpolation.ChebyshevInterpolant = ChebyshevInterpolant
 
 return Interpolation

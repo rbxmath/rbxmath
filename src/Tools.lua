@@ -170,6 +170,17 @@ Tools.list.suplist = function (array, index)
     return _suparray(array, index)
 end
 
+Tools.list.join = function (left, right)
+    local new = {}
+    for _, value in ipairs(left) do
+        new[#new + 1] = value
+    end
+    for _, value in ipairs(right) do
+        new[#new + 1] = value
+    end
+    return new
+end
+
 Tools.list.tostring = function (array)
     local result = "{"
     for i = 1, #array-1, 1 do
@@ -226,6 +237,21 @@ Tools.solve = {}
 
 Tools.solve.regulaFalsi = function (f, t, a, b, tol)
     return _regulaFalsi(f, t, a, b, tol)
+end
+
+Tools.combinatorics = {}
+
+Tools.combinatorics.inversionNumber = function (permutation)
+    local n = #permutation
+    local inversionNumber = 0
+    for i = 1, n - 1 do
+        for j = i + 1, n do
+            if permutation[i] > permutation[j] then
+                inversionNumber = inversionNumber + 1
+            end
+        end
+    end
+    return inversionNumber
 end
 
 return Tools
