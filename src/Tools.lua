@@ -233,6 +233,14 @@ Tools.list.copy = function (array)
     return result
 end
 
+Tools.list.norm = function (array)
+    local sum = 0
+    for _, value in ipairs(array) do
+        sum = sum + math.pow(value, 2)
+    end
+    return math.sqrt(sum)
+end
+
 Tools.solve = {}
 
 Tools.solve.regulaFalsi = function (f, t, a, b, tol)

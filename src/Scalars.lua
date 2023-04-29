@@ -60,8 +60,23 @@ _complex.__div = function (left, right)
     return left * _complexInverse(right)
 end
 
+local _signString = function (x)
+    if x >= 0 then 
+        return " + "
+    else
+        return " - "
+    end
+end
+
 _complex.__tostring = function (complex)
-    return tostring(complex[1]) .. " + " .. "sqrt(-1) " .. tostring(complex[2])
+    local sign = function (x)
+        if x >= 0 then 
+            return " + "
+        else
+            return " - "
+        end
+    end
+    return tostring(complex[1]) .. _signString(complex[2]) .. "i " .. tostring(math.abs(complex[2]))
 end
 
 local _rational = {}
@@ -232,7 +247,13 @@ end
 Scalars.Complex = {}
 
 Scalars.Complex.new = function (a, b)
-    return _complexFromTwoInputs(a, b)
+    if type(a) == "table" then
+        return _complexFromArray(a)
+    elseif b == nil then
+        return _complexFromTwoInputs(a, 0)
+    else
+        return _complexFromTwoInputs(a, b)
+    end
 end
 
 Scalars.Complex.newFromArray = function (array)
@@ -249,6 +270,35 @@ end
 
 Scalars.Complex.inverse = function (complex)
     return _complexInverse(complex)
+end
+
+Scalars.Complex.sort = function (array, order)
+    local comp = function (left, right)
+        if order == "d" then
+            if type(left) == "number" and type(right) == "number" then
+                return math.abs(left) > math.abs(right)
+            elseif getmetatable(left) == getmetatable(right) then
+                return _complexNorm(left) > _complexNorm(right)
+            elseif getmetatable(left) == _complex then
+                return _complexNorm(left) > math.abs(right)
+            else
+                return math.abs(left) > _complexNorm(right)
+            end
+
+        else
+            if type(left) == "number" and type(right) == "number" then
+                return math.abs(left) < math.abs(right)
+            elseif getmetatable(left) == getmetatable(right) then
+                return _complexNorm(left) < _complexNorm(right)
+            elseif getmetatable(left) == _complex then
+                return _complexNorm(left) < math.abs(right)
+            else
+                return math.abs(left) < _complexNorm(right)
+            end
+        end
+    end
+    
+    table.sort(array, comp)
 end
 
 Scalars.Rational = {}
