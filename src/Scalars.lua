@@ -2,62 +2,68 @@ local Tools = require("src.Tools")
 
 local Scalars = {}
 
-local _complex = {}
+local Complex = {}
 
-local _complexFromArray = function (array)
-    local result = {array[1], array[2]}
-
-    setmetatable(result, _complex)
-
-    return result
+function Complex:new (a, b)
+    if type(a) == "table" then
+        setmetatable(a, self)
+        self.__index = self
+        return a
+    elseif b == nil then
+        local result = {a, 0}
+        setmetatable(result, self)
+        self.__index = self
+        return result
+    else
+        local result = {a, b}
+        setmetatable(result, self)
+        self.__index = self
+        return result
+    end
 end
 
-local _complexFromTwoInputs = function (a, b)
-    local result = {a, b}
-
-    setmetatable(result, _complex)
-
-    return result
+Complex.__newindex = function (t, k, v)
+    error("Complex numbers are immutable!")
 end
 
-_complex.__eq = function (left, right)
+Complex.__eq = function (left, right)
     return left[1] == right[1] and left[2] == right[2]
 end
 
-_complex.__add = function (left, right)
-    return _complexFromTwoInputs(left[1] + right[1], left[2] + right[2])
+Complex.__add = function (left, right)
+    return Complex:new(left[1] + right[1], left[2] + right[2])
 end
 
-_complex.__sub = function (left, right)
-    return _complexFromTwoInputs(left[1] - right[1], left[2] - right[2])
+Complex.__sub = function (left, right)
+    return Complex:new(left[1] - right[1], left[2] - right[2])
 end
 
-_complex.__mul = function (left, right)
-    return _complexFromTwoInputs(left[1] * right[1] - left[2] * right[2], left[1] * right[2] + left[2] * right[1])
+Complex.__mul = function (left, right)
+    return Complex:new(left[1] * right[1] - left[2] * right[2], left[1] * right[2] + left[2] * right[1])
 end
 
-_complex.__unm = function(complex)
-    return _complexFromTwoInputs(-complex[1], -complex[2])
+Complex.__unm = function(complex)
+    return Complex:new(-complex[1], -complex[2])
 end
 
-local _complexConjugate = function (complex)
-    return _complexFromTwoInputs(complex[1], complex[2])
+function Complex:conjugate ()
+    return Complex:new(self[2], self[1])
 end
 
-local _complexNorm = function (complex)
-    return (complex * _complexConjugate(complex))[1]
+function Complex:norm ()
+    return math.sqrt(self[1]^2 + self[2]^2)
 end
 
-local _complexTimesScalar = function (scalar, complex)
-    return _complexFromTwoInputs(scalar * complex[1], scalar * complex[2])
+function Complex:scale (lambda)
+    return Complex:new(lambda * self[1], lambda * self[2])
 end
 
-local _complexInverse = function (complex)
-    return _complexTimesScalar(1 / _complexNorm(complex), _complexConjugate(complex))
-end
+function Complex:inverse ()
+    return self:conjugate():scale(1 / self:norm())
+end 
 
-_complex.__div = function (left, right)
-    return left * _complexInverse(right)
+Complex.__div = function (left, right)
+    return left * right:inverse()
 end
 
 local _signString = function (x)
@@ -68,7 +74,7 @@ local _signString = function (x)
     end
 end
 
-_complex.__tostring = function (complex)
+Complex.__tostring = function (complex)
     local sign = function (x)
         if x >= 0 then 
             return " + "
@@ -77,6 +83,35 @@ _complex.__tostring = function (complex)
         end
     end
     return tostring(complex[1]) .. _signString(complex[2]) .. "i " .. tostring(math.abs(complex[2]))
+end
+
+function Complex:sort (array, order)
+    local comp = function (left, right)
+        if order == "d" then
+            if type(left) == "number" and type(right) == "number" then
+                return math.abs(left) > math.abs(right)
+            elseif getmetatable(left) == getmetatable(right) then
+                return left:norm() > right:norm()
+            elseif getmetatable(left) == Complex then
+                return left:norm() > math.abs(right)
+            else
+                return math.abs(left) > right:norm()
+            end
+
+        else
+            if type(left) == "number" and type(right) == "number" then
+                return math.abs(left) < math.abs(right)
+            elseif getmetatable(left) == getmetatable(right) then
+                return left:norm() < right:norm()
+            elseif getmetatable(left) == Complex then
+                return left:norm() < math.abs(right)
+            else
+                return math.abs(left) < right:norm()
+            end
+        end
+    end
+    
+    table.sort(array, comp)
 end
 
 local _rational = {}
@@ -244,62 +279,7 @@ _ZmodP.__div = function (left, right)
     return left * _ZmodPInverse(right)
 end
 
-Scalars.Complex = {}
-
-Scalars.Complex.new = function (a, b)
-    if type(a) == "table" then
-        return _complexFromArray(a)
-    elseif b == nil then
-        return _complexFromTwoInputs(a, 0)
-    else
-        return _complexFromTwoInputs(a, b)
-    end
-end
-
-Scalars.Complex.newFromArray = function (array)
-    return _complexFromArray(array)
-end
-
-Scalars.Complex.norm = function (complex)
-    return _complexNorm(complex)
-end
-
-Scalars.Complex.conjugate = function (complex)
-    return _complexConjugate(complex)
-end
-
-Scalars.Complex.inverse = function (complex)
-    return _complexInverse(complex)
-end
-
-Scalars.Complex.sort = function (array, order)
-    local comp = function (left, right)
-        if order == "d" then
-            if type(left) == "number" and type(right) == "number" then
-                return math.abs(left) > math.abs(right)
-            elseif getmetatable(left) == getmetatable(right) then
-                return _complexNorm(left) > _complexNorm(right)
-            elseif getmetatable(left) == _complex then
-                return _complexNorm(left) > math.abs(right)
-            else
-                return math.abs(left) > _complexNorm(right)
-            end
-
-        else
-            if type(left) == "number" and type(right) == "number" then
-                return math.abs(left) < math.abs(right)
-            elseif getmetatable(left) == getmetatable(right) then
-                return _complexNorm(left) < _complexNorm(right)
-            elseif getmetatable(left) == _complex then
-                return _complexNorm(left) < math.abs(right)
-            else
-                return math.abs(left) < _complexNorm(right)
-            end
-        end
-    end
-    
-    table.sort(array, comp)
-end
+Scalars.Complex = Complex
 
 Scalars.Rational = {}
 

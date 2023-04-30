@@ -262,4 +262,72 @@ Tools.combinatorics.inversionNumber = function (permutation)
     return inversionNumber
 end
 
+function _padStringToLength (string, length)
+    local result = string
+    if (length - #result) % 2 == 1 then
+        result = result .. " "
+    end
+    local width = length - #result
+    for i = 1, width / 2 do
+        result = " " .. result .. " "
+    end
+    return result
+end
+
+function _padStringRightToLength (string, length)
+    local result = string
+    local width = length - #result
+    for i = 1, width do
+        result = result .. " "
+    end
+    return result
+end
+
+Tools.admin = {}
+
+Tools.admin.makeBanners = function (header, body, width)
+    width = width or 50
+    local result = "+"
+    for i = 1, width do
+        result = result .. "-"
+    end
+    result = result .. "+\n"
+    result = result .. "|"
+    result = result .. _padStringToLength(header, width)
+    result = result .. "|\n"
+    result = result .. "+"
+    for i = 1, width do
+        result = result .. "-"
+    end
+    result = result .. "+\n"
+    local iter = 1
+    local space, lastSpace = 0, 0
+    while iter <= #body do
+        lastSpace = space
+        space = string.find(body, " ", lastSpace + 1)
+        if space == nil then
+            if iter + width - 1 >= #body then
+                result = result .. "|" .. _padStringRightToLength(string.sub(body, iter, iter + width - 1), width) .. "|\n"
+            else
+                result = result .. "|" .. _padStringRightToLength(string.sub(body, iter, lastSpace - 1), width) .. "|\n"
+                iter = lastSpace + 1
+                if iter <= #body then
+                    result = result .. "|" .. _padStringRightToLength(string.sub(body, iter, iter + width - 1), width) .. "|\n"
+                end
+            end
+            break
+        end
+        if space - iter > width then
+            result = result .. "|" .. _padStringRightToLength(string.sub(body, iter, lastSpace - 1), width) .. "|\n"
+            iter = lastSpace + 1
+        end
+    end
+    result = result .. "+"
+    for i = 1, width do
+        result = result .. "-"
+    end
+    result = result .. "+\n"
+    return result
+end
+        
 return Tools
