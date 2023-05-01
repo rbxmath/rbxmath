@@ -47,7 +47,7 @@ Complex.__unm = function(complex)
 end
 
 function Complex:conjugate ()
-    return Complex:new(self[2], self[1])
+    return Complex:new(self[1], -self[2])
 end
 
 function Complex:norm ()

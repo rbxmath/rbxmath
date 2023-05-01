@@ -1761,12 +1761,35 @@ function ComplexMatrix:transpose ()
     return ComplexMatrix:new(data)
 end
 
+function ComplexMatrix:conjugateTranspose ()
+    local data = {}
+    for j = 1, self.width do
+        data[j] = {}
+        for i = 1, self.length do
+            data[j][i] = self[i][j]:conjugate()
+        end
+    end
+    return ComplexMatrix:new(data)
+end
+
 function ComplexMatrix:toTranspose ()
     local data = {}
     for j = 1, self.width do
         data[j] = {}
         for i = 1, self.length do
             data[j][i] = self[i][j]
+        end
+    end
+    self = data
+    return ComplexMatrix:new(data)
+end
+
+function ComplexMatrix:toConjugateTranspose ()
+    local data = {}
+    for j = 1, self.width do
+        data[j] = {}
+        for i = 1, self.length do
+            data[j][i] = self[i][j]:conjugate()
         end
     end
     self = data
@@ -2069,7 +2092,7 @@ function ComplexMatrix:trace ()
 end
 
 function ComplexMatrix:dot (matrix)
-    return (self:transpose() * matrix):trace()
+    return (self:conjugateTranspose() * matrix):trace()
 end
 
 --[[
@@ -2096,40 +2119,32 @@ function ComplexMatrix:hessenbergForm ()
     local n = a.length
     local b = ComplexMatrix:zero(n, 1)
     for k = 1, n - 2 do
-        local maxList = {}
-        for i = k + 1, n do
-            maxList[#maxList + 1] = a[i][k]:norm()
-        end
-        local beta = math.max(table.unpack(maxList))
         local gamma = 0
-        if beta ~= 0 then
-            local sum = 0
-            for i = k + 1, n do
-                a[i][k] = a[i][k]:scale(1 / beta)
-                sum = sum + a[i][k]:norm()^2
-            end
-            local tau = math.sqrt(sum)
-            local eta = a[k + 1][k]:norm() + tau
-            a[k + 1][k] = Complex:new(1)
-            for i = k + 2, n do
-                a[i][k] = a[i][k]:scale(1 / eta)
-            end
-            gamma = eta / tau
-            tau = tau * beta
-
-            local temp = a:submatrix(k + 1, n, k + 1, n)
-            local temp2 = a:submatrix(k + 1, n, k, k)
-            b:setSubmatrix(k + 1, n, 1, 1, (temp2:transpose() * temp):toScaled(-gamma):transpose())
-            a:setSubmatrix(k + 1, n, k + 1, n, temp + temp2 * b:submatrix(k + 1, n, 1, 1):transpose())
-
-            temp = a:submatrix(1, n, k + 1, n)
-            temp2 = a:submatrix(k + 1, n, k, k)
-            b:setSubmatrix(1, n, 1, 1, (temp * temp2):toScaled(-gamma))
-            a:setSubmatrix(1, n, k + 1, n, temp + b:submatrix(1, n, 1, 1) * temp2:transpose())
-            a:setSubmatrix(k + 1, n, k, k, temp2:toScaled(0))
-
-            a[k + 1][k] = Complex:new(-tau)
+        local sum = 0
+        for i = k + 1, n do
+            sum = sum + a[i][k]:norm()^2
         end
+        local tau = math.sqrt(sum)
+        a[k + 1][k] = a[k + 1][k] - Complex:new(tau)
+        local sum = 0
+        for i = k + 1, n do
+            sum = sum + a[i][k]:norm()^2
+        end
+        gamma = 2 / sum
+
+        print(tau)
+
+        local temp = a:submatrix(k + 1, n, k + 1, n)
+        local temp2 = a:submatrix(k + 1, n, k, k)
+        a:setSubmatrix(k + 1, n, k + 1, n, temp + temp2 * (temp2:conjugateTranspose() * temp):toScaled(-gamma))
+
+        temp = a:submatrix(1, n, k + 1, n)
+        temp2 = a:submatrix(k + 1, n, k, k)
+        b:setSubmatrix(1, n, 1, 1, (temp * temp2):toScaled(-gamma))
+        a:setSubmatrix(1, n, k + 1, n, temp + b:submatrix(1, n, 1, 1) * temp2:conjugateTranspose())
+        a:setSubmatrix(k + 1, n, k, k, temp2:toScaled(0))
+
+        a[k + 1][k] = Complex:new(tau)
     end
     return a
 end
@@ -2168,13 +2183,13 @@ function ComplexMatrix:toHessenbergForm ()
 
             local temp = a:submatrix(k + 1, n, k + 1, n)
             local temp2 = a:submatrix(k + 1, n, k, k)
-            b:setSubmatrix(k + 1, n, 1, 1, (temp2:transpose() * temp):toScaled(-gamma):transpose())
-            a:setSubmatrix(k + 1, n, k + 1, n, temp + temp2 * b:submatrix(k + 1, n, 1, 1):transpose())
+            b:setSubmatrix(k + 1, n, 1, 1, (temp2:conjugateTranspose() * temp):toScaled(-gamma):conjugateTranspose())
+            a:setSubmatrix(k + 1, n, k + 1, n, temp + temp2 * b:submatrix(k + 1, n, 1, 1):conjugateTranspose())
 
             temp = a:submatrix(1, n, k + 1, n)
             temp2 = a:submatrix(k + 1, n, k, k)
             b:setSubmatrix(1, n, 1, 1, (temp * temp2):toScaled(-gamma))
-            a:setSubmatrix(1, n, k + 1, n, temp + b:submatrix(1, n, 1, 1) * temp2:transpose())
+            a:setSubmatrix(1, n, k + 1, n, temp + b:submatrix(1, n, 1, 1) * temp2:conjugateTranspose())
             a:setSubmatrix(k + 1, n, k, k, temp2:toScaled(0))
 
             a[k + 1][k] = Complex:new(-tau)

@@ -251,6 +251,10 @@ iden2 = iden * iden
 idenP = iden + iden
 print(os.clock() - tic)
 
+local ones = ComplexMatrix:new({{1,1},{1,1}},true)
+print(ones * ones)
 rand = ComplexMatrix:random(4)
+print(ComplexMatrix:new({{Complex:new(0,1), Complex:new(0,1), Complex:new(0,1)}}))
+print(ComplexMatrix:new({{Complex:new(0,1), Complex:new(0,1), Complex:new(0,1)}}):conjugateTranspose())
 print(rand)
 print(rand:hessenbergForm())
