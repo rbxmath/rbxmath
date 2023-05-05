@@ -16,8 +16,12 @@ data = {1, -1, 1, -1}
 print(Tools.list.tostring(FFT:FFT(data, true)))
 data = {10., -5.41421, 2., -2.58579, 2., -2.58579, 2., -5.41421}
 print(Tools.list.tostring(FFT:FFT(data, true)))
-data = {10., -5.41421, 2., -2.58579, 2.}
-print(Tools.list.tostring(FFT:FCT(data)))
+
+print("\n\n\n\n\n")
+
+print("Atempting to recover Chebyshev series 0T_0 + 1T_1 + 2T_2 + 3T_3 + 4T_4 from values on grid...")
+data = {10.,-5.414213562373094,2.,-2.585786437626906,2.}
+print("Values recovered:", Tools.list.tostring(FFT:FCT(data)))
 
 --[[local dataList = {}
 for i = 1, 15 do

@@ -1,5 +1,6 @@
 local Tools = require("src.Tools")
 local MA = require("src.MatrixAlgebra")
+local FFT = require("src.FastFourierTransform")
 
 local Interpolation = {}
 
@@ -302,6 +303,7 @@ function ChebyshevInterpolant:new (f, a, b, n, chebyshevGrid, solveMethod)
     local result = {}
     setmetatable(result, self)
     self.__index = self
+    if type(f) == "table" then n = #f - 1 end
     chebyshevGrid = chebyshevGrid or _chebyshevGrid(n)
     local fList = {}
     local rescalingFunction = _linearRescalingFunction(a, b)
@@ -321,6 +323,7 @@ function ChebyshevInterpolant:new (f, a, b, n, chebyshevGrid, solveMethod)
     result.rightBound = b
     result.solveMethod = solveMethod
     result.evaluationFunction = function (x) return result:evaluate(x) end
+    result.coefficientList = FFT:FCT(Tools.list.reverse(fList))
 
     return result
 end

@@ -132,7 +132,7 @@ function FastFourierTransform:FCT (xList)
     data[1] = FFT[1][1] / length
     data[n] = FFT[n][1] / length
     for i = 2, n - 1 do
-        data[i] = (FFT[i] + FFT[length - i + 2]):scale(1 / (length))[1]
+        data[i] = (FFT[i][1] + FFT[length - i + 2][1]) / length
     end
     return data
 end

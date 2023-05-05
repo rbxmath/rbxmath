@@ -110,8 +110,13 @@ interpolant = interpolant:inverse()
 print("Time Taken:                             ", os.clock() - tic)
 print("Arc Length Parameterization Grid Values:", Tools.list.tostring(interpolant.gridValues))
 print("This should be close to 0.5:            ", NM.integration.fivePointGaussianQuadrature(function (x) return (math.exp(x) - 1) / (math.exp(1) - 2) end, 0, interpolant:evaluate(0.5)))
-tic = os.clock()
+--[[tic = os.clock()
 for i = 1, 1000000, 1 do
     interpolant:evaluate(0.5)
 end
-print("Time Taken for 1,000,000 Evaluatations:", os.clock() - tic)
+print("Time Taken for 1,000,000 Evaluatations:", os.clock() - tic)]]
+
+local interpolant = Interpolation.ChebyshevInterpolant:new(Tools.list.reverse({10.,-5.414213562373094,2.,-2.585786437626906,2.}), -1, 1)
+print("Grid values:", Tools.list.tostring(interpolant.gridValues))
+print("Grid values reversed:", Tools.list.tostring(Tools.list.reverse(interpolant.gridValues)))
+print("This should be 1, 2, 3, 4:", Tools.list.tostring(interpolant.coefficientList))

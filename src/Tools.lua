@@ -241,6 +241,15 @@ Tools.list.norm = function (array)
     return math.sqrt(sum)
 end
 
+Tools.list.reverse = function (array)
+    local data = {}
+    local n = #array
+    for i = n, 1, -1 do
+        data[n - i + 1] = array[i]
+    end
+    return data
+end
+
 Tools.solve = {}
 
 Tools.solve.regulaFalsi = function (f, t, a, b, tol)
