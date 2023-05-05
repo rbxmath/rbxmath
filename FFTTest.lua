@@ -10,6 +10,14 @@ local data = {1, 1, 1, 1}
 print(Tools.list.tostring(FFT:FFT2(data, true)))
 print(Tools.list.tostring(FFT:IFFT2(FFT:FFT2(data, true))))
 print(Tools.list.tostring(FFT:FFT(data, true)))
+data = {1, 1, 1, 1, 1, 1}
+print(Tools.list.tostring(FFT:FFT(data, true)))
+data = {1, -1, 1, -1}
+print(Tools.list.tostring(FFT:FFT(data, true)))
+data = {10., -5.41421, 2., -2.58579, 2., -2.58579, 2., -5.41421}
+print(Tools.list.tostring(FFT:FFT(data, true)))
+data = {10., -5.41421, 2., -2.58579, 2.}
+print(Tools.list.tostring(FFT:FCT(data)))
 
 --[[local dataList = {}
 for i = 1, 15 do
