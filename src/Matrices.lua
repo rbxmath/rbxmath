@@ -2574,6 +2574,29 @@ function SparseMatrix:setSubmatrix (rowStart, columnStart, matrix)
     return self
 end
 
+function SparseMatrix:apply (vector)
+    local data = {}
+
+    for k, v in pairs(self.data) do
+        local c = k % matrix.width
+        if c == 0 then c = matrix.width end
+        local r = (k - c) / matrix.width + 1
+        data[r] = data[r] + v * vector[c]
+    end
+
+    return data
+end
+
+function SparseMatrix:cascadeApply (matrixList, vector)
+    local data = vector
+
+    for i = #matrixList, 1, -1 do
+        data = matrixList[i]:apply(data)
+    end
+
+    return data
+end
+
 Matrices.SparseMatrix = SparseMatrix
 
 --[[

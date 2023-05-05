@@ -288,7 +288,7 @@ end
 local ChebyshevInterpolant = {
     grid = {},
     gridValues = {},
-    numPoints = 0,
+    degree = 0,
     linearRescalingFunction = nil,
     inverseLinearRescalingFunction = nil,
     leftBound = 0,
@@ -314,7 +314,7 @@ function ChebyshevInterpolant:new (f, a, b, n, chebyshevGrid, solveMethod)
     end
     result.grid = chebyshevGrid
     result.gridValues = fList
-    result.numPoints = n
+    result.degree = n
     result.linearRescalingFunction = rescalingFunction
     result.inverseLinearRescalingFunction = _inverseLinearRescalingFunction(a, b)
     result.leftBound = a
@@ -326,7 +326,34 @@ function ChebyshevInterpolant:new (f, a, b, n, chebyshevGrid, solveMethod)
 end
 
 function ChebyshevInterpolant:evaluate (x)
-    return _barycentricInterpolationInChebyshevPointsAtAPoint(self.gridValues, self.inverseLinearRescalingFunction(x), self.grid)
+    local fList = self.gridValues
+    local n = self.degree + 1
+    local chebyshevGrid = self.grid
+    x = self.inverseLinearRescalingFunction(x)
+
+    local xDiffList = {}
+    local diff
+    for i, v in ipairs(chebyshevGrid) do
+        diff = x - v
+        if diff == 0 then
+            return fList[i]
+        end
+        xDiffList[i] = (-1)^(i - 1) / diff
+    end
+
+    local val = 0.5 * (xDiffList[1])
+    local denominator = val
+    local numerator = fList[1] * val
+    for i = 2, n-1, 1 do
+        val = xDiffList[i]
+        numerator = numerator + fList[i] * val
+        denominator = denominator + val
+    end
+    val = 0.5 * (xDiffList[n])
+    numerator = numerator + fList[n] * val
+    denominator = denominator + val
+
+    return numerator / denominator
 end
 
 function ChebyshevInterpolant:solve (t, tol, method, gapTol)
@@ -337,7 +364,7 @@ function ChebyshevInterpolant:solve (t, tol, method, gapTol)
     elseif method == "RegulaFalsi" then
         tol = tol or 10^(-13)
         local boundList = {self.leftBound, self.rightBound}
-        local n = self.numPoints
+        local n = self.degree
         local derivativeList = self:derivativeList(n - 2)
         for i = n - 2, 1, -1 do
             local newBoundList = {self.leftBound}
@@ -376,7 +403,7 @@ end
 
 function ChebyshevInterpolant:derivative (n)
     n = n or 1
-    local derivativeMatrix = _chebyshevHigherOrderSpectralDifferentionMatrix (self.numPoints, 1, self.grid)[2]
+    local derivativeMatrix = _chebyshevHigherOrderSpectralDifferentionMatrix (self.degree, 1, self.grid)[2]
     local fVector = {}
     for key, value in ipairs(self.gridValues) do
         fVector[key] = {value}
@@ -386,12 +413,12 @@ function ChebyshevInterpolant:derivative (n)
         fColumn = derivativeMatrix * fColumn
     end
     local fList = MA.matrix.flatten(fColumn).data
-    return ChebyshevInterpolant:new(fList, self.leftBound, self.rightBound, self.numPoints, self.grid)
+    return ChebyshevInterpolant:new(fList, self.leftBound, self.rightBound, self.degree, self.grid)
 end
 
 function ChebyshevInterpolant:derivativeList (n)
     n = n or 1
-    local derivativeMatrix = _chebyshevHigherOrderSpectralDifferentionMatrix (self.numPoints, 1, self.grid)[2]
+    local derivativeMatrix = _chebyshevHigherOrderSpectralDifferentionMatrix (self.degree, 1, self.grid)[2]
     local derivativeList = {}
     local fVector = {}
     for key, value in ipairs(self.gridValues) do
@@ -400,7 +427,7 @@ function ChebyshevInterpolant:derivativeList (n)
     local fColumn = MA.matrix.scale(MA.matrix.new(fVector), 2 * (self.rightBound - self.leftBound))
     for i = 1, n, 1 do
         fColumn = derivativeMatrix * fColumn
-        derivativeList[i] = ChebyshevInterpolant:new(MA.matrix.flatten(fColumn).data, self.leftBound, self.rightBound, self.numPoints, self.grid)
+        derivativeList[i] = ChebyshevInterpolant:new(MA.matrix.flatten(fColumn).data, self.leftBound, self.rightBound, self.degree, self.grid)
     end
     
     return derivativeList
@@ -458,7 +485,7 @@ function ChebyshevInterpolant:inverse (method)
             fList[key] = save[1]
         end
     end
-    return ChebyshevInterpolant:new(fList, min, max, self.numPoints, self.grid)
+    return ChebyshevInterpolant:new(fList, min, max, self.degree, self.grid)
 end
 
 Interpolation.Chebyshev = {}

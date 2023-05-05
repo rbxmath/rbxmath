@@ -59,11 +59,23 @@ function Complex:scale (lambda)
 end
 
 function Complex:inverse ()
-    return self:conjugate():scale(1 / self:norm())
+    return self:conjugate():scale(1 / self:norm()^2)
 end 
+
+function Complex:exp (theta)
+    return self:new(math.cos(theta), math.sin(theta))
+end
 
 Complex.__div = function (left, right)
     return left * right:inverse()
+end
+
+function Complex:pow (n)
+    local product = Complex:new(1)
+    for i = 1, n do
+        product = product * self
+    end
+    return product
 end
 
 local _signString = function (x)
