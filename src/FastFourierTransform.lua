@@ -9,7 +9,7 @@ local FastFourierTransform = {
     factorLists = factorLists
 }
 
--- Code taken from https://en.wikipedia.org/wiki/Cooley%E2%80%93Tukey_FFT_algorithm
+-- FFT2 code taken from https://en.wikipedia.org/wiki/Cooley%E2%80%93Tukey_FFT_algorithm
 
 function FastFourierTransform:FFT2 (xList, realQ)
     local data = {}

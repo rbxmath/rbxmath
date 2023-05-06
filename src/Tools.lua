@@ -138,39 +138,39 @@ end
 
 Tools.integers = {}
 
-Tools.integers.gcd = function (a, b)
+function Tools.integers.gcd (a, b)
     return _gcd(a, b)
 end
 
-Tools.integers.power = function (a, b)
+function Tools.integers.power (a, b)
     return _integerPower(a, b)
 end
 
 Tools.continuedFractions = {}
 
-Tools.continuedFractions.compute = function (float, n)
+function Tools.continuedFractions.compute (float, n)
     return _computeContinuedFraction(float, n)
 end
 
-Tools.continuedFractions.evaluate = function (continuedFraction)
+function Tools.continuedFractions.evaluate (continuedFraction)
     return _evaluateContinuedFraction(continuedFraction)
 end
 
 Tools.list = {}
 
-Tools.list.binarySearch = function (element, sortedArray)
+function Tools.list.binarySearch (element, sortedArray)
     return _binarySearch(element, sortedArray)
 end
 
-Tools.list.sublist = function (array, index)
+function Tools.list.sublist (array, index)
     return _subarray(array, index)
 end
 
-Tools.list.suplist = function (array, index)
+function Tools.list.suplist (array, index)
     return _suparray(array, index)
 end
 
-Tools.list.join = function (left, right)
+function Tools.list.join (left, right)
     local new = {}
     for _, value in ipairs(left) do
         new[#new + 1] = value
@@ -181,7 +181,7 @@ Tools.list.join = function (left, right)
     return new
 end
 
-Tools.list.tostring = function (array)
+function Tools.list.tostring (array)
     local result = "{"
     for i = 1, #array-1, 1 do
         result = result .. tostring(array[i]) .. ", "
@@ -191,7 +191,7 @@ Tools.list.tostring = function (array)
     return result
 end
 
-Tools.list.error = function (left, right)
+function Tools.list.error (left, right)
     if #left ~= #right then
         error("Incomparable lists!", -1)
     end
@@ -205,7 +205,7 @@ Tools.list.error = function (left, right)
     return error
 end
 
-Tools.list.map = function (f, list)
+function Tools.list.map (f, list)
     local result = {}
 
     for i, v in ipairs(list) do
@@ -215,7 +215,7 @@ Tools.list.map = function (f, list)
     return result
 end
 
-Tools.list.linspace = function (a, b, n)
+function Tools.list.linspace (a, b, n)
     local result = {}
 
     for i = 0, n-1, 1 do
@@ -223,7 +223,7 @@ Tools.list.linspace = function (a, b, n)
     end
 end
 
-Tools.list.copy = function (array)
+function Tools.list.copy (array)
     local result = {}
 
     for i = 1, #array, 1 do
@@ -233,7 +233,7 @@ Tools.list.copy = function (array)
     return result
 end
 
-Tools.list.norm = function (array)
+function Tools.list.norm (array)
     local sum = 0
     for _, value in ipairs(array) do
         sum = sum + math.pow(value, 2)
@@ -241,7 +241,7 @@ Tools.list.norm = function (array)
     return math.sqrt(sum)
 end
 
-Tools.list.reverse = function (array)
+function Tools.list.reverse (array)
     local data = {}
     local n = #array
     for i = n, 1, -1 do
@@ -252,13 +252,13 @@ end
 
 Tools.solve = {}
 
-Tools.solve.regulaFalsi = function (f, t, a, b, tol)
+function Tools.solve.regulaFalsi (f, t, a, b, tol)
     return _regulaFalsi(f, t, a, b, tol)
 end
 
 Tools.combinatorics = {}
 
-Tools.combinatorics.inversionNumber = function (permutation)
+function Tools.combinatorics.inversionNumber (permutation)
     local n = #permutation
     local inversionNumber = 0
     for i = 1, n - 1 do
@@ -294,7 +294,7 @@ end
 
 Tools.admin = {}
 
-Tools.admin.makeBanners = function (header, body, width)
+function Tools.admin.makeBanners (header, body, width)
     width = width or 50
     local result = "+"
     for i = 1, width do

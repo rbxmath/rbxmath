@@ -236,7 +236,7 @@ end
     +--------------------------------------------------+
 ]]
 
-Matrix.__add = function (left, right)
+function Matrix.__add (left, right)
     if left.length ~= right.length or left.width ~= right.width then
         error("Attempting to add matrices of incompatible dimension!", -1)
     end
@@ -252,7 +252,7 @@ Matrix.__add = function (left, right)
     return Matrix:new(data)
 end
 
-Matrix.__sub = function (left, right)
+function Matrix.__sub (left, right)
     if left.length ~= right.length or left.width ~= right.width then
         error("Attempting to add matrices of incompatible dimension!", -1)
     end
@@ -268,7 +268,7 @@ Matrix.__sub = function (left, right)
     return Matrix:new(data)
 end
 
-Matrix.__mul = function (left, right)
+function Matrix.__mul (left, right)
     if left.width ~= right.length then
         error("Attempting to multiply matrices of incompatible dimension!", -1)
     end
@@ -317,7 +317,7 @@ Matrix.__mul = function (left, right)
     end
 end
 
-Matrix.__tostring = function (matrix)
+function Matrix.__tostring (matrix)
     local result = "{"
 
     local length = matrix.length
@@ -335,7 +335,7 @@ Matrix.__tostring = function (matrix)
     return result
 end
 
-Matrix.__eq = function (left, right)
+function Matrix.__eq (left, right)
     if left.length ~= right.length or left.width ~= right.width then
         return false
     else
@@ -1581,7 +1581,7 @@ end
     +--------------------------------------------------+
 ]]
 
-ComplexMatrix.__add = function (left, right)
+function ComplexMatrix.__add (left, right)
     if left.length ~= right.length or left.width ~= right.width then
         error("Attempting to add matrices of incompatible dimension!", -1)
     end
@@ -1597,7 +1597,7 @@ ComplexMatrix.__add = function (left, right)
     return ComplexMatrix:new(data)
 end
 
-ComplexMatrix.__sub = function (left, right)
+function ComplexMatrix.__sub (left, right)
     if left.length ~= right.length or left.width ~= right.width then
         error("Attempting to add matrices of incompatible dimension!", -1)
     end
@@ -1613,7 +1613,7 @@ ComplexMatrix.__sub = function (left, right)
     return ComplexMatrix:new(data)
 end
 
-ComplexMatrix.__mul = function (left, right)
+function ComplexMatrix.__mul (left, right)
     if left.width ~= right.length then
         error("Attempting to multiply matrices of incompatible dimension!", -1)
     end
@@ -1662,7 +1662,7 @@ ComplexMatrix.__mul = function (left, right)
     end
 end
 
-ComplexMatrix.__tostring = function (matrix)
+function ComplexMatrix.__tostring (matrix)
     local result = "{"
 
     local length = matrix.length
@@ -1680,7 +1680,7 @@ ComplexMatrix.__tostring = function (matrix)
     return result
 end
 
-ComplexMatrix.__eq = function (left, right)
+function ComplexMatrix.__eq (left, right)
     if left.length ~= right.length or left.width ~= right.width then
         return false
     else
@@ -2370,7 +2370,7 @@ function SparseMatrix:copy ()
     return SparseMatrix:new(data, self.length, self.width)
 end
 
-SparseMatrix.__tostring = function (matrix)
+function SparseMatrix.__tostring (matrix)
     local result = "{"
 
     for i = 1, matrix.length - 1 do
@@ -2428,7 +2428,7 @@ function SparseMatrix:strassenSubdivide ()
     }
 end
 
-SparseMatrix.__add = function (left, right)
+function SparseMatrix.__add (left, right)
     if left.length ~= right.length or left.width ~= right.width then
         error("Attempting to add matrices of incompatible dimension!", -1)
     end
@@ -2449,7 +2449,7 @@ SparseMatrix.__add = function (left, right)
     return data
 end
 
-SparseMatrix.__sub = function (left, right)
+function SparseMatrix.__sub (left, right)
     if left.length ~= right.length or left.width ~= right.width then
         error("Attempting to add matrices of incompatible dimension!", -1)
     end
@@ -2470,7 +2470,7 @@ SparseMatrix.__sub = function (left, right)
     return data
 end
 
-SparseMatrix.__mul = function (left, right)
+function SparseMatrix.__mul (left, right)
     if left.width ~= right.length then
         error("Attempting to multiply matrices of incompatible dimension!", -1)
     end
@@ -2560,7 +2560,7 @@ SparseMatrix.__mul = function (left, right)
     --end
 end
 
-SparseMatrix.__eq = function (left, right)
+function SparseMatrix.__eq (left, right)
     if left.length ~= right.length or left.width ~= right.width then
         return false
     else
@@ -2650,7 +2650,7 @@ Matrices.SparseMatrix = SparseMatrix
     +--------------------------------------------------+
 ]]
 
-Matrices.constants.ComputeStrassenLimit = function ()
+function Matrices.constants.ComputeStrassenLimit ()
     local strassenLimit = Matrices.constants.STRASSENLIMIT
     for i = 1, 100, 1 do
         local data = {}
@@ -2681,7 +2681,7 @@ Matrices.constants.ComputeStrassenLimit = function ()
     end
 end
 
-Matrices.constants.ComputeSparseStrassenLimit = function ()
+function Matrices.constants.ComputeSparseStrassenLimit ()
     local strassenLimit = Matrices.constants.SPARSESTRASSENLIMIT
     for i = 1, 100, 1 do
         local matrix = SparseMatrix:identity(math.pow(2, i))
@@ -2705,7 +2705,7 @@ Matrices.constants.ComputeSparseStrassenLimit = function ()
     end
 end
 
-Matrices.constants.ComputeComplexStrassenLimit = function ()
+function Matrices.constants.ComputeComplexStrassenLimit ()
     local strassenLimit = Matrices.constants.COMPLEXSTRASSENLIMIT
     for i = 1, 100, 1 do
         local matrix = ComplexMatrix:identity(math.pow(2, i))

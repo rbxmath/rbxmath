@@ -1,5 +1,6 @@
 local Tools = require("src/Tools")
-local MA = require("src/MatrixAlgebra")
+local Matrices = require("src/Matrices")
+local Matrix = Matrices.Matrix
 local Interpolation = require("src/Interpolation")
 local cheb = Interpolation.Chebyshev
 
@@ -84,7 +85,7 @@ local _chebyshevSpectralDifferentionMatrix = function (n, p, chebyshevGridPoints
 
     local result = {}
     for i = 1, p+1, 1 do
-        result[i] = MA.matrix.new(D[i])
+        result[i] = Matrix:new(D[i])
     end
 
     return result
@@ -107,7 +108,7 @@ local _chebyshevFirstOrderSpectralMethod = function (fList, a, chebyshevGridPoin
 
     vector[1] = a
 
-    return MA.matrix.solve(D, vector)
+    return D:solve(vector)
 end
 
 local _chebyshevSecondtOrderBoundaryValueProblemSpectralMethod = function (coeffList, fList, a, b, chebyshevGridPoints)
@@ -117,7 +118,7 @@ local _chebyshevSecondtOrderBoundaryValueProblemSpectralMethod = function (coeff
     b = b or 0
 
     local DList = _chebyshevSpectralDifferentionMatrix(n - 1, 2, chebyshevGrid)
-    local D = MA.matrix.scale(DList[3], coeffList[1]) + MA.matrix.scale(DList[2], coeffList[2]) + MA.matrix.scale(DList[1], coeffList[3])
+    local D = DList[3]:scale( coeffList[1]) + DList[2]:scale(coeffList[2]) + DList[1]:scale(coeffList[3])
 
     for i = 1, n, 1 do
         if i == 1 then
@@ -136,7 +137,7 @@ local _chebyshevSecondtOrderBoundaryValueProblemSpectralMethod = function (coeff
     vector[1] = a
     vector[n] = b
 
-    return MA.matrix.solve(D, vector)
+    return D:solve(vector)
 end
 
 local _chebyshevSecondtOrderInitialValueProblemSpectralMethod = function (coeffList, fList, a, b, chebyshevGridPoints)
@@ -146,7 +147,7 @@ local _chebyshevSecondtOrderInitialValueProblemSpectralMethod = function (coeffL
     b = b or 0
 
     local DList = _chebyshevSpectralDifferentionMatrix(n - 1, 2, chebyshevGrid)
-    local D = MA.matrix.scale(DList[3], coeffList[1]) + MA.matrix.scale(DList[2], coeffList[2]) + MA.matrix.scale(DList[1], coeffList[3])
+    local D = DList[3]:scale( coeffList[1]) + DList[2]:scale(coeffList[2]) + DList[1]:scale(coeffList[3])
 
     for i = 1, n, 1 do
         if i == 1 then
@@ -162,26 +163,26 @@ local _chebyshevSecondtOrderInitialValueProblemSpectralMethod = function (coeffL
     vector[1] = a
     vector[2] = b
 
-    return MA.matrix.solve(D, vector)
+    return D:solve(vector)
 end
 
 ODE.SpectralMethods = {}
 
-ODE.SpectralMethods.chebyshevDerivativeMatrix = function (n, chebyshevGridPoints)
+function ODE.SpectralMethods.chebyshevDerivativeMatrix (n, chebyshevGridPoints)
     return cheb.derivativeMatrix(n, chebyshevGridPoints)
 end
 
-ODE.SpectralMethods.chebyshevDerivativeMatrices = function (n, p, chebyshevGridPoints)
+function ODE.SpectralMethods.chebyshevDerivativeMatrices (n, p, chebyshevGridPoints)
     return _chebyshevSpectralDifferentionMatrix(n, p, chebyshevGridPoints)
 end
 
-ODE.SpectralMethods.chebyshevFirstOrder = function (f, a, n, chebyshevGridPoints)
+function ODE.SpectralMethods.chebyshevFirstOrder (f, a, n, chebyshevGridPoints)
     local chebyshevGrid = chebyshevGridPoints or cheb.grid(n)
     local fList = Tools.list.map(f, chebyshevGrid)
     return _chebyshevFirstOrderSpectralMethod(fList, a, chebyshevGrid)
 end
 
-ODE.SpectralMethods.chebyshevSecondOrderBoundaryValueProblem = function (coeffList, f, boundary, boundaryValues, n, chebyshevGridPoints)
+function ODE.SpectralMethods.chebyshevSecondOrderBoundaryValueProblem (coeffList, f, boundary, boundaryValues, n, chebyshevGridPoints)
     local chebyshevGrid = chebyshevGridPoints or cheb.grid(n)
     local y, x = boundary[1], boundary[2]
     for i, v in ipairs(coeffList) do
@@ -196,7 +197,7 @@ ODE.SpectralMethods.chebyshevSecondOrderBoundaryValueProblem = function (coeffLi
     return _chebyshevSecondtOrderBoundaryValueProblemSpectralMethod(coeffList, fList, a, b, chebyshevGrid)
 end
 
-ODE.SpectralMethods.chebyshevSecondOrderInitialValueProblem = function (coeffList, f, boundary, boundaryValues, n, chebyshevGridPoints)
+function ODE.SpectralMethods.chebyshevSecondOrderInitialValueProblem (coeffList, f, boundary, boundaryValues, n, chebyshevGridPoints)
     local chebyshevGrid = chebyshevGridPoints or cheb.grid(n)
     local y, x = boundary[1], boundary[2]
     for i, v in ipairs(coeffList) do

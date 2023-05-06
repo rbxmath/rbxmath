@@ -22,27 +22,27 @@ function Complex:new (a, b)
     end
 end
 
-Complex.__newindex = function (t, k, v)
+function Complex.__newindex (t, k, v)
     error("Complex numbers are immutable!")
 end
 
-Complex.__eq = function (left, right)
+function Complex.__eq (left, right)
     return left[1] == right[1] and left[2] == right[2]
 end
 
-Complex.__add = function (left, right)
+function Complex.__add (left, right)
     return Complex:new(left[1] + right[1], left[2] + right[2])
 end
 
-Complex.__sub = function (left, right)
+function Complex.__sub (left, right)
     return Complex:new(left[1] - right[1], left[2] - right[2])
 end
 
-Complex.__mul = function (left, right)
+function Complex.__mul (left, right)
     return Complex:new(left[1] * right[1] - left[2] * right[2], left[1] * right[2] + left[2] * right[1])
 end
 
-Complex.__unm = function(complex)
+function Complex.__unm(complex)
     return Complex:new(-complex[1], -complex[2])
 end
 
@@ -66,7 +66,7 @@ function Complex:exp (theta)
     return self:new(math.cos(theta), math.sin(theta))
 end
 
-Complex.__div = function (left, right)
+function Complex.__div (left, right)
     return left * right:inverse()
 end
 
@@ -86,7 +86,7 @@ local _signString = function (x)
     end
 end
 
-Complex.__tostring = function (complex)
+function Complex.__tostring (complex)
     local sign = function (x)
         if x >= 0 then 
             return " + "
@@ -152,11 +152,11 @@ local _rationalFromTwoInputs = function (a, b)
     return result
 end
 
-_rational.__eq = function (left, right)
+function _rational.__eq (left, right)
     return left[1] == right[1] and left[2] == right[2]
 end
 
-_rational.__add = function (left, right)
+function _rational.__add (left, right)
     local denominator = left[2] * right[2]
     local numerator = left[1] * right[2] + right[1] * left[2]
 
@@ -165,7 +165,7 @@ _rational.__add = function (left, right)
     return _rationalFromTwoInputs(numerator / divisor, denominator / divisor)
 end
 
-_rational.__sub = function (left, right)
+function _rational.__sub (left, right)
     local denominator = left[2] * right[2]
     local numerator = left[1] * right[2] - right[1] * left[2]
 
@@ -174,15 +174,15 @@ _rational.__sub = function (left, right)
     return _rationalFromTwoInputs(numerator / divisor, denominator / divisor)
 end
 
-_rational.__mul = function (left, right)
+function _rational.__mul (left, right)
     return _rationalFromTwoInputs(left[1] * right[1], left[2] * right[2])
 end
 
-_rational.__div = function (left, right)
+function _rational.__div (left, right)
     return _rationalFromTwoInputs(left[1] * right[2], left[2] * right[1])
 end
 
-_rational.__tostring = function (rational)
+function _rational.__tostring (rational)
     return tostring(rational[1]) .. "/" .. tostring(rational[2])
 end
 
@@ -234,11 +234,11 @@ local _ZmodPFromTwoInputs = function (a, b)
     return result
 end
 
-_ZmodP.__eq = function (left, right)
+function _ZmodP.__eq (left, right)
     return left[1] == right[1] and left[2] == right[2]
 end
 
-_ZmodP.__add = function (left, right)
+function _ZmodP.__add (left, right)
     if left[2] ~= right[2] then
         error("Modulus mismatch!", -1)
     end
@@ -246,7 +246,7 @@ _ZmodP.__add = function (left, right)
     return _ZmodPFromTwoInputs(left[1] + right[1], left[2])
 end
 
-_ZmodP.__sub = function (left, right)
+function _ZmodP.__sub (left, right)
     if left[2] ~= right[2] then
         error("Modulus mismatch!", -1)
     end
@@ -254,7 +254,7 @@ _ZmodP.__sub = function (left, right)
     return _ZmodPFromTwoInputs(left[2] + left[1] - right[1], left[2])
 end
 
-_ZmodP.__mul = function (left, right)
+function _ZmodP.__mul (left, right)
     if left[2] ~= right[2] then
         error("Modulus mismatch!", -1)
     end
@@ -262,7 +262,7 @@ _ZmodP.__mul = function (left, right)
     return _ZmodPFromTwoInputs(left[1] * right[1], left[2])
 end
 
-_ZmodP.__tostring = function (zinteger)
+function _ZmodP.__tostring (zinteger)
     return tostring(zinteger[1])
 end
 
@@ -287,7 +287,7 @@ local _ZmodPInverse = function (zinteger)
     return _ZmodPFromTwoInputs(t + zinteger[2], zinteger[2])
 end
 
-_ZmodP.__div = function (left, right)
+function _ZmodP.__div (left, right)
     return left * _ZmodPInverse(right)
 end
 
@@ -295,41 +295,41 @@ Scalars.Complex = Complex
 
 Scalars.Rational = {}
 
-Scalars.Rational.new = function (a, b)
+function Scalars.Rational.new (a, b)
     return _rationalFromTwoInputs(a, b)
 end
 
-Scalars.Rational.newFromArray = function (array)
+function Scalars.Rational.newFromArray (array)
     return _rationalFromArray(array)
 end
 
-Scalars.Rational.toReal = function (rational)
+function Scalars.Rational.toReal (rational)
     return rational[1] / rational[2]
 end
 
-Scalars.Rational.rationalApproximation = function (float, tolerance)
+function Scalars.Rational.rationalApproximation (float, tolerance)
     return _rationalApproximation(float, tolerance)
 end
 
-Scalars.Rational.rationalFromContinuedFraction = function (continuedFraction)
+function Scalars.Rational.rationalFromContinuedFraction (continuedFraction)
     return _rationalFromContinuedFraction(continuedFraction)
 end
 
-Scalars.Rational.inverse = function (rational)
+function Scalars.Rational.inverse (rational)
     return _rationalFromTwoInputs(rational[2], rational[1])
 end
 
 Scalars.ZmodP = {}
 
-Scalars.ZmodP.new = function (a, b)
+function Scalars.ZmodP.new (a, b)
     return _ZmodPFromTwoInputs(a, b)
 end
 
-Scalars.ZmodP.newFromArray = function (array)
+function Scalars.ZmodP.newFromArray (array)
     return _ZmodPFromArray(array)
 end
 
-Scalars.ZmodP.inverse = function (zinteger)
+function Scalars.ZmodP.inverse (zinteger)
     return _ZmodPInverse(zinteger)
 end
 

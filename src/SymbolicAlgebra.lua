@@ -167,7 +167,7 @@ local _setFromArray = function (array)
     return result
 end
 
-_set.__add = function (left, right)
+function _set.__add (left, right)
     local result = _setFromArray({})
 
     local i = 0
@@ -202,7 +202,7 @@ _set.__add = function (left, right)
     return result
 end
 
-_set.__mul = function (left, right)
+function _set.__mul (left, right)
     local result = _setFromArray({})
 
     if left == nil or right == nil or #left == 0 or #right == 0 then
@@ -229,7 +229,7 @@ _set.__mul = function (left, right)
     return result
 end
 
-_set.__eq = function (left, right)
+function _set.__eq (left, right)
     if #left ~= #right then
         return false
     end
@@ -243,7 +243,7 @@ _set.__eq = function (left, right)
     return true
 end
 
-_set.__lt = function (left, right)
+function _set.__lt (left, right)
     if #left >= #right then
         return false
     end
@@ -251,7 +251,7 @@ _set.__lt = function (left, right)
     return left * right == left
 end
 
-_set.__le = function (left, right)
+function _set.__le (left, right)
     return left * right == left
 end
 
@@ -265,11 +265,11 @@ local _dupleFromTwoInputs = function (left, right)
     return result
 end
 
-_duple.__eq = function (left, right)
+function _duple.__eq (left, right)
     return left[1] == right[1] and left[2] == right[2]
 end
 
-_duple.__lt = function (left, right)
+function _duple.__lt (left, right)
     if left[1] == right[1] then
         return left[2] < right[2]
     else
@@ -277,7 +277,7 @@ _duple.__lt = function (left, right)
     end
 end
 
-_duple.__le = function (left, right)
+function _duple.__le (left, right)
     return left < right or left == right
 end
 
@@ -418,7 +418,7 @@ local _monomialSimplify = function (monomial)
     return _monomialFromArrayAndPreSet(symbolPreSet, exponentArray, monomial["coeff"])
 end
 
-_monomial.__add = function (left, right)
+function _monomial.__add (left, right)
     local leftSimple = _monomialSimplify(left)
     local rightSimple = _monomialSimplify(right)
 
@@ -431,23 +431,23 @@ _monomial.__add = function (left, right)
     return _monomialFromArrayAndPreSet(left[1], left[2], left["coeff"] + right["coeff"])
 end
 
-_monomial.__mul = function (left, right)
+function _monomial.__mul (left, right)
     return _monomialFromArrayAndPreSet(concatenateArrays(left[1], right[1]), concatenateArrays(left[2], right[2]), left["coeff"] * right["coeff"])
 end
 
-_monomial.__unm = function (monomial)
+function _monomial.__unm (monomial)
     return _monomialFromArrayAndPreSet(shallowCopyArray(monomial[1]), shallowCopyArray(monomial[2]), -monomial["coeff"])
 end
 
-_monomial.__sub = function (left, right)
+function _monomial.__sub (left, right)
     return left + -right
 end
 
-_monomial.__len = function (monomial)
+function _monomial.__len (monomial)
     return #monomial[1]
 end
 
-_monomial.__tostring = function (monomial)
+function _monomial.__tostring (monomial)
     local result = tostring(monomial["coeff"])
 
     for i = 1, #monomial do
@@ -457,14 +457,14 @@ _monomial.__tostring = function (monomial)
     return result
 end
 
-_monomial.__eq = function (left, right)
+function _monomial.__eq (left, right)
     local leftSimple = _monomialSimplify(left)
     local rightSimple = _monomialSimplify(right)
 
     return leftSimple[1] == rightSimple[1] and arrayEquals(leftSimple[2], rightSimple[2])
 end
 
-_monomial.__lt = function (left, right)
+function _monomial.__lt (left, right)
     if _monomialDegree(left) ~= _monomialDegree(right) then
         return _monomialDegree(left) < _monomialDegree(right)
     else
@@ -476,7 +476,7 @@ _monomial.__lt = function (left, right)
     end
 end
 
-_monomial.__le = function (left, right)
+function _monomial.__le (left, right)
     return left == right or left < right
 end
 
@@ -566,13 +566,13 @@ local _polynomialEvaluate = function (polynomial, rules)
     return _polynomialFromArrayOfMonomials(result)
 end
 
-_polynomial.__add = function (left, right)
+function _polynomial.__add (left, right)
     local preresult = concatenateArrays(left, right)
 
     return _polynomialFromArrayOfMonomials(preresult)
 end
 
-_polynomial.__unm = function (polynomial)
+function _polynomial.__unm (polynomial)
     local result = {}
 
     for i = 1, #polynomial do
@@ -582,11 +582,11 @@ _polynomial.__unm = function (polynomial)
     return _polynomialFromArrayOfMonomials(result)
 end
 
-_polynomial.__sub = function (left, right)
+function _polynomial.__sub (left, right)
     return left + -right
 end
 
-_polynomial.__mul = function (left, right)
+function _polynomial.__mul (left, right)
     local result = {}
 
     for i = 1, #left do
@@ -598,7 +598,7 @@ _polynomial.__mul = function (left, right)
     return _polynomialFromArrayOfMonomials(result)
 end
 
-_polynomial.__tostring = function (polynomial)
+function _polynomial.__tostring (polynomial)
     local result = tostring(polynomial[1])
 
     for i = 2, #polynomial do
@@ -612,45 +612,45 @@ local SymbolicAlgebra = {}
 
 SymbolicAlgebra.set = {}
 
-SymbolicAlgebra.set.new = function (array)
+function SymbolicAlgebra.set.new (array)
     return _setFromArray(array)
 end
 
 SymbolicAlgebra.duple = {}
 
-SymbolicAlgebra.duple.new = function (first, second)
+function SymbolicAlgebra.duple.new (first, second)
     return _dupleFromTwoInputs(first, second)
 end
 
 SymbolicAlgebra.monomial = {}
 
-SymbolicAlgebra.monomial.new = function (exponents, symbols, coeff)
+function SymbolicAlgebra.monomial.new (exponents, symbols, coeff)
     return _monomialFromArrayAndPreSet(exponents, symbols, coeff)
 end
 
-SymbolicAlgebra.monomial.copy = function (monomial)
+function SymbolicAlgebra.monomial.copy (monomial)
     return _monomialCopy(monomial)
 end
 
-SymbolicAlgebra.monomial.replace = function (monomial, symbolToReplace, symbol)
+function SymbolicAlgebra.monomial.replace (monomial, symbolToReplace, symbol)
     return _monomialReplace(monomial, symbolToReplace, symbol)
 end
 
-SymbolicAlgebra.monomial.scale = function (c, monomial)
+function SymbolicAlgebra.monomial.scale (c, monomial)
     return _monomialScale(c, monomial)
 end
 
-SymbolicAlgebra.monomial.simplify = function (monomial)
+function SymbolicAlgebra.monomial.simplify (monomial)
     return _monomialSimplify(monomial)
 end
 
-SymbolicAlgebra.monomial.evaluate = function (monomial, rules)
+function SymbolicAlgebra.monomial.evaluate (monomial, rules)
     return _monomialEvaluate(monomial, rules)
 end
 
 SymbolicAlgebra.polynomial = {}
 
-SymbolicAlgebra.polynomial.new = function (array)
+function SymbolicAlgebra.polynomial.new (array)
     if getmetatable(array[1]) == _monomial then
         return _polynomialSimplify(_polynomialFromArrayOfMonomials(array))
     else
@@ -658,23 +658,23 @@ SymbolicAlgebra.polynomial.new = function (array)
     end
 end
 
-SymbolicAlgebra.polynomial.copy = function (polynomial)
+function SymbolicAlgebra.polynomial.copy (polynomial)
     return _polynomialCopy(polynomial)
 end
 
-SymbolicAlgebra.polynomial.replace = function (polynomial, symbolToReplace, symbol)
+function SymbolicAlgebra.polynomial.replace (polynomial, symbolToReplace, symbol)
     return _polynomialReplace(polynomial, symbolToReplace, symbol)
 end
 
-SymbolicAlgebra.polynomial.scale = function (c, polynomial)
+function SymbolicAlgebra.polynomial.scale (c, polynomial)
     return _polynomialScale(c, polynomial)
 end
 
-SymbolicAlgebra.polynomial.simplify = function (polynomial)
+function SymbolicAlgebra.polynomial.simplify (polynomial)
     return _polynomialSimplify(polynomial)
 end
 
-SymbolicAlgebra.polynomial.evaluate = function (polynomial, rules)
+function SymbolicAlgebra.polynomial.evaluate (polynomial, rules)
     return _polynomialEvaluate(polynomial, rules)
 end
 

@@ -493,11 +493,11 @@ end
 
 Interpolation.Chebyshev = {}
 
-Interpolation.Chebyshev.grid = function (n)
+function Interpolation.Chebyshev.grid (n)
     return _chebyshevGrid(n)
 end
 
-Interpolation.Chebyshev.evaluate = function (f, x, n, chebyshevGrid)
+function Interpolation.Chebyshev.evaluate (f, x, n, chebyshevGrid)
     chebyshevGrid = chebyshevGrid or _chebyshevGrid(n)
     local fList = {}
     for i = 1, n+1, 1 do
@@ -506,7 +506,7 @@ Interpolation.Chebyshev.evaluate = function (f, x, n, chebyshevGrid)
     return _barycentricInterpolationInChebyshevPointsAtAPoint(fList, x, chebyshevGrid)
 end
 
-Interpolation.Chebyshev.rescaleAndEvaluate = function (f, a, b, x, n, chebyshevGrid)
+function Interpolation.Chebyshev.rescaleAndEvaluate (f, a, b, x, n, chebyshevGrid)
     chebyshevGrid = chebyshevGrid or _chebyshevGrid(n - 1)
     local rescalingFunction = _linearRescalingFunction(a, b)
     local fList = {}
@@ -516,11 +516,11 @@ Interpolation.Chebyshev.rescaleAndEvaluate = function (f, a, b, x, n, chebyshevG
     return _barycentricInterpolationInChebyshevPointsAtAPoint(fList, x)
 end
 
-Interpolation.Chebyshev.evaluateOnData = function (fList, x, chebyshevGrid)
+function Interpolation.Chebyshev.evaluateOnData (fList, x, chebyshevGrid)
     return _barycentricInterpolationInChebyshevPointsAtAPoint(fList, x, chebyshevGrid)
 end
 
-Interpolation.Chebyshev.evaluateAtPointList = function (f, xList, n, chebyshevGridPoints)
+function Interpolation.Chebyshev.evaluateAtPointList (f, xList, n, chebyshevGridPoints)
     local chebyshevGrid = chebyshevGridPoints or _chebyshevGrid(n - 1)
     local fList = {}
     for i = 1, n, 1 do
@@ -530,12 +530,12 @@ Interpolation.Chebyshev.evaluateAtPointList = function (f, xList, n, chebyshevGr
     return _barycentricInterpolationInChebyshevPointsAtPointList(fList, xList, chebyshevGrid)
 end
 
-Interpolation.Chebyshev.evaluateAtPointListOnData = function (fList, xList, chebyshevGrid)
+function Interpolation.Chebyshev.evaluateAtPointListOnData (fList, xList, chebyshevGrid)
     chebyshevGrid = chebyshevGrid or _chebyshevGrid(#fList - 1)
     return _barycentricInterpolationInChebyshevPointsAtPointList(fList, xList, chebyshevGrid)
 end
 
-Interpolation.Chebyshev.benchmark = function (f, xList, deltaMax, maxIters)
+function Interpolation.Chebyshev.benchmark (f, xList, deltaMax, maxIters)
     local delta = 0
     local iters = 0
     local mark, realAnswer, approximateAnswer
@@ -554,7 +554,7 @@ Interpolation.Chebyshev.benchmark = function (f, xList, deltaMax, maxIters)
     return errorVector, timeVector
 end
 
-Interpolation.Chebyshev.solve = function (f, t, n, method, tol, chebyshevGridPoints)
+function Interpolation.Chebyshev.solve (f, t, n, method, tol, chebyshevGridPoints)
     local chebyshevGrid = chebyshevGridPoints or _chebyshevGrid(n - 1)
     local tolerance = tol or (10^-13)
     local fList = {}
@@ -569,7 +569,7 @@ Interpolation.Chebyshev.solve = function (f, t, n, method, tol, chebyshevGridPoi
     end
 end
 
-Interpolation.Chebyshev.solveFromData = function (fList, t, method, tol, chebyshevGridPoints)
+function Interpolation.Chebyshev.solveFromData (fList, t, method, tol, chebyshevGridPoints)
     local n = #fList
     local chebyshevGrid = chebyshevGridPoints or _chebyshevGrid(n - 1)
     local tolerance = tol or (10^-13)
@@ -581,12 +581,12 @@ Interpolation.Chebyshev.solveFromData = function (fList, t, method, tol, chebysh
     end
 end
 
-Interpolation.Chebyshev.derivativeMatrix = function (n, chebyshexGridPoints)
+function Interpolation.Chebyshev.derivativeMatrix (n, chebyshexGridPoints)
     local chebyshevGrid = chebyshexGridPoints or _chebyshevGrid(n)
     return _chebyshevSpectralDifferentionMatrix(n, chebyshevGrid)
 end
 
-Interpolation.Chebyshev.linearRescalingFunction = function (a, b)
+function Interpolation.Chebyshev.linearRescalingFunction (a, b)
     return _linearRescalingFunction(a, b)
 end
 
