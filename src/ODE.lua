@@ -1,6 +1,6 @@
-local Tools = require("src.Tools")
-local MA = require("src.MatrixAlgebra")
-local Interpolation = require("src.Interpolation")
+local Tools = require("src/Tools")
+local MA = require("src/MatrixAlgebra")
+local Interpolation = require("src/Interpolation")
 local cheb = Interpolation.Chebyshev
 
 local ODE = {}

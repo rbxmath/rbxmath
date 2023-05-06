@@ -1,4 +1,4 @@
-local PrimeList = require("src.PrimeList")
+local PrimeList = require("src/PrimeList")
 
 local Primes = {
     primes = PrimeList
@@ -48,7 +48,7 @@ function Primes:decompose (n)
         end
         local temp = n
         while temp % v == 0 do
-            temp = temp // v
+            temp = temp / v
             decomp[#decomp + 1] = v
         end
     end

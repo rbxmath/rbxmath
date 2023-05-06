@@ -16,8 +16,8 @@
 +--------------------------------------------------+
 ]]
 
-local Tools = require("src.Tools")
-local Scalars = require("src.Scalars")
+local Tools = require("src/Tools")
+local Scalars = require("src/Scalars")
 local Complex = Scalars.Complex
 
 local Matrices = {}
@@ -333,6 +333,21 @@ Matrix.__tostring = function (matrix)
     result = result .. "}"
 
     return result
+end
+
+Matrix.__eq = function (left, right)
+    if left.length ~= right.length or left.width ~= right.width then
+        return false
+    else
+        for i = 1, left.length do
+            for j = 1, left.width do
+                if left[i][j] ~= right[i][j] then
+                    return false
+                end
+            end
+        end
+    end
+    return true
 end
 
 --[[
@@ -1665,6 +1680,21 @@ ComplexMatrix.__tostring = function (matrix)
     return result
 end
 
+ComplexMatrix.__eq = function (left, right)
+    if left.length ~= right.length or left.width ~= right.width then
+        return false
+    else
+        for i = 1, left.length do
+            for j = 1, left.width do
+                if left[i][j] ~= right[i][j] then
+                    return false
+                end
+            end
+        end
+    end
+    return true
+end
+
 --[[
     +--------------------------------------------------+
     |                 Common Matrices                  |
@@ -2508,12 +2538,12 @@ SparseMatrix.__mul = function (left, right)
         for k, v in pairs(leftData) do
             local c = k % leftWidth
             if c == 0 then c = rightWidth end
-            local r = (k - c) // leftLength
+            local r = math.floor((k - c) / leftLength)
             for kk, vv in pairs(rightData) do
                 local cc = kk % rightWidth
                 local ccc
                 if cc == 0 then cc = rightWidth end
-                local rr = (kk - cc) // rightLength
+                local rr = math.floor((kk - cc) / rightLength)
                 if c == rr + 1 then
                     local rcc = cc + r * leftWidth
                     local temp = data[rcc]
@@ -2528,6 +2558,18 @@ SparseMatrix.__mul = function (left, right)
         end
         return SparseMatrix:new(data, leftLength, rightWidth)
     --end
+end
+
+SparseMatrix.__eq = function (left, right)
+    if left.length ~= right.length or left.width ~= right.width then
+        return false
+    else
+        local test = left - right
+        for _, v in pairs(test.data) do
+            return false
+        end
+    end
+    return true
 end
 
 function SparseMatrix:zero (n, m)

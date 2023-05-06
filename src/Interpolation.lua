@@ -1,6 +1,6 @@
-local Tools = require("src.Tools")
-local MA = require("src.MatrixAlgebra")
-local FFT = require("src.FastFourierTransform")
+local Tools = require("src/Tools")
+local Matrix = require("src/Matrices").Matrix
+local FFT = require("src/FastFourierTransform")
 
 local Interpolation = {}
 
@@ -192,7 +192,7 @@ local _chebyshevSpectralDifferentionMatrix = function (n, chebyshevGridPoints)
         end
     end
 
-    return MA.matrix.new(D)
+    return Matrix:new(D)
 end
 
 local _chebyshevHigherOrderSpectralDifferentionMatrix = function (n, p, chebyshevGridPoints)
@@ -268,7 +268,7 @@ local _chebyshevHigherOrderSpectralDifferentionMatrix = function (n, p, chebyshe
 
     local result = {}
     for i = 1, p+1, 1 do
-        result[i] = MA.matrix.new(D[i])
+        result[i] = Matrix:new(D[i])
     end
 
     return result
@@ -411,11 +411,11 @@ function ChebyshevInterpolant:derivative (n)
     for key, value in ipairs(self.gridValues) do
         fVector[key] = {value}
     end
-    local fColumn = MA.matrix.scale(MA.matrix.new(fVector), 2 * (self.rightBound - self.leftBound))
+    local fColumn = Matrix:new(fVector):scaled(2 * (self.rightBound - self.leftBound))
     for i = 1, n, 1 do
         fColumn = derivativeMatrix * fColumn
     end
-    local fList = MA.matrix.flatten(fColumn).data
+    local fList = fColumn:transpose()[1]
     return ChebyshevInterpolant:new(fList, self.leftBound, self.rightBound, self.degree, self.grid)
 end
 
@@ -427,10 +427,10 @@ function ChebyshevInterpolant:derivativeList (n)
     for key, value in ipairs(self.gridValues) do
         fVector[key] = {value}
     end
-    local fColumn = MA.matrix.scale(MA.matrix.new(fVector), 2 * (self.rightBound - self.leftBound))
+    local fColumn = Matrix:new(fVector):scaled(2 * (self.rightBound - self.leftBound))
     for i = 1, n, 1 do
         fColumn = derivativeMatrix * fColumn
-        derivativeList[i] = ChebyshevInterpolant:new(MA.matrix.flatten(fColumn).data, self.leftBound, self.rightBound, self.degree, self.grid)
+        derivativeList[i] = ChebyshevInterpolant:new(fColumn:transpose()[1], self.leftBound, self.rightBound, self.degree, self.grid)
     end
     
     return derivativeList

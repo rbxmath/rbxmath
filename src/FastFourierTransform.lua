@@ -1,6 +1,6 @@
-local Complex = require("src.Scalars").Complex
-local Tools = require("src.Tools")
-local Primes = require("src.Primes")
+local Complex = require("src/Scalars").Complex
+local Tools = require("src/Tools")
+local Primes = require("src/Primes")
 
 local factorLists = {}
 setmetatable(factorLists, {__mode = "v"})
@@ -100,7 +100,7 @@ end
 function FastFourierTransform:FFTS (xList, n, startIndex, stride, primeDecomp)
     if n == 1 then return {xList[startIndex]} end
     local N1 = primeDecomp[#primeDecomp]
-    local N2 = n // N1
+    local N2 = n / N1
     local newStride = stride * N1
     local u = {}
     for i = 0, N1 - 1 do

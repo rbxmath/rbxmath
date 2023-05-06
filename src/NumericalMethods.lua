@@ -1,5 +1,5 @@
-local Tools = require("src.Tools")
-local MA = require("src.MatrixAlgebra")
+local Tools = require("src/Tools")
+local MA = require("src/MatrixAlgebra")
 
 local NumericalMethods = {}
 
