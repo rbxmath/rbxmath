@@ -4,8 +4,8 @@ local Primes = {
     primes = PrimeList
 }
 
-function Primes:buildPrimesList (n)
-    primesList = self.primes or {}
+function Primes:buildPrimesList (n : number) : { [number] : number }
+    local primesList = self.primes or {}
     local max = primesList[#primesList]
     local start
     if max then
@@ -33,7 +33,7 @@ function Primes:buildPrimesList (n)
     return primesList
 end
 
-function Primes:decompose (n)
+function Primes:decompose (n : number) : { [number] : number }
     local sqrt = math.sqrt(n)
     local primeList = {}
     if sqrt > self.primes[#self.primes] then

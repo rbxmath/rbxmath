@@ -106,7 +106,7 @@ function FastFourierTransform:FFTS (xList, n, startIndex, stride, primeDecomp)
     for i = 0, N1 - 1 do
         u[i + 1] = FastFourierTransform:FFTS(xList, N2, startIndex + i * stride, newStride, Tools.list.sublist(primeDecomp, #primeDecomp - 1))
     end
-    data = {}
+    local data = {}
     for k1 = 0, N1 - 1 do
         for k2 = 0, N2 - 1 do
             local iter = N2 * k1 + k2

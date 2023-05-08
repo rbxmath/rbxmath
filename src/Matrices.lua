@@ -17,6 +17,11 @@
 ]]
 
 local Tools = require("src/Tools")
+type Vector = Tools.Vector
+type Array<T> = Tools.Array<T>
+type ScalarFunction = Tools.ScalarFunction
+type Tensor = Tools.Tensor
+type Object = Tools.Object
 local Scalars = require("src/Scalars")
 local Complex = Scalars.Complex
 
@@ -32,7 +37,7 @@ local Matrix = {
     width = 0
 }
 
-function Matrix:new (list)
+function Matrix:new (list : Tensor | Vector) : Tensor
     if type(list[1]) == "table" then
         setmetatable(list, self)
         self.__index = self
@@ -64,7 +69,7 @@ end
     +--------------------------------------------------+
 ]]
 
-function Matrix:copy ()
+function Matrix:copy () : Tensor
     local data = {}
     for i = 1, self.length do
         data[i] = {}
@@ -75,7 +80,7 @@ function Matrix:copy ()
     return Matrix:new(data)
 end
 
-function Matrix:submatrix (rowStart, rowEnd, columnStart, columnEnd)
+function Matrix:submatrix (rowStart : number, rowEnd : number, columnStart : number, columnEnd : number) : Tensor
     local data = {}
     local row, column = 1, 1
     for i = rowStart, rowEnd, 1 do
@@ -90,7 +95,7 @@ function Matrix:submatrix (rowStart, rowEnd, columnStart, columnEnd)
     return Matrix:new(data)
 end
 
-function Matrix:setSubmatrix (rowStart, rowEnd, columnStart, columnEnd, matrix)
+function Matrix:setSubmatrix (rowStart : number, rowEnd : number, columnStart : number, columnEnd : number, matrix : Tensor)
     local row, column = 1, 1
     for i = rowStart, rowEnd, 1 do
         column = 1
@@ -103,7 +108,7 @@ function Matrix:setSubmatrix (rowStart, rowEnd, columnStart, columnEnd, matrix)
     return self
 end
 
-function Matrix:toScaled (lambda)
+function Matrix:toScaled (lambda : number) : Tensor
     for i = 1, self.length do
         for j = 1, self.width do
             self[i][j] = lambda * self[i][j]
@@ -112,7 +117,7 @@ function Matrix:toScaled (lambda)
     return self
 end
 
-function Matrix:scaled (lambda)
+function Matrix:scaled (lambda : number) : Tensor
     local copy = self:copy()
     for i = 1, copy.length do
         for j = 1, copy.width do
@@ -122,7 +127,7 @@ function Matrix:scaled (lambda)
     return copy
 end
 
-function Matrix:padTo (length, width)
+function Matrix:padTo (length : number, width : number) : Tensor
     local data = {}
     for i = 1, length, 1 do
         data[i] = {}
@@ -133,7 +138,7 @@ function Matrix:padTo (length, width)
     return Matrix:new(data)
 end
 
-function Matrix:strassenSubdivide ()
+function Matrix:strassenSubdivide () : Array<Tensor>
     local size = math.max(self.length, self.width)
     if size % 2 == 1 then
         size = size + 1
@@ -159,7 +164,7 @@ function Matrix:strassenSubdivide ()
     }
 end
 
-function Matrix:column (i)
+function Matrix:column (i : number) : Vector
     if i > self.width then
         error("Matrix doesn't have " .. tostring(i) .. " columns.")
     end
@@ -170,7 +175,7 @@ function Matrix:column (i)
     return column
 end
 
-function _padStringToLength (string, length)
+local function _padStringToLength (string : string, length : number) : string
     local result = string
     if (length - #result) % 2 == 1 then
         result = result .. " "
@@ -182,7 +187,7 @@ function _padStringToLength (string, length)
     return result
 end
 
-function Matrix:pretty (n, m)
+function Matrix:pretty (n : number, m : number) : string
     local length = self.length
     local width = self.width
 
@@ -236,7 +241,7 @@ end
     +--------------------------------------------------+
 ]]
 
-function Matrix.__add (left, right)
+function Matrix.__add (left : Tensor, right : Tensor) : Tensor
     if left.length ~= right.length or left.width ~= right.width then
         error("Attempting to add matrices of incompatible dimension!", -1)
     end
@@ -252,7 +257,7 @@ function Matrix.__add (left, right)
     return Matrix:new(data)
 end
 
-function Matrix.__sub (left, right)
+function Matrix.__sub (left : Tensor, right : Tensor) : Tensor
     if left.length ~= right.length or left.width ~= right.width then
         error("Attempting to add matrices of incompatible dimension!", -1)
     end
@@ -268,7 +273,7 @@ function Matrix.__sub (left, right)
     return Matrix:new(data)
 end
 
-function Matrix.__mul (left, right)
+function Matrix.__mul (left : Tensor, right : Tensor) : Tensor
     if left.width ~= right.length then
         error("Attempting to multiply matrices of incompatible dimension!", -1)
     end
@@ -317,7 +322,7 @@ function Matrix.__mul (left, right)
     end
 end
 
-function Matrix.__tostring (matrix)
+function Matrix.__tostring (matrix : Tensor) : string
     local result = "{"
 
     local length = matrix.length
@@ -335,7 +340,7 @@ function Matrix.__tostring (matrix)
     return result
 end
 
-function Matrix.__eq (left, right)
+function Matrix.__eq (left : Tensor, right : Tensor) : boolean
     if left.length ~= right.length or left.width ~= right.width then
         return false
     else
@@ -360,7 +365,7 @@ end
     +--------------------------------------------------+
 ]]
 
-function Matrix:zero (n, m)
+function Matrix:zero (n : number, m : number) : Tensor
     m = m or n
     local data = {}
     for i = 1, n do
@@ -372,7 +377,7 @@ function Matrix:zero (n, m)
     return Matrix:new(data)
 end
 
-function Matrix:random (n, m, a, b)
+function Matrix:random (n : number, m : number, a : number, b : number) : Tensor
     m = m or n
     local data = {}
     for i = 1, n do
@@ -384,7 +389,7 @@ function Matrix:random (n, m, a, b)
     return Matrix:new(data)
 end
 
-function Matrix:identity (n)
+function Matrix:identity (n : number) : Tensor
     local data = {}
     for i = 1, n do
         data[i] = {}
@@ -399,7 +404,7 @@ function Matrix:identity (n)
     return Matrix:new(data)
 end
 
-function Matrix:permutation (permutation)
+function Matrix:permutation (permutation : Vector) : Tensor
     local matrix = Matrix:identity(#permutation)
     local data = {}
     for key, value in ipairs(permutation) do
@@ -408,7 +413,7 @@ function Matrix:permutation (permutation)
     return Matrix:new(data)
 end
 
-function Matrix:permuted (permutation)
+function Matrix:permuted (permutation : Vector) : Tensor
     local data = {}
     for key, value in ipairs(permutation) do
         data[key] = self[value]
@@ -416,7 +421,7 @@ function Matrix:permuted (permutation)
     return Matrix:new(data)
 end
 
-function Matrix:toPermuted (permutation)
+function Matrix:toPermuted (permutation : Vector) : Tensor
     local matrix = self:copy()
     for key, value in ipairs(permutation) do
         self[key] = matrix[value]
@@ -747,7 +752,7 @@ function Matrix:trace ()
     local n = math.min(self.length, self.width)
     local sum = 0
     for i = 1, n do
-        sum = sum + matrix[i][i]
+        sum = sum + self[i][i]
     end
     return sum
 end
@@ -2116,7 +2121,7 @@ function ComplexMatrix:trace ()
     local n = math.min(self.length, self.width)
     local sum = Complex:new(0)
     for i = 1, n do
-        sum = sum + matrix[i][i]
+        sum = sum + self[i][i]
     end
     return sum
 end
@@ -2547,7 +2552,7 @@ function SparseMatrix.__mul (left, right)
                 if c == rr + 1 then
                     local rcc = cc + r * leftWidth
                     local temp = data[rcc]
-                    vvv = v * vv
+                    local vvv = v * vv
                     if temp ~= nil and vvv ~= 0 then
                         data[rcc] = data[rcc] + vvv
                     elseif vvv ~= 0 then
@@ -2620,9 +2625,9 @@ function SparseMatrix:apply (vector)
     local data = {}
 
     for k, v in pairs(self.data) do
-        local c = k % matrix.width
-        if c == 0 then c = matrix.width end
-        local r = (k - c) / matrix.width + 1
+        local c = k % self.width
+        if c == 0 then c = self.width end
+        local r = (k - c) / self.width + 1
         data[r] = data[r] + v * vector[c]
     end
 

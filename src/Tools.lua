@@ -1,8 +1,10 @@
 local Tools = {}
 
-local _primeFactorization = function (a)
-    local endPoint = math.floor(math.sqrt(a))
-end
+export type Array<T> = { [number] : T }
+export type Vector = { [number] : number }
+export type Object = { [any] : any }
+export type ScalarMap = (number) -> number
+export type Tensor = { [number] : { [number] : any } }
 
 local _gcd
 _gcd = function (a, b)
@@ -104,7 +106,7 @@ _binarySearch = function (element, array)
 end
 
 function _regulaFalsi (f, t, a, b, tol)
-    tolerance = tol or 10^(-13)
+    local tolerance = tol or 10^(-13)
     local leftValue, rightValue, middleValue = f(a) - t, f(b) - t, 0
     local left, right, middle = a, b, (a + b) / 2
     if leftValue * rightValue > 0 then
