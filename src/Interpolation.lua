@@ -4,15 +4,15 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 ]]
 
-local Tools = require("src/Tools")
+local Tools = require(script.Parent.Tools)
 type Vector = Tools.Vector
 type Array<T> = Tools.Array<T>
 type ScalarFunction = Tools.ScalarFunction
 type Tensor = Tools.Tensor
 type Object = Tools.Object
-local Matrices = require("src/Matrices")
-local Matrix = require("src/Matrices").Matrix
-local FFT = require("src/FastFourierTransform")
+local Matrices = require(script.Parent.Matrices)
+local Matrix = require(script.Parent.Matrices).Matrix
+local FFT = require(script.Parent.FastFourierTransform)
 
 local Interpolation = {}
 

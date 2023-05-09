@@ -22,13 +22,13 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 +--------------------------------------------------+
 ]]
 
-local Tools = require("src/Tools")
+local Tools = require(script.Parent.Tools)
 type Vector = Tools.Vector
 type Array<T> = Tools.Array<T>
 type ScalarFunction = Tools.ScalarFunction
 type Tensor = Tools.Tensor
 type Object = Tools.Object
-local Scalars = require("src/Scalars")
+local Scalars = require(script.Parent.Scalars)
 local Complex = Scalars.Complex
 
 local Matrices = {}
