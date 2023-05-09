@@ -7,6 +7,8 @@ local Interpolation    = require("src/Interpolation")
 local Tools            = require("src/Tools")
 local ODE              = require("src/ODE")
 local NumericalMethods = require("src/NumericalMethods")
+local Sets             = require("src/Sets")
+local Set              = Sets.Set
 
 print("Matrix Tests:\n")
 local zero = Matrix:new({{0, 0}, {0, 0}})
@@ -97,3 +99,11 @@ end
 local toc = os.clock()
 print("Time taken for 1000 integrations:", toc - tic)
 print("                              HZ:", math.floor(1000 / (toc - tic)))
+
+print("\nSet Tests:\n")
+
+test = Set:new({1,1,3,2})
+local tes2 = test:copy():addTo(4)
+local tes3 = test:copy():addTo(3)
+print("Sets are sorted:                 ", test.data[1] == 1 and test.data[2] == 2 and test.data[3] == 3)
+print("Adding to sets works:            ", tes2.data[1] == 1 and tes2.data[2] == 2 and tes2.data[3] == 3 and tes2.data[4] == 4 and tes2.cardinality == 4 and tes3.data[1] == 1 and tes3.data[2] == 2 and tes3.data[3] == 3 and tes3.cardinality == 3)

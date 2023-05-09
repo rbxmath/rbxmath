@@ -1,4 +1,10 @@
 --[[
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at https://mozilla.org/MPL/2.0/.
+]]
+
+--[[
 +--------------------------------------------------+
 |                Lua Math: Matrices                |
 +--------------------------------------------------+
@@ -2542,7 +2548,7 @@ function SparseMatrix.__mul (left, right)
         local rightWidth = right.width
         for k, v in pairs(leftData) do
             local c = k % leftWidth
-            if c == 0 then c = rightWidth end
+            if c == 0 then c = leftWidth end
             local r = math.floor((k - c) / leftLength)
             for kk, vv in pairs(rightData) do
                 local cc = kk % rightWidth

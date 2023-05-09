@@ -1,3 +1,9 @@
+--[[
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at https://mozilla.org/MPL/2.0/.
+]]
+
 local Complex = require("src/Scalars").Complex
 local Tools = require("src/Tools")
 local Primes = require("src/Primes")

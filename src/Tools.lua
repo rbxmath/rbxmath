@@ -1,3 +1,9 @@
+--[[
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at https://mozilla.org/MPL/2.0/.
+]]
+
 local Tools = {}
 
 export type Array<T> = { [number] : T }
@@ -105,7 +111,39 @@ _binarySearch = function (element, array)
     end
 end
 
-function _regulaFalsi (f, t, a, b, tol)
+local _binarySearchBetween
+_binarySearchBetween = function (element, array)
+    if array == nil or #array == 0 then
+        return 0
+    end
+
+    local checkIndex = math.floor(#array / 2)
+
+    if #array == 1 then
+        if element == array[1] then
+            return {1}
+        elseif element < array[1] then
+            return 1
+        else
+            return 2
+        end
+    end
+
+    if element < array[checkIndex] then
+        return _binarySearchBetween(element, _subarray(array, checkIndex - 1))
+    elseif element > array[checkIndex] then
+        local intermediate = _binarySearchBetween(element, _suparray(array, checkIndex + 1))
+        if type(intermediate) == "table" then
+            return {intermediate[1] + checkIndex}
+        else
+            return checkIndex + intermediate
+        end
+    else
+        return {checkIndex}
+    end
+end
+
+local function _regulaFalsi (f, t, a, b, tol)
     local tolerance = tol or 10^(-13)
     local leftValue, rightValue, middleValue = f(a) - t, f(b) - t, 0
     local left, right, middle = a, b, (a + b) / 2
@@ -163,6 +201,8 @@ Tools.list = {}
 function Tools.list.binarySearch (element, sortedArray)
     return _binarySearch(element, sortedArray)
 end
+
+Tools.list.binarySearchBetween = _binarySearchBetween
 
 function Tools.list.sublist (array, index)
     return _subarray(array, index)
