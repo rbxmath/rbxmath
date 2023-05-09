@@ -7,7 +7,9 @@ local NM = require("src/NumericalMethods")
 
 print("\nObject Tests\n")
 local tic = os.clock()
-local test = Interpolation.ChebyshevInterpolant:new(function (x) return math.exp(x) end, 0, 1, 10)
+local test = Interpolation.ChebyshevInterpolant:new(function(x)
+	return math.exp(x)
+end, 0, 1, 10)
 local testPrime = test:derivative()
 
 print("Solve test(x) = 2    ", Tools.list.tostring(test:solve(2)))
@@ -51,10 +53,15 @@ tic = os.clock()
 print("Solve test(x) = 2 with built in method:", Tools.list.tostring(test:solve(2)))
 print("Time taken:                            ", os.clock() - tic)
 tic = os.clock()
-print("Solve test(x) = 2 with Newton's method:", NM.solvers.newtonsMethod(test.evaluationFunction, test:derivative().evaluationFunction, 2))
+print(
+	"Solve test(x) = 2 with Newton's method:",
+	NM.solvers.newtonsMethod(test.evaluationFunction, test:derivative().evaluationFunction, 2)
+)
 print("Time taken:                            ", os.clock() - tic, "\n")
 
-test = Interpolation.ChebyshevInterpolant:new(function (x) return math.exp(x) end, 0, 1, 20)
+test = Interpolation.ChebyshevInterpolant:new(function(x)
+	return math.exp(x)
+end, 0, 1, 20)
 test.solveMethod = "Monotone"
 
 tic = os.clock()
@@ -65,10 +72,15 @@ tic = os.clock()
 print("Solve test(x) = 2 with built in method:", Tools.list.tostring(test:solve(2)))
 print("Time taken:                            ", os.clock() - tic)
 tic = os.clock()
-print("Solve test(x) = 2 with Newton's method:", NM.solvers.newtonsMethod(test.evaluationFunction, test:derivative().evaluationFunction, 2))
+print(
+	"Solve test(x) = 2 with Newton's method:",
+	NM.solvers.newtonsMethod(test.evaluationFunction, test:derivative().evaluationFunction, 2)
+)
 print("Time taken:                            ", os.clock() - tic, "\n")
 
-test = Interpolation.ChebyshevInterpolant:new(function (x) return math.exp(x) end, 0, 1, 40)
+test = Interpolation.ChebyshevInterpolant:new(function(x)
+	return math.exp(x)
+end, 0, 1, 40)
 test.solveMethod = "Monotone"
 
 tic = os.clock()
@@ -79,12 +91,21 @@ tic = os.clock()
 print("Solve test(x) = 2 with built in method:", Tools.list.tostring(test:solve(2)))
 print("Time taken:                            ", os.clock() - tic)
 tic = os.clock()
-print("Solve test(x) = 2 with Newton's method:", NM.solvers.newtonsMethod(test.evaluationFunction, test:derivative().evaluationFunction, 2))
+print(
+	"Solve test(x) = 2 with Newton's method:",
+	NM.solvers.newtonsMethod(test.evaluationFunction, test:derivative().evaluationFunction, 2)
+)
 print("Time taken:                            ", os.clock() - tic, "\n")
 
 print("Integration Test\n")
 print("True value of integral of exp from 0 to 1:         ", math.exp(1) - 1)
-print("Five point Gaussian quadrature for exp from 0 to 1:", NM.integration.fivePointGaussianQuadrature(function (x) return math.exp(x) end, 0, 1), "\n")
+print(
+	"Five point Gaussian quadrature for exp from 0 to 1:",
+	NM.integration.fivePointGaussianQuadrature(function(x)
+		return math.exp(x)
+	end, 0, 1),
+	"\n"
+)
 
 print("Full Worked Example of Arclength Parameterization\n")
 tic = os.clock()
@@ -93,14 +114,17 @@ local grid = Interpolation.Chebyshev.grid(n)
 local linearRescalingFunction = Interpolation.Chebyshev.linearRescalingFunction(0, 1)
 local shiftedGrid = {}
 for i = 1, #grid, 1 do
-    shiftedGrid[i] = linearRescalingFunction(grid[i])
+	shiftedGrid[i] = linearRescalingFunction(grid[i])
 end
 print("Chebyshev Grid:        ", Tools.list.tostring(grid))
 print("Shifted Chebyshev Grid:", Tools.list.tostring(shiftedGrid))
 -- We will assume that |gamma'(x)| is (exp(x) - 1) / (exp(1) - 2) and thus gamma is length 1
-local gridValues = {0}
+local gridValues = { 0 }
 for i = 1, #shiftedGrid - 1, 1 do
-    gridValues[i + 1] = gridValues[i] + NM.integration.fivePointGaussianQuadrature(function (x) return (math.exp(x) - 1) / (math.exp(1) - 2) end, shiftedGrid[i], shiftedGrid[i + 1])
+	gridValues[i + 1] = gridValues[i]
+		+ NM.integration.fivePointGaussianQuadrature(function(x)
+			return (math.exp(x) - 1) / (math.exp(1) - 2)
+		end, shiftedGrid[i], shiftedGrid[i + 1])
 end
 print("Arc Length Function Grid Values:", Tools.list.tostring(gridValues))
 local interpolant = Interpolation.ChebyshevInterpolant:new(gridValues, 0, 1, n)
@@ -108,16 +132,25 @@ interpolant.solveMethod = "Monotone"
 interpolant = interpolant:inverse()
 print("Time Taken:                             ", os.clock() - tic)
 print("Arc Length Parameterization Grid Values:", Tools.list.tostring(interpolant.gridValues))
-print("This should be close to 0.5:            ", NM.integration.fivePointGaussianQuadrature(function (x) return (math.exp(x) - 1) / (math.exp(1) - 2) end, 0, interpolant:evaluate(0.5)))
+print(
+	"This should be close to 0.5:            ",
+	NM.integration.fivePointGaussianQuadrature(function(x)
+		return (math.exp(x) - 1) / (math.exp(1) - 2)
+	end, 0, interpolant:evaluate(0.5))
+)
 tic = os.clock()
 for i = 1, 1000000, 1 do
-    interpolant:evaluate(0.5)
+	interpolant:evaluate(0.5)
 end
 print("Time Taken for 1,000,000 Evaluatations:", os.clock() - tic)
 
 print("")
 
-local interpolant = Interpolation.ChebyshevInterpolant:new(Tools.list.reverse({10.,-5.414213562373094,2.,-2.585786437626906,2.}), -1, 1)
+local interpolant = Interpolation.ChebyshevInterpolant:new(
+	Tools.list.reverse({ 10., -5.414213562373094, 2., -2.585786437626906, 2. }),
+	-1,
+	1
+)
 print("Grid values:", Tools.list.tostring(interpolant.gridValues))
 print("Grid values reversed:", Tools.list.tostring(Tools.list.reverse(interpolant.gridValues)))
 print("This should be 0, 1, 2, 3, 4:", Tools.list.tostring(interpolant.coefficientList))
