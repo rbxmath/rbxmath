@@ -59,11 +59,11 @@ end
 	(https://github.com/stegu/perlin-noise). Empirically, noise values are in
 	the range [0, 1] with a mean of 0.5 and standard deviation of 0.129.
 
-	@param x  -- The x-coordinate to sample from
-	@param y  -- The y-coordinate to sample from
-	@param z  -- The z-coordinate to sample from
-	@param w  -- The w-coordinate to sample from
-	@return number -- A noise value
+	@param x -- The x-coordinate to sample from
+	@param y -- The y-coordinate to sample from
+	@param z -- The z-coordinate to sample from
+	@param w -- The w-coordinate to sample from
+	@return -- A noise value
 ]=]
 function Noise.Perlin4D(x: number, y: number, z: number, w: number): number
 	local ix0 = math.floor(x) -- Integer part of x
