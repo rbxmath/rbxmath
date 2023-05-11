@@ -1,14 +1,15 @@
-local Matrices = require("src/Matrices")
+local Matrices = require("../src/Matrices")
 local Matrix = Matrices.Matrix
 local ComplexMatrix = Matrices.ComplexMatrix
 local SparseMatrix = Matrices.SparseMatrix
-local FFT = require("src/FastFourierTransform")
-local Interpolation = require("src/Interpolation")
-local Tools = require("src/Tools")
-local ODE = require("src/ODE")
-local NumericalMethods = require("src/NumericalMethods")
-local Sets = require("src/Sets")
+local FFT = require("../src/FastFourierTransform")
+local Interpolation = require("../src/Interpolation")
+local Tools = require("../src/Tools")
+local ODE = require("../src/ODE")
+local NumericalMethods = require("../src/NumericalMethods")
+local Sets = require("../src/Sets")
 local Set = Sets.Set
+local Grid = require("../src/Grid")
 
 print("Matrix Tests:\n")
 local zero = Matrix:new({ { 0, 0 }, { 0, 0 } })
@@ -54,6 +55,7 @@ zer2 = SparseMatrix:new({ { 0, 0 }, { 0, 0 } })
 ones = SparseMatrix:new({ { 1, 1 }, { 1, 1 } })
 twos = SparseMatrix:new({ { 2, 2 }, { 2, 2 } })
 iden = SparseMatrix:new({ { 1, 0 }, { 0, 1 } })
+print(Tools.list.deeptostring(ones:arnoldiProcess(2)))
 local idet = iden * iden
 local onet = ones * ones
 local onep = ones + ones
@@ -97,7 +99,6 @@ local alag = math.abs(NumericalMethods.integration.adaptiveLaguerre(nexF, 0) - 1
 	< math.abs(NumericalMethods.integration.fivePointLaguerre(nexF, 0) - 1)
 local exqQ = math.abs(NumericalMethods.integration.adaptiveLaguerre(exqu, 0) - math.pi / (2 * math.sqrt(2))) < 10 ^ -11
 local trap = math.abs(NumericalMethods.integration.adaptiveTrapezoid(expF, 0, 1) - math.exp(1) + 1) < 10 ^ -9
-print(math.abs(NumericalMethods.integration.adaptiveTrapezoid(expF, 0, 1) - math.exp(1) + 1))
 print("Adap. Quad. Error < 10^-15: ", test)
 print("Adapt. Better Than 5PGQ:    ", adat)
 print("Integrate Alias for A. Quad:", alia)
@@ -131,3 +132,15 @@ print(
 		and tes3.data[3] == 3
 		and tes3.cardinality == 3
 )
+local grid = {}
+for i = 1, 64 do
+	grid[i] = {}
+	for j = 1, 64 do
+		grid[i][j] = math.round(127.5 * math.noise(i / 5, j / 5))
+	end
+end
+print(Tools.list.deeptostring(grid))
+local compressedGrid = Grid.compress(grid, 10 ^ -1)
+print(compressedGrid)
+print(compressedGrid:sparsity())
+print(Tools.list.deeptostring(Grid.decompress(compressedGrid)))

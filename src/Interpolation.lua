@@ -4,15 +4,15 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 ]]
 
-local Tools = require("src/Tools")
+local Tools = require("../src/Tools")
 type Vector = Tools.Vector
 type Array<T> = Tools.Array<T>
 type ScalarFunction = Tools.ScalarFunction
 type Tensor = Tools.Tensor
 type Object = Tools.Object
-local Matrices = require("src/Matrices")
-local Matrix = require("src/Matrices").Matrix
-local FFT = require("src/FastFourierTransform")
+local Matrices = require("../src/Matrices")
+local Matrix = require("../src/Matrices").Matrix
+local FFT = require("../src/FastFourierTransform")
 
 local Interpolation = {}
 
@@ -370,7 +370,7 @@ function ChebyshevInterpolant:new(
 	result.evaluationFunction = function(x)
 		return result:evaluate(x)
 	end
-	result.coefficientList = FFT:FCT(Tools.list.reverse(fList))
+	result.coefficientList = FFT:FCT1(Tools.list.reverse(fList))
 
 	return result
 end

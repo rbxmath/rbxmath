@@ -6,21 +6,21 @@ local Primes = require("src.Primes")
 
 print(#Primes.primes)
 print(Tools.list.tostring(Primes:decompose(15)))
-local data = {1, 1, 1, 1}
+local data = { 1, 1, 1, 1 }
 print(Tools.list.tostring(FFT:FFT2(data, true)))
 print(Tools.list.tostring(FFT:IFFT2(FFT:FFT2(data, true))))
 print(Tools.list.tostring(FFT:FFT(data, true)))
-data = {1, 1, 1, 1, 1, 1}
+data = { 1, 1, 1, 1, 1, 1 }
 print(Tools.list.tostring(FFT:FFT(data, true)))
-data = {1, -1, 1, -1}
+data = { 1, -1, 1, -1 }
 print(Tools.list.tostring(FFT:FFT(data, true)))
-data = {10., -5.41421, 2., -2.58579, 2., -2.58579, 2., -5.41421}
+data = { 10., -5.41421, 2., -2.58579, 2., -2.58579, 2., -5.41421 }
 print(Tools.list.tostring(FFT:FFT(data, true)))
 
 print("\n\n\n\n\n")
 
 print("Atempting to recover Chebyshev series 0T_0 + 1T_1 + 2T_2 + 3T_3 + 4T_4 from values on grid...")
-data = {10.,-5.414213562373094,2.,-2.585786437626906,2.}
+data = { 10., -5.414213562373094, 2., -2.585786437626906, 2. }
 print("Values recovered:", Tools.list.tostring(FFT:FCT(data)))
 
 --[[local dataList = {}

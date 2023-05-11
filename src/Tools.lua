@@ -237,6 +237,24 @@ function Tools.list.tostring(array)
 	return result
 end
 
+function Tools.list.deeptostring(array: Object): string
+	local result = "{"
+	for i = 1, #array - 1, 1 do
+		if type(array[i]) == "table" then
+			result = result .. Tools.list.deeptostring(array[i]) .. ", "
+		else
+			result = result .. tostring(array[i]) .. ", "
+		end
+	end
+	if type(array[#array]) == "table" then
+		result = result .. Tools.list.deeptostring(array[#array]) .. "}"
+	else
+		result = result .. tostring(array[#array]) .. "}"
+	end
+
+	return result
+end
+
 function Tools.list.error(left, right)
 	if #left ~= #right then
 		error("Incomparable lists!", -1)

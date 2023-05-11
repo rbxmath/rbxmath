@@ -22,14 +22,15 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 +--------------------------------------------------+
 ]]
 
-local Tools = require("src/Tools")
+local Tools = require("../src/Tools")
 type Vector = Tools.Vector
 type Array<T> = Tools.Array<T>
 type ScalarFunction = Tools.ScalarFunction
 type Tensor = Tools.Tensor
 type Object = Tools.Object
-local Scalars = require("src/Scalars")
+local Scalars = require("../src/Scalars")
 local Complex = Scalars.Complex
+local Vectors = require("../src/Vectors")
 
 local Matrices = {}
 
@@ -2385,15 +2386,16 @@ local SparseMatrix = {
 	data = nil,
 }
 
-function SparseMatrix:set(i, j, val)
+function SparseMatrix:set(i: number, j: number, val: number): Object
 	if val == 0 then
 		self.data[self.width * (i - 1) + j] = nil
 	else
 		self.data[self.width * (i - 1) + j] = val
 	end
+	return self
 end
 
-function SparseMatrix:tableSet(table)
+function SparseMatrix:tableSet(table: Tensor): Object
 	for i, _ in pairs(table) do
 		for j, w in pairs(table[i]) do
 			if w == 0 then
@@ -2403,9 +2405,10 @@ function SparseMatrix:tableSet(table)
 			end
 		end
 	end
+	return self
 end
 
-function SparseMatrix:rowSet(i, table)
+function SparseMatrix:rowSet(i: number, table: Vector): Object
 	local rowConstant = self.width * (i - 1)
 	for j, w in pairs(table) do
 		if w == 0 then
@@ -2416,7 +2419,7 @@ function SparseMatrix:rowSet(i, table)
 	end
 end
 
-function SparseMatrix:columnSet(i, table)
+function SparseMatrix:columnSet(i: number, table: Vector): Object
 	for j, w in pairs(table) do
 		if w == 0 then
 			self.data[self.width * (j - 1) + i] = nil
@@ -2424,13 +2427,14 @@ function SparseMatrix:columnSet(i, table)
 			self.data[self.width * (j - 1) + i] = w
 		end
 	end
+	return self
 end
 
-function SparseMatrix:get(i, j)
+function SparseMatrix:get(i: number, j: number): number
 	return self.data[self.width * (i - 1) + j] or 0
 end
 
-function SparseMatrix:new(list, length, width)
+function SparseMatrix:new(list: Tensor, length: number, width: number): Object
 	local sparseMatrix = {}
 
 	if type(list[1]) == "table" then
@@ -2470,23 +2474,25 @@ function SparseMatrix:new(list, length, width)
 	end
 end
 
-function SparseMatrix:clean()
+function SparseMatrix:clean(): Object
 	for i, v in pairs(self.data) do
 		if v == 0 then
 			self.data[i] = nil
 		end
 	end
+	return self
 end
 
-function SparseMatrix:numericalClean(tol)
+function SparseMatrix:numericalClean(tol: number): Object
 	for i, v in pairs(self.data) do
 		if math.abs(v) < tol then
 			self.data[i] = nil
 		end
 	end
+	return self
 end
 
-function SparseMatrix:copy()
+function SparseMatrix:copy(): Object
 	local data = {}
 	for i, v in pairs(self.data) do
 		data[i] = v
@@ -2494,7 +2500,45 @@ function SparseMatrix:copy()
 	return SparseMatrix:new(data, self.length, self.width)
 end
 
-function SparseMatrix.__tostring(matrix)
+function SparseMatrix:sparsity(): number
+	local denominator = self.length * self.width
+	local numerator = 0
+	for _, _ in pairs(self.data) do
+		numerator += 1
+	end
+	return numerator / denominator
+end
+
+function SparseMatrix:transpose()
+	local copy = self:copy()
+	local data = copy.data
+	for i = 1, self.length do
+		for j = i, self.width do
+			data[(i - 1) * self.width + j], data[(j - 1) * self.length + i] =
+				data[(j - 1) * self.length + i], data[(i - 1) * self.width + j]
+		end
+	end
+	copy.length, copy.width = copy.width, copy.length
+	return copy
+end
+
+function SparseMatrix:getRow(n: number): Vector
+	local data = {}
+	for i = 1, self.width do
+		data[i] = self:get(n, i)
+	end
+	return data
+end
+
+function SparseMatrix:getColumn(n: number): Vector
+	local data = {}
+	for i = 1, self.length do
+		data[i] = self:get(i, n)
+	end
+	return data
+end
+
+function SparseMatrix.__tostring(matrix: Object): string
 	local result = "{"
 
 	for i = 1, matrix.length - 1 do
@@ -2516,7 +2560,7 @@ function SparseMatrix.__tostring(matrix)
 	return result
 end
 
-function SparseMatrix:padTo(length, width)
+function SparseMatrix:padTo(length: number, width: number): Object
 	local copy = SparseMatrix:copy()
 	copy.rowConstant = length - 1
 	copy.length = length
@@ -2524,7 +2568,7 @@ function SparseMatrix:padTo(length, width)
 	return copy
 end
 
-function SparseMatrix:strassenSubdivide()
+function SparseMatrix:strassenSubdivide(): Array<Object>
 	local size = math.max(self.length, self.width)
 	if size % 2 == 1 then
 		size = size + 1
@@ -2552,7 +2596,7 @@ function SparseMatrix:strassenSubdivide()
 	}
 end
 
-function SparseMatrix.__add(left, right)
+function SparseMatrix.__add(left: Object, right: Object): Object
 	if left.length ~= right.length or left.width ~= right.width then
 		error("Attempting to add matrices of incompatible dimension!", -1)
 	end
@@ -2573,7 +2617,7 @@ function SparseMatrix.__add(left, right)
 	return data
 end
 
-function SparseMatrix.__sub(left, right)
+function SparseMatrix.__sub(left: Object, right: Object): Object
 	if left.length ~= right.length or left.width ~= right.width then
 		error("Attempting to add matrices of incompatible dimension!", -1)
 	end
@@ -2594,65 +2638,11 @@ function SparseMatrix.__sub(left, right)
 	return data
 end
 
-function SparseMatrix.__mul(left, right)
+function SparseMatrix.__mul(left: Object, right: Object): Object
 	if left.width ~= right.length then
 		error("Attempting to multiply matrices of incompatible dimension!", -1)
 	end
-	local data
-	--[[if math.max(left.length, left.width, right.length, right.width) >= Matrices.constants.SPARSESTRASSENLIMIT then
-        --local tic = os.clock()
-        local strassenLeft = left:strassenSubdivide()
-        local strassenRight = right:strassenSubdivide()
-        --print(os.clock() - tic, math.max(left.length, left.width, right.length, right.width))
-        local M1 = (strassenLeft[1] + strassenLeft[4]) * (strassenRight[1] + strassenRight[4])
-        local M2 = (strassenLeft[3] + strassenLeft[4]) * strassenRight[1]
-        local M3 = strassenLeft[1] * (strassenRight[2] - strassenRight[4])
-        local M4 = strassenLeft[4] * (strassenRight[3] - strassenRight[1])
-        local M5 = (strassenLeft[1] + strassenLeft[2]) * strassenRight[4]
-        local M6 = (strassenLeft[3] - strassenLeft[1]) * (strassenRight[1] + strassenRight[2])
-        local M7 = (strassenLeft[2] - strassenLeft[4]) * (strassenRight[3] + strassenRight[4])
-        local strassenResult = {M1 + M4 - M5 + M7, M3 + M5, M2 + M4, M1 - M2 + M3 + M6}
-        data = {}
-        local l = M1.length
-        local length, width = 2 * l, 2 * l
-        local rc = width
-        for k, v in pairs(strassenResult[1].data) do
-            local c = k % l
-            if c == 0 then c = l end
-            local r = (k - c) / l
-            data[rc * r + c] = v
-        end
-        for k, v in pairs(strassenResult[2].data) do
-            local c = k % l
-            if c == 0 then c = l end
-            local r = (k - c) / l
-            data[rc * r + c + l] = v
-        end
-        for k, v in pairs(strassenResult[3].data) do
-            local c = k % l
-            if c == 0 then c = l end
-            local r = (k - c) / l + l
-            data[rc * r + c] = v
-        end
-        for k, v in pairs(strassenResult[4].data) do
-            local c = k % l
-            if c == 0 then c = l end
-            local r = (k - c) / l + l
-            data[rc * r + c + l] = v
-        end
-        --[[for i = 1, M1.length, 1 do
-            local iPlus = i + M1.length
-            for j = 1, M1.width, 1 do
-                local jPlus = j + M1.length
-                data:set(i, j, strassenResult[1]:get(i, j))
-                data:set(i, jPlus, strassenResult[2]:get(i, j))
-                data:set(iPlus, j, strassenResult[3]:get(i, j))
-                data:set(iPlus, jPlus, strassenResult[4]:get(i, j))
-            end
-        end
-        return SparseMatrix:new(data, left.length, right.width)
-    else]]
-	data = {}
+	local data = {}
 	local leftData = left.data
 	local rightData = right.data
 	local leftLength = left.length
@@ -2685,10 +2675,9 @@ function SparseMatrix.__mul(left, right)
 		end
 	end
 	return SparseMatrix:new(data, leftLength, rightWidth)
-	--end
 end
 
-function SparseMatrix.__eq(left, right)
+function SparseMatrix.__eq(left: Object, right: Object): boolean
 	if left.length ~= right.length or left.width ~= right.width then
 		return false
 	else
@@ -2700,11 +2689,11 @@ function SparseMatrix.__eq(left, right)
 	return true
 end
 
-function SparseMatrix:zero(n, m)
+function SparseMatrix:zero(n: number, m: number): Object
 	return SparseMatrix:new({}, n, m)
 end
 
-function SparseMatrix:identity(n)
+function SparseMatrix:identity(n: number): Object
 	local matrix = SparseMatrix:new({}, n)
 	for i = 1, n do
 		matrix:set(i, i, 1)
@@ -2712,7 +2701,7 @@ function SparseMatrix:identity(n)
 	return matrix
 end
 
-function SparseMatrix:submatrix(rowStart, rowEnd, columnStart, columnEnd)
+function SparseMatrix:submatrix(rowStart: number, rowEnd: number, columnStart: number, columnEnd: number): Object
 	local data = {}
 	for k, v in pairs(self.data) do
 		local c = k % self.width
@@ -2731,7 +2720,7 @@ function SparseMatrix:submatrix(rowStart, rowEnd, columnStart, columnEnd)
 	return SparseMatrix:new(data, rowEnd - rowStart + 1, columnEnd - columnStart + 1)
 end
 
-function SparseMatrix:setSubmatrix(rowStart, columnStart, matrix)
+function SparseMatrix:setSubmatrix(rowStart: number, columnStart: number, matrix: Object): Object
 	for k, v in pairs(matrix.data) do
 		local c = k % matrix.width
 		if c == 0 then
@@ -2748,7 +2737,7 @@ function SparseMatrix:setSubmatrix(rowStart, columnStart, matrix)
 	return self
 end
 
-function SparseMatrix:apply(vector)
+function SparseMatrix:apply(vector: Vector): Vector
 	local data = {}
 
 	for k, v in pairs(self.data) do
@@ -2757,13 +2746,16 @@ function SparseMatrix:apply(vector)
 			c = self.width
 		end
 		local r = (k - c) / self.width + 1
+		if not data[r] then
+			data[r] = 0
+		end
 		data[r] = data[r] + v * vector[c]
 	end
 
 	return data
 end
 
-function SparseMatrix:cascadeApply(matrixList, vector)
+function SparseMatrix:cascadeApply(matrixList: Array<Object>, vector: Vector): Vector
 	local data = vector
 
 	for i = #matrixList, 1, -1 do
@@ -2774,6 +2766,78 @@ function SparseMatrix:cascadeApply(matrixList, vector)
 end
 
 Matrices.SparseMatrix = SparseMatrix
+
+function SparseMatrix:powerMethod(vector: Vector): (number, Vector)
+	-- Choosing and initial vector for the power method. We want this function to be deterministic, but also don't want degenerate behavior.
+	if not vector then
+		vector = {}
+		local iter = 1
+		for k, v in pairs(self.data) do
+			if iter > self.width then
+				break
+			else
+				vector[iter] = v
+				iter += 1
+			end
+		end
+		if iter == 1 then
+			for i = 1, self.width do
+				vector[i] = 0
+			end
+			return 0, vector
+		else
+			for i = iter, self.width do
+				vector[i] = 0
+			end
+		end
+	end
+end
+
+function SparseMatrix:arnoldiProcess(n: number, x: Vector, tolerance: number): Array<Vector>
+	tolerance = tolerance or 10 ^ -13
+	n = n or math.min(self.length, self.width)
+	local q = {}
+	local h = {}
+	q[1] = x or Vectors.randomVector(self.width, 2)
+	print(Tools.list.tostring(q[1]))
+	for i = 2, n do
+		q[i] = self:apply(q[i - 1])
+		print(Tools.list.tostring(q[i]))
+		for j = 1, i - 1 do
+			if not h[j] then
+				h[j] = {}
+			end
+			local dot = Vectors.dot(q[j], q[i])
+			print(dot)
+			print(Tools.list.tostring(Vectors.scale(dot, q[j])))
+			h[j][i - 1] = dot
+			q[i] = Vectors.sub(q[i], Vectors.scale(dot, q[j]))
+		end
+		if not h[i] then
+			h[i] = {}
+		end
+		local norm = Vectors.norm(q[i])
+		print("q[i]", Tools.list.tostring(q[i]))
+		print("norm of above", norm)
+		if math.abs(norm) < tolerance then
+			q[i] = nil
+			break
+		end
+		h[i][i - 1] = norm
+		q[i] = Vectors.scale(1 / norm, q[i])
+		print("final q[i]", Tools.list.tostring(q[i]))
+	end
+	return q
+end
+
+function SparseMatrix:solve(b: Vector)
+	if self.length ~= self.width then
+		error("Sparse system is not square!")
+	end
+
+	local n = self.length
+	local x = Vectors.randomVector()
+end
 
 --[[
     +--------------------------------------------------+
