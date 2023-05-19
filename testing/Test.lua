@@ -132,15 +132,3 @@ print(
 		and tes3.data[3] == 3
 		and tes3.cardinality == 3
 )
-local grid = {}
-for i = 1, 64 do
-	grid[i] = {}
-	for j = 1, 64 do
-		grid[i][j] = math.round(127.5 * math.noise(i / 5, j / 5))
-	end
-end
-print(Tools.list.deeptostring(grid))
-local compressedGrid = Grid.compress(grid, 10 ^ -1)
-print(compressedGrid)
-print(compressedGrid:sparsity())
-print(Tools.list.deeptostring(Grid.decompress(compressedGrid)))

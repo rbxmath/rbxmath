@@ -15,6 +15,48 @@ local FastFourierTransform = {
 	factorLists = factorLists,
 }
 
+function FastFourierTransform:RFFT(xList)
+	local data = {}
+	local n = #xList
+	local primeDecomp = Primes:decompose(n)
+	for i = n, 1, -1 do
+		data[i] = Complex:new(xList[i])
+	end
+	return FastFourierTransform:RFFTS(data, n, 1, 1, primeDecomp)
+end
+
+function FastFourierTransform:RFFTS(xList, n, startIndex, stride, primeDecomp)
+	if n == 1 then
+		return { xList[startIndex] }
+	end
+	local N1 = primeDecomp[#primeDecomp]
+	local N2 = n / N1
+	local newStride = stride * N1
+	local u = {}
+	for i = 0, N1 - 1 do
+		u[i + 1] = FastFourierTransform:RFFTS(
+			xList,
+			N2,
+			startIndex + i * stride,
+			newStride,
+			Tools.list.sublist(primeDecomp, #primeDecomp - 1)
+		)
+	end
+	local data = {}
+	-- Because n = N1 * N2, the following two nested for loops combined run for n iterations.
+	for k1 = 0, N1 - 1 do
+		for k2 = 0, N2 - 1 do
+			local iter = N2 * k1 + k2
+			local sum = Complex:new(0)
+			for n1 = 0, N1 - 1 do
+				sum = sum + Complex:exp(2 * math.pi * n1 * iter / n) * u[n1 + 1][k2 + 1]
+			end
+			data[iter + 1] = sum
+		end
+	end
+	return data
+end
+
 function FastFourierTransform:FFT(xList, realQ)
 	local data = {}
 	local n = #xList
@@ -47,6 +89,7 @@ function FastFourierTransform:FFTS(xList, n, startIndex, stride, primeDecomp)
 		)
 	end
 	local data = {}
+	-- Because n = N1 * N2, the following two nested for loops combined run for n iterations.
 	for k1 = 0, N1 - 1 do
 		for k2 = 0, N2 - 1 do
 			local iter = N2 * k1 + k2
