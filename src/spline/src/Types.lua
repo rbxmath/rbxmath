@@ -1,7 +1,7 @@
 -- Point type
 -- Determines ambient space of spline
-export type Point = number | Vector2 | Vector3 | { number }
-export type Vector = number | Vector2 | Vector3 | { number }
+export type Point = Vector2 | Vector3 | { number }
+export type Vector = Vector2 | Vector3 | { number }
 
 -- Basis curve types
 -- Independent of ambient space

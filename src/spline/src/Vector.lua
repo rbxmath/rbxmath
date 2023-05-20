@@ -29,7 +29,7 @@ function Vector:Dot(other): number
 	local dot = 0
 
 	for i, coord in self do
-		dot += cooord * other[i]
+		dot += coord * other[i]
 	end
 
 	return dot
@@ -46,8 +46,8 @@ function Vector.__unm(self)
 end
 
 function Vector.__add(a, b)
-	assert(Vector.isVector(a) and Vector.isVector(b), "Bad addition")
-	assert(#a == #b, "Cannot add Vector's in different dimensions")
+	assert(Vector.isVector(a) and Vector.isVector(b), "Attempted Vector subtraction with non-Vector")
+	assert(#a == #b, "Cannot add Vectors in different dimensions")
 
 	local newCoordinates = table.create(#a)
 	for i, coord in a do
@@ -58,8 +58,8 @@ function Vector.__add(a, b)
 end
 
 function Vector.__sub(a, b)
-	assert(Vector.isVector(a) and Vector.isVector(b), "Bad subtraction")
-	assert(#a == #b, "Cannot subtract Vector's in different dimensions")
+	assert(Vector.isVector(a) and Vector.isVector(b), "Attempted Vector addition with non-Vector")
+	assert(#a == #b, "Cannot subtract Vectors in different dimensions")
 
 	local newCoordinates = table.create(#a)
 	for i, coord in a do
@@ -87,7 +87,7 @@ function Vector.__mul(a, b)
 
 		return Vector.new(newCoordinates)
 	else
-		error("Bad multiplication")
+		error("Attempted Vector multiplication with non-number")
 	end
 end
 
@@ -101,7 +101,7 @@ function Vector.__div(a, b)
 
 		return Vector.new(newCoordinates)
 	else
-		error("Bad division")
+		error("Bad Vector division")
 	end
 end
 

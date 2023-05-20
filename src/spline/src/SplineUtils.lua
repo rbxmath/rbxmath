@@ -1,5 +1,10 @@
 local Types = require(script.Parent.Types)
 
+type Point = Types.Point
+type Vector = Types.Vector
+
+local EPSILON = 1e-4
+
 local SplineUtils = {}
 
 function SplineUtils.FuzzyEq(a: Point, b: Point): boolean
