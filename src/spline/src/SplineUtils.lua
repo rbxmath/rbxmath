@@ -10,9 +10,7 @@ local SplineUtils = {}
 function SplineUtils.FuzzyEq(a: Point, b: Point): boolean
 	local aType = typeof(a)
 
-	if aType == "number" then
-		return a == b or math.abs(a - b) <= (math.abs(a) + 1) * EPSILON
-	elseif aType == "Vector2" then
+	if aType == "Vector2" then
 		local aX, bX = a.X, b.X
 		local aY, bY = a.Y, b.Y
 		return aX == bX and aY == bY
@@ -32,16 +30,26 @@ function SplineUtils.FuzzyEq(a: Point, b: Point): boolean
 	end
 end
 
-function SplineUtils.Lerp(a: number, b: number, t): number
-	return a + t * (b - a)
-end
+--[=[
+	Returns the linear interpolation from a to b at time t
 
+	@param a -- From
+	@param b -- To
+	@param t -- Time in [0, 1]
+--]=]
+-- function SplineUtils.Lerp(a: number, b: number, t: number): number
+-- 	return a + t * (b - a)
+-- end
+
+--[=[
+	Infers the ambient space of the spline from the dimension of the point and
+	returns the codimension of the spline. That is, the dimension of the ambient
+	space minus the dimension of the spline (1).
+--]=]
 function SplineUtils.GetCodimensionFromPoint(point: Point): number
 	local pointType = typeof(point)
 
-	if pointType == "number" then
-		return 0
-	elseif pointType == "Vector2" then
+	if pointType == "Vector2" then
 		return 1
 	elseif pointType == "Vector3" then
 		return 2
@@ -56,6 +64,7 @@ end
 	Gets the percent arc length along the chain where each curve starts
 
 	@param lengths -- Arc lengths of curves
+	@return
 --]=]
 function SplineUtils.GetCurveDomains(lengths: { number }): { number }
 	local totalLength = 0
@@ -74,6 +83,12 @@ function SplineUtils.GetCurveDomains(lengths: { number }): { number }
 	return curveDomains
 end
 
+--[=[
+	Removes non-unique adjacent points using fuzzy equality.
+
+	@param points -- A list of points
+	@return 
+--]=]
 function SplineUtils.GetUniquePoints(points: { Point }): { Point }
 	local prevPoint = points[1]
 	local uniquePoints = { prevPoint }

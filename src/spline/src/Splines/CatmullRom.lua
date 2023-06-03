@@ -1,5 +1,4 @@
-local CubicPolynomial = require(script.Parent.Parent.SplineMethods.CubicPolynomial)
-local PositionSpline = require(script.Parent.Parent.SplineMethods.PositionSpline)
+local CubicPolynomial = require(script.Parent.CubicPolynomial)
 local SplineUtils = require(script.Parent.Parent.SplineUtils)
 local Types = require(script.Parent.Parent.Types)
 
@@ -9,7 +8,8 @@ type Vector = Types.Vector
 local DEFAULT_ALPHA = 0.5
 local DEFAULT_TENSION = 0
 
-local CatmullRom = {}
+local CatmullRom = setmetatable({}, CubicPolynomial)
+CatmullRom.__index = CatmullRom
 
 function CatmullRom.new(p0: Point, p1: Point, p2: Point, p3: Point, alpha: number?, tension: number?)
 	alpha = alpha or DEFAULT_ALPHA
@@ -31,29 +31,14 @@ function CatmullRom.new(p0: Point, p1: Point, p2: Point, p3: Point, alpha: numbe
 	local m1 = scalar * (p1_p0 / (t1 - t0) - (p2 - p0) / (t2 - t0) + p2_p1 / (t2 - t1))
 	local m2 = scalar * (p2_p1 / (t2 - t1) - (p3 - p1) / (t3 - t1) + p3_p2 / (t3 - t2))
 
-	local self = {}
+	local a = p1
+	local b = m1
+	local c = 3 * p2_p1 - 2 * m1 - m2
+	local d = -2 * p2_p1 + m1 + m2
+
+	local self = setmetatable(CubicPolynomial.new(a, b, c, d), CatmullRom)
 
 	self.Codimension = SplineUtils.GetCodimensionFromPoint(p0)
-
-	self.a = p1
-	self.b = m1
-	self.c = 3 * p2_p1 - 2 * m1 - m2
-	self.d = -2 * p2_p1 + m1 + m2
-
-	-- Derivatives
-	self.SolvePosition = CubicPolynomial.SolvePosition
-	self.SolveVelocity = CubicPolynomial.SolveVelocity
-	self.SolveAcceleration = CubicPolynomial.SolveAcceleration
-	self.SolveJerk = CubicPolynomial.SolveJerk
-
-	-- Frenet-Serret frame
-	self.SolveTangent = PositionSpline.SolveTangent
-	self.SolveNormal = PositionSpline.SolveNormal
-	self.SolveBinormal = PositionSpline.SolveBinormal
-	self.SolveCurvature = PositionSpline.SolveCurvature
-	self.SolveTorsion = PositionSpline.SolveTorsion
-
-	self.ToUnitSpeed = PositionSpline.ToUnitSpeed
 
 	return self
 end

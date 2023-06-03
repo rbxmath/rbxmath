@@ -1,3 +1,4 @@
+local PositionSpline = require(script.Parent.PositionSpline)
 local SplineUtils = require(script.Parent.Parent.SplineUtils)
 local Types = require(script.Parent.Parent.Types)
 local Vector = require(script.Parent.Parent.Vector)
@@ -7,27 +8,40 @@ type Vector = Types.Vector
 
 local Linear = {}
 
-local function SolvePosition(self, t: number): Point
+function Linear.new(p0: Point, p1: Point)
+	local self = setmetatable(PositionSpline.new(), Linear)
+
+	self.p0 = p0
+	self.p1 = p1
+	self.p1_p0 = p1 - p0
+
+	self.Codimension = SplineUtils.GetCodimensionFromPoint(p0)
+	self.Length = self.p1_p0.Magnitude
+
+	return self
+end
+
+function Linear:SolvePosition(t: number): Point
 	return self.p0 + t * self.p1_p0
 end
 
-local function SolveVelocity(self): Vector
+function Linear:SolveVelocity(): Vector
 	return self.p1_p0
 end
 
-local function SolveAcceleration(self): Vector
+function Linear:SolveAcceleration(): Vector
 	return self.p0 * 0
 end
 
-local function SolveJerk(self): Vector
+function Linear:SolveJerk(): Vector
 	return self.p0 * 0
 end
 
-local function SolveTangent(self): Vector
+function Linear:SolveTangent(): Vector
 	return self.p1_p0.Unit
 end
 
-local function SolveNormal(self): Vector
+function Linear:SolveNormal(): Vector
 	if self.Codimension == 0 then
 		error("SolveNormal is restricted from splines in 1 dimension")
 	elseif self.Codimension == 1 then
@@ -42,7 +56,7 @@ local function SolveNormal(self): Vector
 	end
 end
 
-local function SolveBinormal(self): Vector
+function Linear:SolveBinormal(): Vector
 	if self.Codimension == 2 then
 		return self.p0 * 0
 	else
@@ -50,39 +64,12 @@ local function SolveBinormal(self): Vector
 	end
 end
 
-local function SolveCurvature(): number
+function Linear:SolveCurvature(): number
 	return 0
 end
 
-local function SolveTorsion(): number
+function Linear:SolveTorsion(): number
 	return 0
-end
-
-function Linear.new(p0: Point, p1: Point)
-	local self = {}
-
-	self.Codimension = SplineUtils.GetCodimensionFromPoint(p0)
-
-	self.p0 = p0
-	self.p1 = p1
-	self.p1_p0 = p1 - p0
-
-	-- Derivatives
-	self.SolvePosition = SolvePosition
-	self.SolveVelocity = SolveVelocity
-	self.SolveAcceleration = SolveAcceleration
-	self.SolveJerk = SolveJerk
-
-	-- Frenet-Serret frame
-	self.SolveTangent = SolveTangent
-	self.SolveNormal = SolveNormal
-	self.SolveBinormal = SolveBinormal
-	self.SolveCurvature = SolveCurvature
-	self.SolveTorsion = SolveTorsion
-
-	self.ToUnitSpeed = ToUnitSpeed
-
-	return self
 end
 
 return Linear

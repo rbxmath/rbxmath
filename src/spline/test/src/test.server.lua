@@ -26,11 +26,18 @@ local gizmo = require(ReplicatedStorage.gizmo)
 -- end)
 
 RunService.Heartbeat:Connect(function()
-	local parts = workspace.Model:GetChildren()
-	local curve = Spline.CubicHermite.new(parts[1].Position, parts[2].Position, parts[3].Position, parts[4].Position)
+	local parts = {
+		workspace.Model:FindFirstChild("1"),
+		workspace.Model:FindFirstChild("2"),
+		workspace.Model:FindFirstChild("3"),
+		workspace.Model:FindFirstChild("4"),
+	}
+	local curve = Spline.CubicBezier.new(parts[1].Position, parts[2].Position, parts[3].Position, parts[4].Position)
+	curve:ToUnitSpeed()
 
-	for i = 0, 100 do
-		local pos = curve:SolvePosition(i / 100)
+	local N = 50
+	for i = 0, N do
+		local pos = curve:SolvePositionUnitSpeed(i / N)
 		gizmo.drawPoint(pos)
 	end
 end)

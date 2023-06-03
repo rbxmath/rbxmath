@@ -1,34 +1,22 @@
-local CubicPolynomial = require(script.Parent.Parent.SplineMethods.CubicPolynomial)
-local PositionSpline = require(script.Parent.Parent.SplineMethods.PositionSpline)
+local CubicPolynomial = require(script.Parent.CubicPolynomial)
+local SplineUtils = require(script.Parent.Parent.SplineUtils)
 local Types = require(script.Parent.Parent.Types)
 
 type Point = Types.Point
 type Vector = Types.Vector
 
-local CubicHermite = {}
+local CubicHermite = setmetatable({}, CubicPolynomial)
+CubicHermite.__index = CubicHermite
 
 function CubicHermite.new(p0: Point, p1: Point, v0: Vector, v1: Vector)
-	local self = {}
+	local a = p0
+	local b = v0
+	local c = 3 * (p1 - p0) - 2 * v0 - v1
+	local d = v1 + v0 + 2 * (p0 - p1)
 
-	self.a = p0
-	self.b = v0
-	self.c = 3 * (p1 - p0) - 2 * v0 - v1
-	self.d = v1 + v0 + 2 * (p0 - p1)
+	local self = setmetatable(CubicPolynomial.new(a, b, c, d), CubicHermite)
 
-	-- Derivatives
-	self.SolvePosition = CubicPolynomial.SolvePosition
-	self.SolveVelocity = CubicPolynomial.SolveVelocity
-	self.SolveAcceleration = CubicPolynomial.SolveAcceleration
-	self.SolveJerk = CubicPolynomial.SolveJerk
-
-	-- Frenet-Serret frame
-	self.SolveTangent = PositionSpline.SolveTangent
-	self.SolveNormal = PositionSpline.SolveNormal
-	self.SolveBinormal = PositionSpline.SolveBinormal
-	self.SolveCurvature = PositionSpline.SolveCurvature
-	self.SolveTorsion = PositionSpline.SolveTorsion
-
-	self.ToUnitSpeed = PositionSpline.ToUnitSpeed
+	self.Codimension = SplineUtils.GetCodimensionFromPoint(p0)
 
 	return self
 end
