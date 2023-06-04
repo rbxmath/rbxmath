@@ -7,7 +7,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 local Tools = require("../src/Tools")
 type Vector = Tools.Vector
 type Array<T> = Tools.Array<T>
-type ScalarFunction = Tools.ScalarFunction
+type ScalarMap = Tools.ScalarMap
 type Tensor = Tools.Tensor
 type Object = Tools.Object
 local Matrices = require("../src/Matrices")
@@ -310,13 +310,13 @@ local function _chebyshevHigherOrderSpectralDifferentionMatrix(
 	return result
 end
 
-local function _linearRescalingFunction(a: number, b: number): ScalarFunction
+local function _linearRescalingFunction(a: number, b: number): ScalarMap
 	return function(x)
 		return (b - a) / 2 * (x - 1) + b
 	end
 end
 
-local function _inverseLinearRescalingFunction(a: number, b: number): ScalarFunction
+local function _inverseLinearRescalingFunction(a: number, b: number): ScalarMap
 	return function(x)
 		return 2 * (x - a) / (b - a) - 1
 	end
@@ -334,8 +334,9 @@ local ChebyshevInterpolant = {
 	evaluationFunction = nil,
 }
 
+-- Creates a Chebyshev interpolant, p(x), of a function/list of values f
 function ChebyshevInterpolant:new(
-	f: Vector | ScalarFunction,
+	f: Vector | ScalarMap,
 	a: number,
 	b: number,
 	n: number,
@@ -370,11 +371,47 @@ function ChebyshevInterpolant:new(
 	result.evaluationFunction = function(x)
 		return result:evaluate(x)
 	end
-	result.coefficientList = FFT:FCT1(Tools.list.reverse(fList))
+	result.coefficientList = Tools.list.scale(FFT:FCT1(Tools.list.reverse(fList)), 2)
 
 	return result
 end
 
+function ChebyshevInterpolant:adaptive(f: ScalarMap, a: number, b: number, tol: number): Object
+	tol = tol or 10 ^ -10
+	local n = 8
+	local currentGrid = {}
+	local currentGridValues = {}
+	local norm = tol + 1
+	local currentInterpolant = {}
+	local rescalingFunction = _linearRescalingFunction(a, b)
+	while norm >= tol do
+		n *= 2
+		currentGrid = _chebyshevGrid(n)
+		for i = n + 1, 1, -1 do
+			if i % 2 == 1 then
+				currentGridValues[i] = currentGridValues[(i - 1) / 2 + 1] or f(rescalingFunction(currentGrid[i]))
+			else
+				currentGridValues[i] = f(rescalingFunction(currentGrid[i]))
+			end
+		end
+		currentInterpolant = FFT:FCT1(Tools.list.reverse(currentGridValues))
+		norm = 0
+		for i = n / 2 + 1, n + 1, 1 do
+			norm = math.max(norm, math.abs(currentInterpolant[i]))
+		end
+	end
+	local index = n + 1
+	while index >= 1 do
+		if math.abs(currentInterpolant[index]) > tol then
+			break
+		else
+			index -= 1
+		end
+	end
+	return self:new(f, a, b, index - 1)
+end
+
+-- Computes p(x)
 function ChebyshevInterpolant:evaluate(x: number): number
 	local fList = self.gridValues
 	local n = self.degree + 1
@@ -406,6 +443,7 @@ function ChebyshevInterpolant:evaluate(x: number): number
 	return numerator / denominator
 end
 
+-- Solves the problem p(x) = t for x given t
 function ChebyshevInterpolant:solve(t: number, tol: number, method: string, gapTol: number): number
 	method = method or self.solveMethod
 
@@ -534,7 +572,7 @@ Interpolation.Chebyshev = {}
 
 Interpolation.Chebyshev.grid = _chebyshevGrid
 
-function Interpolation.Chebyshev.evaluate(f: ScalarFunction, x: number, n: number, chebyshevGrid: Vector): number
+function Interpolation.Chebyshev.evaluate(f: ScalarMap, x: number, n: number, chebyshevGrid: Vector): number
 	chebyshevGrid = chebyshevGrid or _chebyshevGrid(n)
 	local fList = {}
 	for i = 1, n + 1, 1 do
@@ -544,7 +582,7 @@ function Interpolation.Chebyshev.evaluate(f: ScalarFunction, x: number, n: numbe
 end
 
 function Interpolation.Chebyshev.rescaleAndEvaluate(
-	f: ScalarFunction,
+	f: ScalarMap,
 	a: number,
 	b: number,
 	x: number,
@@ -565,7 +603,7 @@ function Interpolation.Chebyshev.evaluateOnData(fList: Vector, x: number, chebys
 end
 
 function Interpolation.Chebyshev.evaluateAtPointList(
-	f: ScalarFunction,
+	f: ScalarMap,
 	xList: Vector,
 	n: number,
 	chebyshevGridPoints: Vector
@@ -585,7 +623,7 @@ function Interpolation.Chebyshev.evaluateAtPointListOnData(fList: Vector, xList:
 end
 
 function Interpolation.Chebyshev.benchmark(
-	f: ScalarFunction,
+	f: ScalarMap,
 	xList: Vector,
 	deltaMax: number,
 	maxIters: number
@@ -609,7 +647,7 @@ function Interpolation.Chebyshev.benchmark(
 end
 
 function Interpolation.Chebyshev.solve(
-	f: ScalarFunction,
+	f: ScalarMap,
 	t: number,
 	n: number,
 	method: string,

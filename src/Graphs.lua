@@ -7,7 +7,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 local Tools = require("../src/Tools")
 type Vector = Tools.Vector
 type Array<T> = Tools.Array<T>
-type ScalarFunction = Tools.ScalarFunction
+type ScalarMap = Tools.ScalarMap
 type Tensor = Tools.Tensor
 type Object = Tools.Object
 local Matrices = require("../src/Matrices")

@@ -314,6 +314,14 @@ function Tools.list.reverse(array)
 	return data
 end
 
+function Tools.list.scale(array, scalar)
+	local data = {}
+	for i = 1, #array do
+		data[i] = scalar * array[i]
+	end
+	return data
+end
+
 Tools.solve = {}
 
 function Tools.solve.regulaFalsi(f, t, a, b, tol)

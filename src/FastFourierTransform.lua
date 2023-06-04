@@ -157,14 +157,15 @@ function FastFourierTransform:FCT1(xList)
 	local length = #newList
 	local FFT = FastFourierTransform:FFT(newList, true)
 	local data = {}
-	data[1] = FFT[1][1] / length
-	data[n] = FFT[n][1] / length
+	data[1] = FFT[1][1] / (2 * length)
+	data[n] = FFT[n][1] / (2 * length)
 	for i = 2, n - 1 do
 		data[i] = FFT[i][1] / length
 	end
 	return data
 end
 
+-- DOES NOT WORK CURRENTLY
 function FastFourierTransform:IFCT1(xList)
 	local newList = Tools.list.copy(xList)
 	local n = #xList

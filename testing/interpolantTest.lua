@@ -1,9 +1,9 @@
-local Tools = require("src/Tools")
-local Scalars = require("src/Scalars")
-local Interpolation = require("src/Interpolation")
-local SymbolicAlgebra = require("src/SymbolicAlgebra")
-local ODE = require("src/ODE")
-local NM = require("src/NumericalMethods")
+local Tools = require("../src/Tools")
+local Scalars = require("../src/Scalars")
+local Interpolation = require("../src/Interpolation")
+local ODE = require("../src/ODE")
+local NM = require("../src/NumericalMethods")
+local FFT = require("../src/FastFourierTransform")
 
 print("\nObject Tests\n")
 local tic = os.clock()
@@ -154,3 +154,10 @@ local interpolant = Interpolation.ChebyshevInterpolant:new(
 print("Grid values:", Tools.list.tostring(interpolant.gridValues))
 print("Grid values reversed:", Tools.list.tostring(Tools.list.reverse(interpolant.gridValues)))
 print("This should be 0, 1, 2, 3, 4:", Tools.list.tostring(interpolant.coefficientList))
+
+local splineFunc = function(x)
+	return math.sqrt(x ^ 2 + x + 1)
+end
+
+interpolant = Interpolation.ChebyshevInterpolant:adaptive(splineFunc, 0, 1)
+print(Tools.list.tostring(interpolant.coefficientList))
