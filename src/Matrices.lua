@@ -25,7 +25,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 local Tools = require(script.Parent.Tools)
 type Vector = Tools.Vector
 type Array<T> = Tools.Array<T>
-type ScalarFunction = Tools.ScalarFunction
+type ScalarFunction = Tools.ScalarMap
 type Tensor = Tools.Tensor
 type Object = Tools.Object
 local Scalars = require(script.Parent.Scalars)
@@ -38,18 +38,28 @@ Matrices.constants.STRASSENLIMIT = 256
 Matrices.constants.SPARSESTRASSENLIMIT = 256
 Matrices.constants.COMPLEXSTRASSENLIMIT = 64
 
+type Matrix = {
+    length: number,
+    width: number
+}
 local Matrix = {
     length = 0,
     width = 0
 }
+Matrix.__index = Matrix
 
-function Matrix:new (list : Tensor | Vector) : Tensor
-    if type(list[1]) == "table" then
-        setmetatable(list, self)
-        self.__index = self
-        list.length = #list
-        list.width = #list[1]
-        return list
+type WeirdTable = {
+    length: number,
+    width: number,
+}
+
+-- TODO: do you really mean to return Tensor and not a "Matrix type"
+function Matrix.new(list: (Tensor | Vector) ): Tensor & Matrix
+    if type(list) == "table" then
+        local self = setmetatable(list :: {}, Matrix) 
+        local b = #list
+        local a = #(list :: {})[1]
+        return self
     else
         local matrix = {}
         for key, value in ipairs(list) do
@@ -743,7 +753,9 @@ function Matrix:determinant ()
         return self[1][1] * self[2][2] - self[1][2] * self[2][1]
     end
     local LUDecomposition
-    local test = pcall(function () LUDecomposition = self:LUDecomposition() end)
+    local test = pcall(function() 
+        LUDecomposition = self:LUDecomposition() 
+    end)
     if test == false then
         return 0
     end
@@ -989,7 +1001,7 @@ function Matrix:francisTwo (tol, maxIters)
             local rho1 = shift[1]
             local rho2 = shift[2]
             u = {( (a11 - rho1) * (a11 - rho2) + a12 * a21 )[1], ( a21 * ((a11 + a22) - (rho1 + rho2)) )[1], matrix[3][2] * matrix[2][1]}
-            tau = Tools.list.norm(u)
+            local tau = Tools.list.norm(u)
             u[1] = u[1] + tau
             tau = Tools.list.norm(u)
             gamma = 2 / math.pow(tau, 2)
@@ -1001,7 +1013,7 @@ function Matrix:francisTwo (tol, maxIters)
             local rho1 = shift[1]
             local rho2 = shift[2]
             u = {( (a11 - rho1) * (a11 - rho2) + a12 * a21 ), ( a21 * ((a11 + a22) - (rho1 + rho2)) ), matrix[3][2] * matrix[2][1]}
-            tau = Tools.list.norm(u)
+            local tau = Tools.list.norm(u)
             u[1] = u[1] + tau
             tau = Tools.list.norm(u)
             gamma = 2 / math.pow(tau, 2)
@@ -1101,7 +1113,7 @@ function Matrix:francisThree (tol, maxIters)
                 (a21 * a32 * (a11 + a22 + a33 - rho1 - rho2 - rho3))[1],
                 matrix[2][1] * matrix[3][2] * matrix[4][3]
             }
-            tau = Tools.list.norm(u)
+            local tau = Tools.list.norm(u)
             u[1] = u[1] + tau
             tau = Tools.list.norm(u)
             gamma = 2 / math.pow(tau, 2)
@@ -1126,7 +1138,7 @@ function Matrix:francisThree (tol, maxIters)
                 (a21 * a32 * (a11 + a22 + a33 - rho1 - rho2 - rho3)),
                 matrix[2][1] * matrix[3][2] * matrix[4][3]
             }
-            tau = Tools.list.norm(u)
+            local tau = Tools.list.norm(u)
             u[1] = u[1] + tau
             tau = Tools.list.norm(u)
             gamma = 2 / math.pow(tau, 2)
@@ -1203,13 +1215,13 @@ function Matrix:francisSix (tol, maxIters)
         local u
         local gamma
         -- Compute the first column of shifted matrix
-        local a11, a12, a13, a14, a15, a16, a17 = Complex:new(matrix[1][1], 0), Complex:new(matrix[1][2], 0), Complex:new(matrix[1][3], 0), Complex:new(matrix[1][4], 0), Complex:new(matrix[1][5], 0), Complex:new(matrix[1][6], 0), Complex:new(matrix[1][7], 0)
-        local a21, a22, a23, a24, a25, a26, a27 = Complex:new(matrix[2][1], 0), Complex:new(matrix[2][2], 0), Complex:new(matrix[2][3], 0), Complex:new(matrix[2][4], 0), Complex:new(matrix[2][5], 0), Complex:new(matrix[2][6], 0), Complex:new(matrix[2][7], 0)
-        local a32, a33, a34, a35, a36, a37 = Complex:new(matrix[3][2], 0), Complex:new(matrix[3][3], 0), Complex:new(matrix[3][4], 0), Complex:new(matrix[3][5], 0), Complex:new(matrix[3][6], 0), Complex:new(matrix[3][7], 0)
-        local a43, a44, a45, a46, a47 = Complex:new(matrix[4][3], 0), Complex:new(matrix[4][4], 0), Complex:new(matrix[4][5], 0), Complex:new(matrix[4][6], 0), Complex:new(matrix[4][7], 0)
-        local a54, a55, a56, a57 = Complex:new(matrix[5][4], 0), Complex:new(matrix[5][5], 0), Complex:new(matrix[5][6], 0), Complex:new(matrix[5][7], 0)
-        local a65, a66, a67 = Complex:new(matrix[6][5], 0), Complex:new(matrix[6][6], 0), Complex:new(matrix[6][7], 0)
-        local a76, a77 = Complex:new(matrix[7][6], 0), Complex:new(matrix[7][7], 0)
+        local a11, a12, a13, a14, a15, a16, _a17 = Complex:new(matrix[1][1], 0), Complex:new(matrix[1][2], 0), Complex:new(matrix[1][3], 0), Complex:new(matrix[1][4], 0), Complex:new(matrix[1][5], 0), Complex:new(matrix[1][6], 0), Complex:new(matrix[1][7], 0)
+        local a21, a22, a23, a24, a25, a26, _a27 = Complex:new(matrix[2][1], 0), Complex:new(matrix[2][2], 0), Complex:new(matrix[2][3], 0), Complex:new(matrix[2][4], 0), Complex:new(matrix[2][5], 0), Complex:new(matrix[2][6], 0), Complex:new(matrix[2][7], 0)
+        local a32, a33, a34, a35, a36, _a37 = Complex:new(matrix[3][2], 0), Complex:new(matrix[3][3], 0), Complex:new(matrix[3][4], 0), Complex:new(matrix[3][5], 0), Complex:new(matrix[3][6], 0), Complex:new(matrix[3][7], 0)
+        local a43, a44, a45, a46, _a47 = Complex:new(matrix[4][3], 0), Complex:new(matrix[4][4], 0), Complex:new(matrix[4][5], 0), Complex:new(matrix[4][6], 0), Complex:new(matrix[4][7], 0)
+        local a54, a55, a56, _a57 = Complex:new(matrix[5][4], 0), Complex:new(matrix[5][5], 0), Complex:new(matrix[5][6], 0), Complex:new(matrix[5][7], 0)
+        local a65, a66, _a67 = Complex:new(matrix[6][5], 0), Complex:new(matrix[6][6], 0), Complex:new(matrix[6][7], 0)
+        local a76, _a77 = Complex:new(matrix[7][6], 0), Complex:new(matrix[7][7], 0)
         local rho1, rho2, rho3, rho4, rho5, rho6 = Complex:new(shift[1]), Complex:new(shift[2]), Complex:new(shift[3]), Complex:new(shift[4]), Complex:new(shift[5]), Complex:new(shift[6])
         u = {
             (a21*((a22 - rho2)*((a22 - rho3)*((a22 - rho4)*(a13*a32 + a12*(a11 + a22 - rho5 - rho6)) + 
@@ -1322,7 +1334,7 @@ function Matrix:francisSix (tol, maxIters)
             ,
             (a21*a32*a43*a54*a65*a76)[1]
         }
-        tau = Tools.list.norm(u)
+        local tau = Tools.list.norm(u)
         u[1] = u[1] + tau
         tau = Tools.list.norm(u)
         gamma = 2 / math.pow(tau, 2)
@@ -1552,6 +1564,7 @@ function ComplexMatrix:pretty (n, m)
         for i = 1, width - 1 do
             result = result .. _padStringToLength(string.sub(tostring(self[1][i]), 1, n), 20) .. " "
         end
+        -- TODO: did you mean string.sub(tostring(self[1][width]), 20, 1)
         result = result .. _padStringToLength(string.sub(tostring(self[1][width]), 20), 1, n) .. ")"
         return result
     end
