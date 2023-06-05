@@ -18,68 +18,66 @@ local Set = Sets.Set
 local Graphs = {}
 
 Graphs.Graph = {
-    adjacencyMatrix = nil,
-    numberOfVertices = 0,
-    numberOfEdges = 0,
-    labelTable = {},
-    vertexSet = nil
+	adjacencyMatrix = nil,
+	numberOfVertices = 0,
+	numberOfEdges = 0,
+	labelTable = {},
+	vertexSet = nil,
 }
 
 local Graph = Graphs.Graph
 Graph.__index = Graph
 
-function Graph.new(edgeList: Object, vertexNames: Object) : Object
-    vertexNames = vertexNames or {}
-    local vertexSet = Set:new(vertexNames)
-    for _, v in pairs(edgeList) do
-        vertexSet:addTo(v[1]):addTo(v[2])
-    end
-    local labelTable = {}
-    for k, v in ipairs(vertexSet) do
-        labelTable[v] = k
-    end
-    local adjacencyMatrix = SparseMatrix:new({}, vertexSet.cardinality, vertexSet.cardinality)
-    local numberOfVertices = #vertexSet
-    local numberOfEdges = 0
-    for _, v in pairs(edgeList) do
-        local left = labelTable[v[1]]
-        local right = labelTable[v[2]]
-        if not adjacencyMatrix:get(left, right) then
-            numberOfEdges += 1
-            adjacencyMatrix:set(left, right, 1)
-            adjacencyMatrix:set(right, left, 1)
-        end
-    end
-
-    local self = setmetatable({
-        adjacencyMatrix = adjacencyMatrix,
-        labelTable = labelTable,
-        numberOfVertices = numberOfVertices,
-        numberOfEdges = numberOfEdges,
-        vertexSet = vertexSet
-    }, Graph)
-    
-    return self
+function Graph.new(edgeList: Object, vertexNames: Object): Object
+	local o = {}
+	local self = setmetatable(o, Graph)
+	vertexNames = vertexNames or {}
+	local vertexSet = Set:new(vertexNames)
+	for _, v in pairs(edgeList) do
+		vertexSet:addTo(v[1]):addTo(v[2])
+	end
+	local labelTable = {}
+	for k, v in ipairs(vertexSet) do
+		labelTable[v] = k
+	end
+	local adjacencyMatrix = SparseMatrix:new({}, vertexSet.cardinality, vertexSet.cardinality)
+	local numberOfVertices = #vertexSet
+	local numberOfEdges = 0
+	for _, v in pairs(edgeList) do
+		local left = labelTable[v[1]]
+		local right = labelTable[v[2]]
+		if not adjacencyMatrix:get(left, right) then
+			numberOfEdges += 1
+			adjacencyMatrix:set(left, right, 1)
+			adjacencyMatrix:set(right, left, 1)
+		end
+	end
+	o.adjacencyMatrix = adjacencyMatrix
+	o.labelTable = labelTable
+	o.numberOfVertices = numberOfVertices
+	o.numberOfEdges = numberOfEdges
+	o.vertexSet = vertexSet
+	return self
 end
 
 function Graph:edgeList()
-    local adjacencyMatrix = self.adjacencyMatrix
-    local length = adjacencyMatrix.length
-    local width = adjacencyMatrix.width
-    local edgeList = {}
-    for k, v in pairs(adjacencyMatrix) do
-        local c = k % width
-        if c == 0 then 
-            c = width 
-        end
-        local r = math.floor((k - c) / length)
-        if r >= c then
-            if v ~= 0 then
-                edgeList[#edgeList+1] = table.sort({c, r})
-            end
-        end
-    end
-    return edgeList
+	local adjacencyMatrix = self.adjacencyMatrix
+	local length = adjacencyMatrix.length
+	local width = adjacencyMatrix.width
+	local edgeList = {}
+	for k, v in pairs(adjacencyMatrix) do
+		local c = k % width
+		if c == 0 then
+			c = width
+		end
+		local r = math.floor((k - c) / length)
+		if r >= c then
+			if v ~= 0 then
+				edgeList[#edgeList + 1] = table.sort({ c, r })
+			end
+		end
+	end
+	return edgeList
 end
 
 return Graphs
