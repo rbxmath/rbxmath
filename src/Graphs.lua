@@ -7,7 +7,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 local Tools = require(script.Parent.Tools)
 type Vector = Tools.Vector
 type Array<T> = Tools.Array<T>
-type ScalarFunction = Tools.ScalarFunction
+type ScalarFunction = Tools.ScalarMap
 type Tensor = Tools.Tensor
 type Object = Tools.Object
 local Matrices = require(script.Parent.Matrices)
@@ -26,11 +26,9 @@ Graphs.Graph = {
 }
 
 local Graph = Graphs.Graph
+Graph.__index = Graph
 
-function Graph:new (edgeList : Object, vertexNames : Object) : Object
-    local o = {}
-    setmetatable(o, self)
-    self.__index = self
+function Graph.new(edgeList: Object, vertexNames: Object) : Object
     vertexNames = vertexNames or {}
     local vertexSet = Set:new(vertexNames)
     for _, v in pairs(edgeList) do
@@ -52,21 +50,28 @@ function Graph:new (edgeList : Object, vertexNames : Object) : Object
             adjacencyMatrix:set(right, left, 1)
         end
     end
-    o.adjacencyMatrix = adjacencyMatrix
-    o.labelTable = labelTable
-    o.numberOfVertices = numberOfVertices
-    o.numberOfEdges = numberOfEdges
-    o.vertexSet = vertexSet
+
+    local self = setmetatable({
+        adjacencyMatrix = adjacencyMatrix,
+        labelTable = labelTable,
+        numberOfVertices = numberOfVertices,
+        numberOfEdges = numberOfEdges,
+        vertexSet = vertexSet
+    }, Graph)
+    
+    return self
 end
 
-function Graph:edgeList ()
+function Graph:edgeList()
     local adjacencyMatrix = self.adjacencyMatrix
     local length = adjacencyMatrix.length
     local width = adjacencyMatrix.width
     local edgeList = {}
     for k, v in pairs(adjacencyMatrix) do
         local c = k % width
-        if c == 0 then c = width end
+        if c == 0 then 
+            c = width 
+        end
         local r = math.floor((k - c) / length)
         if r >= c then
             if v ~= 0 then
