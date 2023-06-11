@@ -71,21 +71,12 @@ function CatmullRomChain.new(points: { Point }, alpha: number?, tension: number?
 	splines[numSplines] = CatmullRom.new(window2, window3, window4, veryLastPoint, alpha, tension)
 	totalLength += splines[numSplines].Length
 
-	-- Get the start of the domain interval for each spline
-	local splineDomains = table.create(numSplines - 1)
-	local runningLength = 0
-
-	for i, spline in splines do
-		splineDomains[i] = runningLength / totalLength
-		runningLength += spline.length
-	end
-
 	local self = setmetatable(PositionSplineChain.new(), CatmullRomChain)
 
 	self.Codimension = SplineUtils.GetCodimensionFromPoint(window1)
 	self.Length = totalLength
 	self.Splines = splines
-	self.SplineDomains = splineDomains
+	self.SplineDomains = SplineUtils.GetSplineDomains(splines)
 
 	return CatmullRomChain
 end

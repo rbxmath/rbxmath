@@ -5,7 +5,8 @@ local Types = require(script.Parent.Parent.Types)
 type Point = Types.Point
 type Vector = Types.Vector
 
-local Linear = {}
+local Linear = setmetatable({}, PositionSpline)
+Linear.__index = Linear
 
 function Linear.new(p0: Point, p1: Point)
 	local self = setmetatable(PositionSpline.new(), Linear)

@@ -10,8 +10,8 @@
 	τ(t): Torsion
 ]]
 
-local GaussLegendre = require(script.Parent.Parent.GaussLegendre)
 local Interpolation = require(script.Parent.Parent.Vendor.Interpolation)
+local SplineUtils = require(script.Parent.Parent.SplineUtils)
 local Types = require(script.Parent.Parent.Types)
 
 type Point = Types.Point
@@ -52,7 +52,7 @@ function PositionSpline:ToUnitSpeed()
 
 	for i = 1, numGridPoints - 1 do
 		gridValues[i + 1] = gridValues[i]
-			+ GaussLegendre.Five(function(t)
+			+ SplineUtils.GaussLegendre(function(t)
 				return self:SolveVelocity(t).Magnitude
 			end, shiftedGrid[i], shiftedGrid[i + 1])
 	end
@@ -136,17 +136,17 @@ function PositionSpline:SolveTorsion(t: number): number
 	return cross:Dot(jerk) / cross.Magnitude ^ 2
 end
 
-function PositionSpline:SolveLength(a: number?, b: number?): number
-	a = a or 0
-	b = b or 1
+function PositionSpline:SolveLength(from: number?, to: number?): number
+	from = from or 0
+	to = to or 1
 
-	if a > b then
-		a, b = b, a
+	if from > to then
+		from, to = to, from
 	end
 
-	return GaussLegendre.Five(function(t)
+	return SplineUtils.GaussLegendre(function(t)
 		return self:SolveVelocity(t).Magnitude
-	end, a, b)
+	end, from, to)
 end
 
 return PositionSpline

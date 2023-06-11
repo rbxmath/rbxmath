@@ -7,6 +7,13 @@ local EPSILON = 1e-4
 
 local SplineUtils = {}
 
+--[=[
+	Performs a fuzzy equality check.
+
+	@param a --- A point
+	@param b --- A point
+	@return
+--]=]
 function SplineUtils.FuzzyEq(a: Point, b: Point): boolean
 	local aType = typeof(a)
 
@@ -31,20 +38,20 @@ function SplineUtils.FuzzyEq(a: Point, b: Point): boolean
 end
 
 --[=[
-	Returns the linear interpolation from a to b at time t
+	Linearly interpolates between two points.
 
-	@param a -- From
-	@param b -- To
+	@param from -- From
+	@param to -- To
 	@param t -- Time in [0, 1]
 --]=]
--- function SplineUtils.Lerp(a: number, b: number, t: number): number
--- 	return a + t * (b - a)
--- end
+function SplineUtils.Lerp(from, to, t: number): number
+	return from + t * (to - from)
+end
 
 --[=[
-	Infers the ambient space of the spline from the dimension of the point and
-	returns the codimension of the spline. That is, the dimension of the ambient
-	space minus the dimension of the spline (1).
+	Infers the ambient space of the spline from the dimension of the given point
+	and returns the codimension of the spline. That is, the dimension of the
+	ambient space minus the dimension of the spline (1).
 --]=]
 function SplineUtils.GetCodimensionFromPoint(point: Point): number
 	local pointType = typeof(point)
@@ -61,26 +68,27 @@ function SplineUtils.GetCodimensionFromPoint(point: Point): number
 end
 
 --[=[
-	Gets the percent arc length along the chain where each curve starts
+	Gets the percent arc length along the chain where each spline starts.
 
-	@param lengths -- Arc lengths of curves
+	@param lengths -- Arc lengths of splines.
 	@return
 --]=]
-function SplineUtils.GetCurveDomains(lengths: { number }): { number }
+function SplineUtils.GetSplineDomains(lengths: { number }): { number }
 	local totalLength = 0
+
 	for _, length in lengths do
 		totalLength += length
 	end
 
-	local curveDomains = table.create(#lengths)
+	local splineDomains = table.create(#lengths)
 	local runningLength = 0
 
 	for i, length in lengths do
-		curveDomains[i] = runningLength / totalLength
+		splineDomains[i] = runningLength / totalLength
 		runningLength += length
 	end
 
-	return curveDomains
+	return splineDomains
 end
 
 --[=[
@@ -105,6 +113,38 @@ function SplineUtils.GetUniquePoints(points: { Point }): { Point }
 	end
 
 	return uniquePoints
+end
+
+--[=[
+	Integrates a function using 5-point Gaussian quadrature. Legendre roots and
+	quadrature weights sourced from https://pomax.github.io/bezierinfo/legendre-gauss.html
+	with highest precision afforded by 64-bit floats.
+
+	@param f --- An integrable function
+	@param from --- The lower integral bound
+	@param to --- The upper integral bound
+--]=]
+local function GaussLegendre(f: (number) -> number, from: number, to: number): number
+	if from == to then
+		return 0
+	end
+
+	if from > to then
+		from, to = to, from
+	end
+
+	local halfInterval = (to - from) / 2
+	local midpoint = (to + from) / 2
+
+	local x2 = halfInterval * 0.5384693101056831
+	local x3 = halfInterval * 0.906179845938664
+
+	return halfInterval
+		* (
+			0.5688888888888889 * f(midpoint)
+			+ 0.47862867049936647 * (f(midpoint - x2) + f(midpoint + x2))
+			+ 0.23692688505618908 * (f(midpoint - x3) + f(midpoint + x3))
+		)
 end
 
 return SplineUtils
