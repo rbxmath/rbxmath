@@ -13,7 +13,6 @@
 local GaussLegendre = require(script.Parent.Parent.GaussLegendre)
 local Interpolation = require(script.Parent.Parent.Vendor.Interpolation)
 local Types = require(script.Parent.Parent.Types)
-local Vector = require(script.Parent.Parent.Vector)
 
 type Point = Types.Point
 type Vector = Types.Vector
@@ -37,7 +36,7 @@ function PositionSpline:_accountForUnitSpeed(t: number)
 end
 
 function PositionSpline:ToUnitSpeed()
-	local numGridPoints = 11
+	local numGridPoints = 16
 	local grid = Interpolation.Chebyshev.grid(numGridPoints - 1)
 	local linearRescalingFunction = Interpolation.Chebyshev.linearRescalingFunction(0, 1)
 	local shiftedGrid = table.create(numGridPoints)

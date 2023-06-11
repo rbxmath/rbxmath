@@ -14,8 +14,6 @@ CatmullRom.__index = CatmullRom
 function CatmullRom.new(p0: Point, p1: Point, p2: Point, p3: Point, alpha: number?, tension: number?)
 	alpha = alpha or DEFAULT_ALPHA
 	tension = tension or DEFAULT_TENSION
-	assert(alpha)
-	assert(tension)
 
 	-- https://qroph.github.io/2018/07/30/smooth-paths-using-catmull-rom-splines.html
 	local p1_p0 = p1 - p0
@@ -36,11 +34,20 @@ function CatmullRom.new(p0: Point, p1: Point, p2: Point, p3: Point, alpha: numbe
 	local c = 3 * p2_p1 - 2 * m1 - m2
 	local d = -2 * p2_p1 + m1 + m2
 
-	local self = setmetatable(CubicPolynomial.new(a, b, c, d), CatmullRom)
+	return setmetatable(CubicPolynomial.new(a, b, c, d), CatmullRom)
+end
 
-	self.Codimension = SplineUtils.GetCodimensionFromPoint(p0)
+function CatmullRom.fromPoint(p0: Point)
+	local zero = p0 * 0
 
-	return self
+	return setmetatable(CubicPolynomial.new(zero, zero, zero, p0), CatmullRom)
+end
+
+function CatmullRom.fromLine(p0: Point, p1: Point)
+	local zero = p0 * 0
+	local p1_p0 = p1 - p0
+
+	return setmetatable(CubicPolynomial.new(zero, zero, p1_p0, p0), CatmullRom)
 end
 
 return CatmullRom

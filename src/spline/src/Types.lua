@@ -1,9 +1,7 @@
-local VectorN = require(script.Parent.Vector)
-
 -- Point type
 -- Determines ambient space of spline
-export type Point = Vector2 | Vector3 | typeof(setmetatable({} :: {number}, VectorN)) --{ number }
-export type Vector = Vector2 | Vector3 | typeof(setmetatable({} :: {number}, VectorN)) --{ number }
+export type Point = Vector2 | Vector3 | { number }
+export type Vector = Vector2 | Vector3 | { number }
 
 ---- Basis curve types
 ---- Independent of ambient space

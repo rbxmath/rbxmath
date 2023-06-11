@@ -1,7 +1,6 @@
 local PositionSpline = require(script.Parent.PositionSpline)
 local SplineUtils = require(script.Parent.Parent.SplineUtils)
 local Types = require(script.Parent.Parent.Types)
-local Vector = require(script.Parent.Parent.Vector)
 
 type Point = Types.Point
 type Vector = Types.Vector

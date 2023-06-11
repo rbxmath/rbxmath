@@ -14,11 +14,7 @@ function CubicHermite.new(p0: Point, p1: Point, v0: Vector, v1: Vector)
 	local c = 3 * (p1 - p0) - 2 * v0 - v1
 	local d = v1 + v0 + 2 * (p0 - p1)
 
-	local self = setmetatable(CubicPolynomial.new(a, b, c, d), CubicHermite)
-
-	self.Codimension = SplineUtils.GetCodimensionFromPoint(p0)
-
-	return self
+	return setmetatable(CubicPolynomial.new(a, b, c, d), CubicHermite)
 end
 
 return CubicHermite
