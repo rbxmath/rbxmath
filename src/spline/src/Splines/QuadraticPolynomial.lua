@@ -1,15 +1,17 @@
-local PositionSpline = require(script.Parent.PositionSpline)
+local Position = require(script.Parent.Position)
 local SplineUtils = require(script.Parent.Parent.SplineUtils)
 local Types = require(script.Parent.Parent.Types)
 
 type Point = Types.Point
 type Vector = Types.Vector
 
-local QuadraticPolynomial = setmetatable({}, PositionSpline)
-QuadraticPolynomial.__index = QuadraticPolynomial
+local QuadraticPolynomial = {}
 
-function QuadraticPolynomial.new(a: Vector, b: Vector, c: Vector)
-	local self = setmetatable(PositionSpline.new(), QuadraticPolynomial)
+QuadraticPolynomial.Interpolant = setmetatable({}, Position.Interpolant)
+QuadraticPolynomial.Interpolant.__index = QuadraticPolynomial.Interpolant
+
+function QuadraticPolynomial.Interpolant.new(a: Vector, b: Vector, c: Vector)
+	local self = setmetatable(Position.Interpolant.new(), QuadraticPolynomial.Interpolant)
 
 	self.a = a
 	self.b = b
@@ -21,26 +23,26 @@ function QuadraticPolynomial.new(a: Vector, b: Vector, c: Vector)
 	return self
 end
 
-function QuadraticPolynomial:SolvePosition(t: number): Point
+function QuadraticPolynomial.Interpolant:SolvePosition(t: number): Point
 	t = self:_accountForUnitSpeed(t)
 
 	-- r(t) in Horner's form
 	return self.a + t * (self.b + t * self.c)
 end
 
-function QuadraticPolynomial:SolveVelocity(t: number): Vector
+function QuadraticPolynomial.Interpolant:SolveVelocity(t: number): Vector
 	t = self:_accountForUnitSpeed(t)
 
 	-- r'(t) in Horner's form
 	return self.b + t * 2 * self.c
 end
 
-function QuadraticPolynomial:SolveAcceleration(): Vector
+function QuadraticPolynomial.Interpolant:SolveAcceleration(): Vector
 	-- r''(t)
 	return 2 * self.c
 end
 
-function QuadraticPolynomial:SolveJerk(): Vector
+function QuadraticPolynomial.Interpolant:SolveJerk(): Vector
 	-- r'''(t)
 	return 0 * self.a
 end

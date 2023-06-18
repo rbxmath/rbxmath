@@ -1,6 +1,7 @@
 return {
+	CatmullRom = require(script.Splines.CatmullRom),
 	CubicBezier = require(script.Splines.CubicBezier),
 	CubicHermite = require(script.Splines.CubicHermite),
-	CatmullRom = require(script.Splines.CatmullRom),
 	Linear = require(script.Splines.Linear),
+	QuadraticBezier = require(script.Splines.QuadraticBezier),
 }

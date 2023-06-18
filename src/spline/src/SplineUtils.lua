@@ -3,7 +3,7 @@ local Types = require(script.Parent.Types)
 type Point = Types.Point
 type Vector = Types.Vector
 
-local EPSILON = 1e-4
+local EPSILON = 1e-13
 
 local SplineUtils = {}
 
@@ -33,7 +33,7 @@ function SplineUtils.FuzzyEq(a: Point, b: Point): boolean
 		end
 		return true
 	else
-		error("Bad a")
+		error("Bad point type")
 	end
 end
 
@@ -50,8 +50,10 @@ end
 
 --[=[
 	Infers the ambient space of the spline from the dimension of the given point
-	and returns the codimension of the spline. That is, the dimension of the
-	ambient space minus the dimension of the spline (1).
+	and returns the codimension of the spline (i.e., the dimension of the
+	ambient space minus the dimension of the spline).
+
+	@param point -- Sample point on spline
 --]=]
 function SplineUtils.GetCodimensionFromPoint(point: Point): number
 	local pointType = typeof(point)
@@ -68,27 +70,27 @@ function SplineUtils.GetCodimensionFromPoint(point: Point): number
 end
 
 --[=[
-	Gets the percent arc length along the chain where each spline starts.
+	Gets the percent arc length along the spline where each interpolant starts.
 
-	@param lengths -- Arc lengths of splines.
+	@param interpolants -- A list of interpolants
 	@return
 --]=]
-function SplineUtils.GetSplineDomains(lengths: { number }): { number }
+function SplineUtils.GetInterpolantDomains(interpolants): { number }
 	local totalLength = 0
 
-	for _, length in lengths do
-		totalLength += length
+	for _, interpolant in interpolants do
+		totalLength += interpolant.Length
 	end
 
-	local splineDomains = table.create(#lengths)
+	local interpolantDomains = table.create(#interpolants)
 	local runningLength = 0
 
-	for i, length in lengths do
-		splineDomains[i] = runningLength / totalLength
-		runningLength += length
+	for i, interpolant in interpolants do
+		interpolantDomains[i] = runningLength / totalLength
+		runningLength += interpolant.Length
 	end
 
-	return splineDomains
+	return interpolantDomains
 end
 
 --[=[
@@ -124,7 +126,7 @@ end
 	@param from --- The lower integral bound
 	@param to --- The upper integral bound
 --]=]
-local function GaussLegendre(f: (number) -> number, from: number, to: number): number
+function SplineUtils.GaussLegendre(f: (number) -> number, from: number, to: number): number
 	if from == to then
 		return 0
 	end
