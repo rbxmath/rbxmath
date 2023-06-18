@@ -40,6 +40,7 @@ function QuadraticBezier.Spline.new(points: { Point })
 
 	local self = setmetatable(Position.Spline.new(), QuadraticBezier.Spline)
 
+	self.Codimension = SplineUtils.GetCodimensionFromPoint(points[1])
 	self.Length = totalLength
 	self.Interpolants = interpolants
 	self.InterpolantDomains = SplineUtils.GetInterpolantDomains(interpolants)

@@ -47,6 +47,7 @@ function CubicHermite.Spline.new(points: { Point }, vectors: { Vector })
 
 	local self = setmetatable(Position.Spline.new(), CubicHermite.Spline)
 
+	self.Codimension = SplineUtils.GetCodimensionFromPoint(prevPoint)
 	self.Length = totalLength
 	self.Interpolants = interpolants
 	self.InterpolantDomains = SplineUtils.GetInterpolantDomains(interpolants)

@@ -34,8 +34,10 @@ function Position.Interpolant.new()
 	local self = setmetatable({}, Position.Interpolant)
 
 	self._chebyshevInterpolant = nil
-	self.Codimension = nil
 	self.IsUnitSpeed = false
+
+	-- Global properties
+	self.Codimension = nil
 	self.Length = nil
 
 	return self
@@ -162,11 +164,18 @@ end
 function Position.Spline.new()
 	local self = setmetatable({}, Position.Spline)
 
-	self.Codimension = nil
-	self.IsUnitSpeed = false
-	self.Length = nil
 	self.Interpolants = nil
 	self.InterpolantDomains = nil
+	self.IsUnitSpeed = false
+
+	-- Global properties
+	self.Closed = nil -- TODO
+	self.Codimension = nil
+	self.Convex = nil -- TODO
+	self.Length = nil
+	self.Regular = nil -- TODO
+	self.RotationIndex = nil -- TODO
+	self.WindingNumber = nil -- TODO
 
 	return self
 end
@@ -230,7 +239,7 @@ function Position.Spline:_getInterpolantFromPercentArcLength(s: number): (number
 
 	-- Binary search for the interpolant containing s
 	local left = 1
-	local right = numInterpolants + 1
+	local right = numInterpolants
 
 	while left <= right do
 		local mid = math.floor((left + right) / 2)
