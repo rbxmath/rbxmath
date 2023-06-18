@@ -78,6 +78,31 @@ function Position.Interpolant:ToUnitSpeed()
 	self._chebyshevInterpolant = interpolant
 end
 
+function Position.Interpolant:SolveLength(from: number?, to: number?): number
+	from = from or 0
+	to = to or 1
+
+	if from > to then
+		from, to = to, from
+	end
+
+	return SplineUtils.GaussLegendre(function(t)
+		return self:SolveVelocity(t).Magnitude
+	end, from, to)
+end
+
+function Position.Interpolant:SolveVelocity(t: number): Vector
+	error("Must implement SolveVelocity()")
+end
+
+function Position.Interpolant:SolveAcceleration(t: number): Vector
+	error("Must implement SolveAcceleration()")
+end
+
+function Position.Interpolant:SolveJerk(t: number): Vector
+	error("Must implement SolveJerk()")
+end
+
 function Position.Interpolant:SolveTangent(t: number): Vector
 	t = self:_accountForUnitSpeed(t)
 
@@ -146,19 +171,6 @@ function Position.Interpolant:SolveTorsion(t: number): number
 
 	-- τ(t) = ((r'(t) x r''(t)) • r'''(t)) / |r'(t) x r''(t)|^2
 	return cross:Dot(jerk) / cross.Magnitude ^ 2
-end
-
-function Position.Interpolant:SolveLength(from: number?, to: number?): number
-	from = from or 0
-	to = to or 1
-
-	if from > to then
-		from, to = to, from
-	end
-
-	return SplineUtils.GaussLegendre(function(t)
-		return self:SolveVelocity(t).Magnitude
-	end, from, to)
 end
 
 function Position.Spline.new()
@@ -282,6 +294,21 @@ end
 function Position.Spline:SolveJerk(t: number): Vector
 	local interpIndex, interpTime = self:_getInterpolantFromPercentArcLength(t)
 	return self.Interpolants[interpIndex]:SolveJerk(interpTime)
+end
+
+function Position.Spline:SolveTangent(t: number): Vector
+	local interpIndex, interpTime = self:_getInterpolantFromPercentArcLength(t)
+	return self.Interpolants[interpIndex]:SolveTangent(interpTime)
+end
+
+function Position.Spline:SolveNormal(t: number): Vector
+	local interpIndex, interpTime = self:_getInterpolantFromPercentArcLength(t)
+	return self.Interpolants[interpIndex]:SolveNormal(interpTime)
+end
+
+function Position.Spline:SolveBinormal(t: number): Vector
+	local interpIndex, interpTime = self:_getInterpolantFromPercentArcLength(t)
+	return self.Interpolants[interpIndex]:SolveBinormal(interpTime)
 end
 
 function Position.Spline:SolveCurvature(t: number): Vector
