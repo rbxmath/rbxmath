@@ -16,34 +16,33 @@ Linear.Spline.__index = Linear.Spline
 function Linear.Interpolant.new(p0: Point, p1: Point)
 	local self = setmetatable(Position.Interpolant.new(), Linear.Interpolant)
 
-	self.p0 = p0
-	self.p1 = p1
-	self.p1_p0 = p1 - p0
+	self.a = p0
+	self.b = p1 - p0
 
 	self.Codimension = SplineUtils.GetCodimensionFromPoint(p0)
-	self.Length = self.p1_p0.Magnitude
+	self.Length = self.b.Magnitude
 
 	return self
 end
 
 function Linear.Interpolant:SolvePosition(t: number): Point
-	return self.p0 + t * self.p1_p0
+	return self.a + self.b * t
 end
 
 function Linear.Interpolant:SolveVelocity(): Vector
-	return self.p1_p0
+	return self.b
 end
 
 function Linear.Interpolant:SolveAcceleration(): Vector
-	return self.p0 * 0
+	return self.a * 0
 end
 
 function Linear.Interpolant:SolveJerk(): Vector
-	return self.p0 * 0
+	return self.a * 0
 end
 
 function Linear.Interpolant:SolveTangent(): Vector
-	return self.p1_p0.Unit
+	return self.b.Unit
 end
 
 function Linear.Interpolant:SolveNormal(): Vector
@@ -57,13 +56,13 @@ function Linear.Interpolant:SolveNormal(): Vector
 			return Vector.new({ -tangent[2], tangent[1] })
 		end
 	else
-		return self.p0 * 0
+		return self.a * 0
 	end
 end
 
 function Linear.Interpolant:SolveBinormal(): Vector
 	if self.Codimension == 2 then
-		return self.p0 * 0
+		return self.a * 0
 	else
 		error("SolveBinormal is restricted to splines in 3 dimensions")
 	end
