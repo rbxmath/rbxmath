@@ -1,0 +1,14 @@
+{
+  "name": "noise",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "$path": "../src"
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$path": "src"
+    }
+  }
+}
