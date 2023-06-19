@@ -38,9 +38,3 @@ luac.out
 *.i*86
 *.x86_64
 *.hex
-
-# Bundle metadata
-
-src/Packages
-src/wally.lock
-src/wally.toml
