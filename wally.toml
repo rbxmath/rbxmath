@@ -1,6 +1,6 @@
 [package]
 name = "ukendio/rbxmath"
-version = "0.2.4"
+version = "0.2.5"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 license = "MPL-2.0"
@@ -8,7 +8,7 @@ authors = ["Aidan Epperly", "Ethan Curtiss"]
 exclude = ["testing", "Packages", "libraries"]
 
 [dependencies]
-FastFourierTransform = "ukendio/fast-fourier-transform@0.1.0"
+FastFourierTransform = "ukendio/fast-fourier-transform@0.1.1"
 Graphs = "ukendio/graphs@0.1.0"
 Interpolation = "ukendio/interpolation@0.1.0"
 Matrices = "ukendio/matrices@0.1.2"

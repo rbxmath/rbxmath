@@ -4,8 +4,8 @@
 		"$className": "DataModel",
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
-			"Spline": {
-				"$path": "../src"
+			"Packages": {
+				"$path": "Packages"
 			}
 		},
 		"ServerScriptService": {

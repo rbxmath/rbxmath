@@ -5,7 +5,7 @@ This file is for use by Benchmarker (https://boatbomber.itch.io/benchmarker)
 --]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Spline = require(ReplicatedStorage.Spline)
+local Spline = require(ReplicatedStorage.Packages.Spline)
 
 local Rand = Random.new()
 local POINTS = 100

@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Spline = require(ReplicatedStorage.Spline)
+local Spline = require(ReplicatedStorage.Packages.Spline)
 local gizmo = require(ReplicatedStorage.gizmo)
 
 return function(target)

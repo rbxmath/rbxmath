@@ -1,6 +1,6 @@
 [package]
 name = "ukendio/spline"
-version = "0.1.0"
+version = "0.1.1"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 license = "MPL-2.0"
@@ -8,6 +8,6 @@ authors = ["Ethan Curtiss"]
 exclude = ["test"]
 
 [dependencies]
-FastFourierTransform = "ukendio/fast-fourier-transform@0.1.0"
+FastFourierTransform = "ukendio/fast-fourier-transform@0.1.1"
 Interpolation = "ukendio/interpolation@0.1.0"
 Matrices = "ukendio/matrices@0.1.2"

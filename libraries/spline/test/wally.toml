@@ -1,10 +1,8 @@
 [package]
-name = "ukendio/primes"
+name = "marcus/test"
 version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
-license = "MPL-2.0"
-authors = ["Aidan Epperly"]
 
 [dependencies]
-PrimeList = "ukendio/primelist@0.1.0"
+Spline = "ukendio/spline@0.1.1"
