@@ -1,5 +1,5 @@
 {
-	"name": "tools",
+	"name": "fast-fourier-transform",
 	"tree": {
 		"$path": "src"
 	}
