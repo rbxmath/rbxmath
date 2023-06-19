@@ -1,9 +1,0 @@
-[package]
-name = "ukendio/noise"
-version = "0.1.1"
-registry = "https://github.com/UpliftGames/wally-index"
-realm = "shared"
-license = "MPL-2.0"
-authors = ["Ethan Curtiss"]
-
-[dependencies]
