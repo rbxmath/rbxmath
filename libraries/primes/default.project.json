@@ -1,0 +1,6 @@
+{
+	"name": "primes",
+	"tree": {
+		"$path": "src"
+	}
+}

@@ -1,0 +1,13 @@
+[package]
+name = "ukendio/ode"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+license = "MPL-2.0"
+authors = ["Aidan Epperly"]
+exclude = ["testing"]
+
+[dependencies]
+tools = "ukendio/tools@0.1.0"
+matrices = "ukendio/matrices@0.1.2"
+interpolation = "ukendio/interpolation@0.1.0"

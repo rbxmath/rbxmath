@@ -1,0 +1,6 @@
+{
+  "name": "fast-fourier-transform",
+  "tree": {
+    "$path": "src"
+  }
+}

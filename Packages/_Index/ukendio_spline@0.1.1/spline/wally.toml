@@ -1,23 +1,17 @@
 [package]
-name = "ukendio/rbxmath"
-version = "0.2.0"
+name = "ukendio/spline"
+version = "0.1.1"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 license = "MPL-2.0"
-authors = ["Aidan Epperly", "Ethan Curtiss"]
-exclude = ["testing"]
+authors = ["Ethan Curtiss"]
+exclude = ["test"]
 
 [dependencies]
 FastFourierTransform = "ukendio/fast-fourier-transform@0.1.0"
-Graphs = "ukendio/graphs@0.1.0"
 Interpolation = "ukendio/interpolation@0.1.0"
 Matrices = "ukendio/matrices@0.1.2"
-Noise = "ukendio/noise@0.1.0"
-NumericalMethods = "ukendio/numerical-methods@0.1.0"
-Ode = "ukendio/ode@0.1.0"
 PrimeList = "ukendio/primelist@0.1.2"
 Primes = "ukendio/primes@0.1.0"
 Scalars = "ukendio/scalars@0.1.0"
-Sets = "ukendio/sets@0.1.0"
-Spline = "ukendio/spline@0.1.0"
 Tools = "ukendio/tools@0.1.0"

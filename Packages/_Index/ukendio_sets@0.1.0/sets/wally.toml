@@ -1,0 +1,10 @@
+[package]
+name = "ukendio/sets"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+license = "MPL-2.0"
+authors = ["Aidan Epperly"]
+
+[dependencies]
+Tools = "ukendio/tools@0.1.0"
