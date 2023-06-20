@@ -1,5 +1,5 @@
 [package]
-name = "ukendio/numerical-methods"
+name = "rbxmath/numerical-methods"
 version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
@@ -8,5 +8,5 @@ authors = ["Aidan Epperly"]
 exclude = ["testing"]
 
 [dependencies]
-Tools = "ukendio/tools@0.1.0"
-Matrices = "ukendio/matrices@0.1.2"
+Tools = "rbxmath/tools@0.1.0"
+Matrices = "rbxmath/matrices@0.1.0"

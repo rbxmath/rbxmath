@@ -1,11 +1,11 @@
 [package]
-name = "ukendio/matrices"
-version = "0.1.2"
+name = "rbxmath/matrices"
+version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 license = "MPL-2.0"
 authors = ["Aidan Epperly"]
 
 [dependencies]
-Scalars = "ukendio/scalars@0.1.0"
-Tools = "ukendio/tools@0.1.0"
+Scalars = "rbxmath/scalars@0.1.0"
+Tools = "rbxmath/tools@0.1.0"

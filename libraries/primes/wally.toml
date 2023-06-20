@@ -1,5 +1,5 @@
 [package]
-name = "ukendio/primes"
+name = "rbxmath/primes"
 version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
@@ -7,4 +7,4 @@ license = "MPL-2.0"
 authors = ["Aidan Epperly"]
 
 [dependencies]
-PrimeList = "ukendio/primelist@0.1.0"
+PrimeList = "rbxmath/primelist@0.1.0"

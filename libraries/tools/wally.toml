@@ -1,10 +1,9 @@
 [package]
-name = "ukendio/tools"
+name = "rbxmath/tools"
 version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 license = "MPL-2.0"
 authors = ["Aidan Epperly"]
-exclude = ["testing"]
 
 [dependencies]

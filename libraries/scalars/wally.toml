@@ -1,5 +1,5 @@
 [package]
-name = "ukendio/scalars"
+name = "rbxmath/scalars"
 version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
@@ -8,4 +8,4 @@ authors = ["Aidan Epperly", "Ethan Curtiss"]
 exclude = ["testing"]
 
 [dependencies]
-Tools = "ukendio/tools@0.1.0"
+Tools = "rbxmath/tools@0.1.0"
