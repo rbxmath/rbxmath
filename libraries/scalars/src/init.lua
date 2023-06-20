@@ -4,7 +4,13 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 ]]
 
+<<<<<<< HEAD:src/Scalars.lua
 local Tools = require("../src/Tools")
+=======
+local Packages = game:GetService("ReplicatedStorage").Pack
+
+local Tools = require(script.Parent.Tools)
+>>>>>>> main:libraries/scalars/src/init.lua
 
 local Scalars = {}
 
