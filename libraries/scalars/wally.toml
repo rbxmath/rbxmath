@@ -1,0 +1,11 @@
+[package]
+name = "rbxmath/scalars"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+license = "MPL-2.0"
+authors = ["Aidan Epperly", "Ethan Curtiss"]
+exclude = ["testing"]
+
+[dependencies]
+Tools = "rbxmath/tools@0.1.0"

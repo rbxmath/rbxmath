@@ -1,0 +1,13 @@
+[package]
+name = "rbxmath/ode"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+license = "MPL-2.0"
+authors = ["Aidan Epperly"]
+exclude = ["testing"]
+
+[dependencies]
+tools = "rbxmath/tools@0.1.0"
+matrices = "rbxmath/matrices@0.1.0"
+interpolation = "rbxmath/interpolation@0.1.0"
