@@ -437,6 +437,14 @@ function Matrix:toPermuted(permutation: Vector): Tensor
 	return self
 end
 
+function Matrix:getColumnVector(i: number): Vector
+	local data = {}
+	for j = 1, self.length do
+		data[j] = self[j][i]
+	end
+	return data
+end
+
 --[[
     +--------------------------------------------------+
     |                   Matrix Maps                    |
@@ -731,6 +739,76 @@ function Matrix:LUDecomposition()
 	return { l, matrix, permutation }
 end
 
+function Matrix:newReflector(u: Vector)
+	local data = {}
+	local length = #u
+	local norm = Tools.list.norm(u)
+	local gamma = 2 / norm ^ 2
+	for i = 1, length do
+		data[i] = {}
+		for j = 1, length do
+			if i == j then
+				data[i][j] = 1 - gamma * u[i] * u[j]
+			else
+				data[i][j] = -gamma * u[i] * u[j]
+			end
+		end
+	end
+	return Matrix:new(data)
+end
+
+function Matrix.applyReflector(u: Vector, v: Vector)
+	local dot = Vectors.dot(u, v)
+	local norm = Vectors.norm(u)
+	local gamma = 2 / norm ^ 2
+	local newVector = Vectors.scale(gamma * dot, u)
+	return Vectors.sub(v, newVector)
+end
+
+function Matrix.applyUnitReflector(u: Vector, v: Vector)
+	local dot = Vectors.dot(u, v)
+	local newVector = Vectors.scale(2 * dot, u)
+	return Vectors.sub(v, newVector)
+end
+
+function Matrix:LinearLeastSquare(vector: Vector, tolerance: number)
+	tolerance = tolerance or 10 ^ -13
+	local a = self:copy()
+	for i = 1, a.width do
+		local beta = 0
+		for j = i, a.length do
+			beta = math.max(beta, math.abs(a[j][i]))
+		end
+		local sum = 0
+		for j = i, n do
+			a[j][i] = a[j][i] / beta
+			sum = sum + math.pow(a[j][i], 2)
+		end
+		local tau = math.sqrt(sum)
+		if a[i][i] < 0 then
+			tau = -tau
+		end
+		local eta = a[i][i] + tau
+		a[i][i] = 1
+		for j = i + 1, a.length do
+			a[j][i] = a[j][i] / eta
+		end
+		local gamma = eta / tau
+		tau = tau * beta
+
+		local b = Matrix:zero(a.length, a.width)
+
+		local temp = a:submatrix(i, a.length, i + 1, a.width)
+		local temp2 = a:submatrix(i, a.length, i, i)
+		b:setSubmatrix(i, a.length, 1, 1, (temp2:transpose() * temp):toScaled(-gamma):transpose())
+		a:setSubmatrix(i, a.length, i + 1, a.width, temp + temp2 * b:submatrix(i, a.length, 1, 1):transpose())
+		vector = Matrix:applyReflector(a:getColumnVector(i), vector)
+
+		a[i][i] = -tau
+	end
+	return a:submatrix(1, math.min(self.length, self.width), 1, math.min(self.length, self.width)):solve()
+end
+
 --[[
     +--------------------------------------------------+
     |                   Scalar Maps                    |
@@ -847,11 +925,10 @@ function Matrix:toHessenbergForm()
 	local n = a.length
 	local b = Matrix:zero(n, 1)
 	for k = 1, n - 2 do
-		local maxList = {}
+		local beta = 0
 		for i = k + 1, n do
-			maxList[#maxList + 1] = math.abs(a[i][k])
+			beta = math.max(beta, math.abs(a[i][k]))
 		end
-		local beta = math.max(table.unpack(maxList))
 		local gamma = 0
 		if beta ~= 0 then
 			local sum = 0
@@ -2441,7 +2518,7 @@ function SparseMatrix:new(list: Tensor, length: number, width: number): Object
 		setmetatable(sparseMatrix, self)
 		self.__index = self
 		sparseMatrix.length = #list
-		sparseMatrix.width = #list[1]
+		sparseMatrix.width = width or #list[1]
 		sparseMatrix.data = {}
 		sparseMatrix:tableSet(list)
 		return sparseMatrix
@@ -2498,6 +2575,24 @@ function SparseMatrix:copy(): Object
 		data[i] = v
 	end
 	return SparseMatrix:new(data, self.length, self.width)
+end
+
+function SparseMatrix:addBand(value: number, position: number)
+	local cp = self:copy()
+	if position == 0 then
+		for i = 1, math.min(self.length, self.width) do
+			cp.data[self.width * (i - 1) + i] = value
+		end
+	elseif position > 0 then
+		for i = 1, math.min(self.length, self.width - position) do
+			cp.data[self.width * (i - 1) + i + position] = value
+		end
+	else
+		for i = 1, math.min(self.length + position, self.width) do
+			cp.data[self.width * (i - 1 - position) + i] = value
+		end
+	end
+	return cp
 end
 
 function SparseMatrix:sparsity(): number
@@ -2557,6 +2652,47 @@ function SparseMatrix.__tostring(matrix: Object): string
 
 	result = result .. "}"
 
+	return result
+end
+
+function SparseMatrix:pretty(n: number, m: number): string
+	local length = self.length
+	local width = self.width
+
+	n = n or 20
+	m = m or 20
+
+	local result = ""
+
+	if length == 1 then
+		result = "("
+		for i = 1, width - 1 do
+			result = result .. _padStringToLength(string.sub(tostring(self.get(1, i)), 1, n), 20) .. " "
+		end
+		result = result .. _padStringToLength(string.sub(tostring(self.get(1, width)), 1, n), 20) .. ")"
+		return result
+	end
+
+	for i = 1, length do
+		if i == 1 then
+			result = result .. "/"
+		elseif i == length then
+			result = result .. "\\"
+		else
+			result = result .. "|"
+		end
+		for j = 1, width - 1 do
+			result = result .. _padStringToLength(string.sub(tostring(self.get(i, j)), 1, n), 20) .. " "
+		end
+		result = result .. _padStringToLength(string.sub(tostring(self.get(i, width)), 1, n), 20)
+		if i == 1 then
+			result = result .. "\\\n"
+		elseif i == length then
+			result = result .. "/"
+		else
+			result = result .. "|\n"
+		end
+	end
 	return result
 end
 
@@ -2796,38 +2932,35 @@ end
 function SparseMatrix:arnoldiProcess(n: number, x: Vector, tolerance: number): Array<Vector>
 	tolerance = tolerance or 10 ^ -13
 	n = n or math.min(self.length, self.width)
+	local t = 0
 	local q = {}
 	local h = {}
 	q[1] = x or Vectors.randomVector(self.width, 2)
-	print(Tools.list.tostring(q[1]))
 	for i = 2, n do
+		t += 1
 		q[i] = self:apply(q[i - 1])
-		print(Tools.list.tostring(q[i]))
 		for j = 1, i - 1 do
 			if not h[j] then
 				h[j] = {}
 			end
 			local dot = Vectors.dot(q[j], q[i])
-			print(dot)
-			print(Tools.list.tostring(Vectors.scale(dot, q[j])))
-			h[j][i - 1] = dot
+			if math.abs(dot) > tolerance then
+				h[j][i - 1] = dot
+			end
 			q[i] = Vectors.sub(q[i], Vectors.scale(dot, q[j]))
 		end
 		if not h[i] then
 			h[i] = {}
 		end
 		local norm = Vectors.norm(q[i])
-		print("q[i]", Tools.list.tostring(q[i]))
-		print("norm of above", norm)
 		if math.abs(norm) < tolerance then
 			q[i] = nil
 			break
 		end
 		h[i][i - 1] = norm
 		q[i] = Vectors.scale(1 / norm, q[i])
-		print("final q[i]", Tools.list.tostring(q[i]))
 	end
-	return q
+	return q, SparseMatrix:new(h, t + 1, t)
 end
 
 function SparseMatrix:solve(b: Vector)
