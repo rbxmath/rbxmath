@@ -4,16 +4,10 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 ]]
 
-<<<<<<< HEAD:src/FastFourierTransform.lua
-local Complex = require("../src/Scalars").Complex
-local Tools = require("../src/Tools")
-local Primes = require("../src/Primes")
-=======
 local Packages = script.Parent
 local Complex = require(Packages.Scalars).Complex
 local Tools = require(Packages.Tools)
 local Primes = require(Packages.Primes)
->>>>>>> main:libraries/fast-fourier-transform/src/init.lua
 
 local factorLists = {}
 setmetatable(factorLists, { __mode = "v" })
