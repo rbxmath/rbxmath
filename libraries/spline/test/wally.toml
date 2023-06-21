@@ -1,8 +1,8 @@
 [package]
-name = "marcus/test"
+name = "ethan/test"
 version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
-Spline = "ukendio/spline@0.1.1"
+Spline = "rbxmath/spline@0.1.1"

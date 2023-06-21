@@ -1,6 +1,6 @@
 [package]
 name = "rbxmath/interpolation"
-version = "0.1.0"
+version = "0.1.1"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 license = "MPL-2.0"
@@ -11,4 +11,4 @@ Scalars = "rbxmath/scalars@0.1.0"
 Tools = "rbxmath/tools@0.1.0"
 Primes = "rbxmath/primes@0.1.0"
 Matrices = "rbxmath/matrices@0.1.0"
-FastFourierTransform = "ukendio/fast-fourier-transform@0.1.0"
+FastFourierTransform = "rbxmath/fast-fourier-transform@0.1.0"

@@ -1,6 +1,6 @@
 [package]
 name = "rbxmath/graphs"
-version = "0.1.0"
+version = "0.1.1"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 license = "MPL-2.0"
@@ -8,5 +8,5 @@ authors = ["Aidan Epperly"]
 
 [dependencies]
 Tools = "rbxmath/tools@0.1.0"
-Matrices = "rbxmath/matrices@0.1.2"
+Matrices = "rbxmath/matrices@0.1.0"
 Sets = "rbxmath/sets@0.1.0"
