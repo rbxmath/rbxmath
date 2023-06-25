@@ -12,7 +12,7 @@
 	τ: Torsion
 ]]
 
-local Interpolation = require(script.Parent.Parent.Interpolation)
+local Interpolation = require(script.Parent.Parent.Parent.Interpolation)
 local SplineUtils = require(script.Parent.Parent.SplineUtils)
 local Types = require(script.Parent.Parent.Types)
 
