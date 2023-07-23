@@ -146,7 +146,7 @@ print("Time Taken for 1,000,000 Evaluatations:", os.clock() - tic)
 
 print("")
 
-interpolant = Interpolation.ChebyshevInterpolant:new(
+local interpolant = Interpolation.ChebyshevInterpolant:new(
 	Tools.list.reverse({ 10., -5.414213562373094, 2., -2.585786437626906, 2. }),
 	-1,
 	1
@@ -156,7 +156,7 @@ print("Grid values reversed:", Tools.list.tostring(Tools.list.reverse(interpolan
 print("This should be 0, 1, 2, 3, 4:", Tools.list.tostring(interpolant.coefficientList))
 
 local splineFunc = function(x)
-	return math.sqrt(32 * x ^ 4 + 16 * x ^ 3 + 8 * x ^ 2 + 4 * x + 2)
+	return math.sqrt(x ^ 2 + x + 1)
 end
 
 interpolant = Interpolation.ChebyshevInterpolant:adaptive(splineFunc, 0, 1)

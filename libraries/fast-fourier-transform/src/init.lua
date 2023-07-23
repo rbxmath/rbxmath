@@ -90,15 +90,13 @@ function FastFourierTransform:FFTS(xList, n, startIndex, stride, primeDecomp)
 		)
 	end
 	local data = {}
-	local const1 = 2 * math.pi / n
 	-- Because n = N1 * N2, the following two nested for loops combined run for n iterations.
 	for k1 = 0, N1 - 1 do
 		for k2 = 0, N2 - 1 do
 			local iter = N2 * k1 + k2
 			local sum = Complex:new(0)
-			local const2 = const1 * iter
 			for n1 = 0, N1 - 1 do
-				sum = sum + Complex:exp(const2 * n1) * u[n1 + 1][k2 + 1]
+				sum = sum + Complex:exp(2 * math.pi * n1 * iter / n) * u[n1 + 1][k2 + 1]
 			end
 			data[iter + 1] = sum
 		end
@@ -138,14 +136,12 @@ function FastFourierTransform:IFFTS(xList, n, startIndex, stride, primeDecomp)
 		)
 	end
 	local data = {}
-	local const1 = -2 * math.pi / n
 	for k1 = 0, N1 - 1 do
 		for k2 = 0, N2 - 1 do
 			local iter = N2 * k1 + k2
 			local sum = Complex:new(0)
-			local const2 = const1 * iter
 			for n1 = 0, N1 - 1 do
-				sum = sum + Complex:exp(const2 * n1) * u[n1 + 1][k2 + 1]
+				sum = sum + Complex:exp(-2 * math.pi * n1 * iter / n) * u[n1 + 1][k2 + 1]
 			end
 			data[iter + 1] = sum
 		end

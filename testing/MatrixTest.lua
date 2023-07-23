@@ -1,53 +1,83 @@
-local Tools = require("../src/Tools")
-local Matrices = require("../src/Matrices")
+local Tools = require("src.Tools")
+local Matrices = require("src.Matrices")
 local Matrix = Matrices.Matrix
 local SparseMatrix = Matrices.SparseMatrix
 local ComplexMatrix = Matrices.ComplexMatrix
-local Scalars = require("../src/Scalars")
+local MA = require("src.MatrixAlgebra")
+local Scalars = require("src.Scalars")
 local Complex = Scalars.Complex
 
 print("Basic Tests:")
 
-local ones = Matrix:new({ { 1, 1 }, { 1, 1 } })
+local ones = Matrix:new({{1, 1}, {1, 1}})
 print(ones)
 print(ones * ones)
 local data = {}
 n = 4
 for i = 1, n, 1 do
-	data[i] = {}
-	for j = 1, n, 1 do
-		data[i][j] = 1
-	end
+    data[i] = {}
+    for j = 1, n, 1 do
+        data[i][j] = 1
+    end
 end
 local Ones = Matrix:new(data)
 data = {}
 n = 16
 for i = 1, n, 1 do
-	data[i] = {}
-	for j = 1, n, 1 do
-		data[i][j] = 1
-	end
+    data[i] = {}
+    for j = 1, n, 1 do
+        data[i][j] = 1
+    end
 end
 local ONes = Matrix:new(data)
 data = {}
 n = 64
 for i = 1, n, 1 do
-	data[i] = {}
-	for j = 1, n, 1 do
-		data[i][j] = 1
-	end
+    data[i] = {}
+    for j = 1, n, 1 do
+        data[i][j] = 1
+    end
 end
+local ONEs = Matrix:new(data)
+local MAONEs = MA.matrix.new(data)
+data = {}
+n = 256
+for i = 1, n, 1 do
+    data[i] = {}
+    for j = 1, n, 1 do
+        data[i][j] = 1
+    end
+end
+
+print("Old Versus New Tests:")
+
+local ONES = Matrix:new(data)
+local MAONES = MA.matrix.new(data)
+local tic = os.clock()
+temp = Ones * Ones
+time1 = (os.clock() - tic)
+tic = os.clock()
+temp = ONes * ONes
+time2 = (os.clock() - tic)
+tic = os.clock()
+temp = ONEs * ONEs
+time3 = (os.clock() - tic)
+tic = os.clock()
+temp = ONES * ONES
+time4 = (os.clock() - tic)
+print(time1, time2, time3, time4)
+print(" ", time2 / time1, time3 / time2, time4 / time3)
 
 print("Matrix Computation Tests:")
 
 local iden = Matrix:identity(2)
 print(iden)
 print(iden:inverse())
-print(Tools.list.tostring(iden:solve({ 1, 1 })))
+print(Tools.list.tostring(iden:solve({1, 1})))
 print(iden:transpose())
 print(ones:determinant())
 print(iden:determinant())
-print(iden:permuted({ 2, 1 }):determinant())
+print(iden:permuted({2, 1}):determinant())
 
 print("Eigenvalue Computation Tests:")
 
@@ -72,6 +102,22 @@ for i = 1, 100 do
 end
 print("Large Random Test:", (os.clock() - tic) / 100)
 tic = os.clock()]]
+
+print("Strassen Tests:")
+
+local save
+tic = os.clock()
+save = ONEs * ONEs
+print(os.clock() - tic)
+tic = os.clock()
+save = MAONEs * MAONEs
+print(os.clock() - tic)
+tic = os.clock()
+save = ONES * ONES
+print(os.clock() - tic)
+tic = os.clock()
+save = MAONES * MAONES
+print(os.clock() - tic)
 
 print("\nSparse Matrix Tests:")
 
@@ -147,20 +193,12 @@ idenP = iden + iden
 print(os.clock() - tic)
 
 print("\nSubmatrix Tests:")
-local two = SparseMatrix:new({ { 2, 0 }, { 0, 2 } })
+local two = SparseMatrix:new({{2, 0}, {0, 2}})
 iden:copy()
 print(iden:submatrix(1, 4, 1, 4))
 print(two)
 print(iden:copy():setSubmatrix(1, 1, two):submatrix(1, 2, 1, 2))
 
-print("\nArnoldi Process Tests:")
-iden = SparseMatrix:identity(5):addBand(-1, 1):addBand(-1, -1)
-local q, h = iden:arnoldiProcess()
-print(iden)
-print(h:pretty())
-print(Tools.list.deeptostring(q))
-
---[[
 print(Tools.admin.makeBanners("Testing", "The FitnessGram Pacer Test is a multistage aerobic capacity test that progressively gets more difficult as it continues. The 20 meter pacer test will begin in 30 seconds. Line up at the start. The running speed starts slowly, but gets faster each minute after you hear this signal. A single lap should be completed each time you hear this sound.  Remember to run in a straight line, and run as long as possible. The second time you fail to complete a lap before the sound, your test is over. The test will begin on the word start. On your mark, get ready, start."))
 print(Tools.admin.makeBanners("Matrix Utilities", "This section contains many useful functions including those to copy and manipulate matrices. Functions of the form \"to_____\" or \"set_____\" will change the underlying matrix, while others will return a shallow copy."))
 print(Tools.admin.makeBanners("Matrix Metamethods", "This section contains all of the metamethods for matrices. Addition and subtraction are relatively standard, but multiplication is an implementation of Strassen's method. The size of matrix at which Strassen multiplication will be used is set in Matrices.constant.STRASSENLIMIT."))
@@ -219,4 +257,4 @@ rand = ComplexMatrix:random(4)
 print(ComplexMatrix:new({{Complex:new(0,1), Complex:new(0,1), Complex:new(0,1)}}))
 print(ComplexMatrix:new({{Complex:new(0,1), Complex:new(0,1), Complex:new(0,1)}}):conjugateTranspose())
 print(rand)
-print(rand:hessenbergForm())]]
+print(rand:hessenbergForm())
