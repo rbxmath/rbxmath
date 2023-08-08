@@ -310,6 +310,15 @@ function Tools.list.reverse (array)
     return data
 end
 
+function Tools.list.scale (array, scale)
+    local data = {}
+    local n = #array
+    for i = 1, n, 1 do
+        data[i] = scale * array[i]
+    end
+    return data
+end
+
 Tools.solve = {}
 
 function Tools.solve.regulaFalsi (f, t, a, b, tol)
