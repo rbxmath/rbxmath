@@ -2513,7 +2513,7 @@ end
 
 function SparseMatrix:new(list: Tensor, length: number, width: number): Object
    local sparseMatrix = {}
-
+   
    if type(list[1]) == "table" then
       setmetatable(sparseMatrix, self)
       self.__index = self
@@ -2577,7 +2577,7 @@ function SparseMatrix:copy(): Object
    return SparseMatrix:new(data, self.length, self.width)
 end
 
-function SparseMatrix:addBand(value: number, position: number)
+function SparseMatrix:addedBand(value: number, position: number)
    local cp = self:copy()
    if position == 0 then
       for i = 1, math.min(self.length, self.width) do
@@ -2595,6 +2595,38 @@ function SparseMatrix:addBand(value: number, position: number)
    return cp
 end
 
+function SparseMatrix:addBand(value: number, position: number)
+   if position == 0 then
+      for i = 1, math.min(self.length, self.width) do
+	 local index = self.width * (i - 1) + i
+	 if self.data[index] then
+	    self.data[index] += value
+	 else
+	    self.data[index] = value
+	 end
+      end
+   elseif position > 0 then
+      for i = 1, math.min(self.length, self.width - position) do
+	 local index = self.width * (i - 1) + i + position
+	 if self.data[index] then
+	    self.data[index] += value
+	 else
+	    self.data[index] = value
+	 end
+      end
+   else
+      for i = 1, math.min(self.length + position, self.width) do
+	 local index = self.width * (i - 1 - position) + i
+	 if self.data[index] then
+	    self.data[index] += value
+	 else
+	    self.data[index] = value
+	 end
+      end
+   end
+   return self
+end
+
 function SparseMatrix:sparsity(): number
    local denominator = self.length * self.width
    local numerator = 0
@@ -2605,16 +2637,13 @@ function SparseMatrix:sparsity(): number
 end
 
 function SparseMatrix:transpose()
-   local copy = self:copy()
-   local data = copy.data
+   local data = {}
    for i = 1, self.length do
-      for j = i, self.width do
-	 data[(i - 1) * self.width + j], data[(j - 1) * self.length + i] =
-	    data[(j - 1) * self.length + i], data[(i - 1) * self.width + j]
+      for j = 1, self.width do
+	 data[(j - 1) * self.length + i] = self.data[(i - 1) * self.width + j]
       end
    end
-   copy.length, copy.width = copy.width, copy.length
-   return copy
+   return SparseMatrix:new(data, self.width, self.length)
 end
 
 function SparseMatrix:getRow(n: number): Vector
@@ -2633,6 +2662,18 @@ function SparseMatrix:getColumn(n: number): Vector
    return data
 end
 
+function SparseMatrix:toDense()
+   local data  = {}
+   for i = 1, self.length do
+      data[i] = {}
+      for j = 1, self.width do
+	 data[i][j] = self:get(i, j)
+      end
+   end
+   
+   return Matrix:new(data)
+end
+      
 function SparseMatrix.__tostring(matrix: Object): string
    local result = "{"
 
@@ -2790,20 +2831,19 @@ function SparseMatrix.__mul(left: Object, right: Object): Object
       if c == 0 then
 	 c = leftWidth
       end
-      local r = math.floor((k - c) / leftLength)
+      local r = math.floor((k - c) / leftWidth)
       for kk, vv in pairs(rightData) do
 	 local cc = kk % rightWidth
-	 local ccc
 	 if cc == 0 then
 	    cc = rightWidth
 	 end
-	 local rr = math.floor((kk - cc) / rightLength)
+	 local rr = math.floor((kk - cc) / rightWidth)
 	 if c == rr + 1 then
-	    local rcc = cc + r * leftWidth
+	    local rcc = cc + r * rightWidth
 	    local temp = data[rcc]
 	    local vvv = v * vv
 	    if temp ~= nil and vvv ~= 0 then
-	       data[rcc] = data[rcc] + vvv
+	       data[rcc] = temp + vvv
 	    elseif vvv ~= 0 then
 	       data[rcc] = vvv
 	    end
@@ -2875,16 +2915,15 @@ end
 
 function SparseMatrix:apply(vector: Vector): Vector
    local data = {}
-
+   for i = 1, self.length do
+      data[i] = 0
+   end
    for k, v in pairs(self.data) do
       local c = k % self.width
       if c == 0 then
 	 c = self.width
       end
       local r = (k - c) / self.width + 1
-      if not data[r] then
-	 data[r] = 0
-      end
       data[r] = data[r] + v * vector[c]
    end
 
@@ -2932,12 +2971,12 @@ function SparseMatrix:powerMethod(vector: Vector, tolerance: number): (number, V
       end
    end
    -- Repeatedly apply the matrix to the vector normalizing at each step until the change is minimal
-   local newVector = Vector.scale(1 / Vector.norm(vector), self:apply(vector))
-   local displacement = Vector.sub(vector, newVector)
-   while Vector.norm(displacement) > tolerance do
+   local newVector = Vectors.scale(1 / Vectors.norm(vector), self:apply(vector))
+   local displacement = Vectors.sub(vector, newVector)
+   while Vectors.norm(displacement) > tolerance do
       vector = newVector
-      newVector = Vector.scale(1 / Vector.norm(vector), self:apply(vector))
-      displacement = Vector.sub(vector, newVector)
+      newVector = Vectors.scale(1 / Vectors.norm(vector), self:apply(vector))
+      displacement = Vectors.sub(vector, newVector)
    end
    -- Right now, we have a vector that solves Ax = lx, but we don't know what l is!
    vector = newVector
@@ -2958,7 +2997,7 @@ function SparseMatrix:arnoldiProcess(n: number, x: Vector, tolerance: number): A
    local t = 0
    local q = {}
    local h = {}
-   q[1] = x or Vectors.randomVector(self.width, 2)
+   q[1] = Vectors.scale(1 / Vectors.norm(x), x) or Vectors.randomVector(self.width, 2)
    for i = 2, n do
       t += 1
       q[i] = self:apply(q[i - 1])
@@ -2984,6 +3023,87 @@ function SparseMatrix:arnoldiProcess(n: number, x: Vector, tolerance: number): A
       q[i] = Vectors.scale(1 / norm, q[i])
    end
    return q, SparseMatrix:new(h, t + 1, t)
+end
+
+-- Our goal is to solve the equation Ax = lx for A our matrix, x some unknown
+--   vector and l some real/complex number. This is called the eigenvalue problem.
+--   With this function we answer the question "what are the values of l for which
+--   an answer exists?"
+function SparseMatrix:eigenvalues(n: number, x: Vector, tolerance: number)
+   tolerance = tolerance or 10 ^ -13
+   n = n or 1
+   if n == 1 then
+      local temp, tempVec = self:powerMethod(x, tolerance)
+      return {temp}
+   end
+   local m = math.min(self.length, 2 * n)
+   x = x or Vectors.randomVector(self.width, 2)
+   local t
+   local q = {}
+   local oldEigenvalues = {tolerance + 1}
+   local eigenvalues = {0}
+   local Q, H
+   q[1] = Vectors.scale(1 / Vectors.norm(x), x)
+   while Vectors.norm(Vectors.sub(oldEigenvalues, eigenvalues)) > tolerance do
+      t=0
+      for i = 2, m do
+	 t += 1
+	 q[i] = self:apply(q[i - 1])
+	 for j = 1, i - 1 do
+	    local dot = Vectors.dot(q[j], q[i])
+	    q[i] = Vectors.sub(q[i], Vectors.scale(dot, q[j]))
+	 end
+	 local norm = Vectors.norm(q[i])
+	 if math.abs(norm) < tolerance then
+	    q[i] = nil
+	    break
+	 end
+	 q[i] = Vectors.scale(1 / norm, q[i])
+      end
+      Q = SparseMatrix:new(q)
+      -- print(Q)
+      -- print(self)
+      H = Q * self * Q:transpose()
+      oldEigenvalues = Tools.list.copy(eigenvalues)
+      eigenvalues = Tools.list.sublist(H:numericalClean(tolerance):toDense():eigenvalues(tolerance), n)
+      if #oldEigenvalues < #eigenvalues then
+	 oldEigenvalues = Tools.list.copy(eigenvalues)
+	 oldEigenvalues[1] *= 2
+	 oldEigenvalues[1] += tolerance
+      end
+      local temp = q[#q]
+      q = {}
+      q[1] = temp
+   end
+   return eigenvalues
+end
+
+function SparseMatrix:upperTriangularSolve(b: Vector)
+   -- This overwrites the b vector
+   if self.length ~= self.width then
+      error("Sparse system is not square")
+   end
+   if self.length ~= #b then
+      error("Sparse system has incompatibly sized b vector")
+   end
+   for i = #b, 1, -1 do
+      temp = self:get(i, i)
+      if temp == 0 then
+	 error("Sparse system is not solvable")
+      end
+      for j = #b, i + 1, -1 do
+	 temp2 = self:get(i, j)
+	 if temp2 ~= 0 then
+	    b[i] -= temp2 * b[j]
+	 end
+      end
+      b[i] /= temp
+   end
+   return b
+end
+
+function SparseMatrix:hessenbergLeastSquare(b: Vector)
+   -- This overwrites the b vector
 end
 
 function SparseMatrix:solve(b: Vector)
