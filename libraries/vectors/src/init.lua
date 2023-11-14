@@ -15,6 +15,22 @@ local Complex = Scalars.Complex
 
 local Vectors = {}
 
+function Vectors.copy(vector: Vector): Vector
+   local data = {}
+   for k, v in ipairs(vector) do
+      data[k] = v
+   end
+   return data
+end
+
+function Vectors.zeros(n)
+   local data = {}
+   for i = 1, n do
+      data[i] = 0
+   end
+   return data
+end
+
 function Vectors.dot(left: Vector, right: Vector): number
    if #left ~= #right then
       error("Attempting to compute the dot product of incompatible vectors!", 1)
@@ -73,6 +89,38 @@ function Vectors.norm(vector: Vector, norm: number | string)
    end
 end
 
+function Vectors.project(v, u, tol)
+   tol = tol or 10 ^ -13
+   local denominator = Vectors.dot(u, u)
+   local numerator = Vectors.dot(u, v)
+   if math.abs(denominator) < tol then
+      return Vectors.scale(0, u)
+   else
+      return Vectors.scale(numerator / denominator, u)
+   end
+end
+
+function Vectors.gramSchmidt(listOfVectors, tol)
+   tol = tol or 10 ^ -13
+   local listOfU = {}
+   for i = 1, #listOfVectors do
+      a = listOfVectors[i]
+      u = Vectors.copy(a)
+      for j = 1, i - 1 do
+	 u = Vectors.sub(u, Vectors.project(a, listOfU[j]))
+      end
+      listOfU[i] = u
+   end
+   local basis = {}
+   for i = 1, #listOfVectors do
+      local scalar = Vectors.norm(listOfU[i])
+      if scalar >= tol then
+	 basis[#basis + 1] = Vectors.scale(1 / scalar, listOfU[i])
+      end
+   end
+   return basis
+end
+
 function Vectors.randomVector(n: number, normalize: boolean | number | string): Vector
    local vector = {}
    for i = 1, n do
@@ -120,6 +168,18 @@ function Vectors.sub(left: Vector, right: Vector)
    local data = {}
    for i = 1, #left do
       data[i] = left[i] - right[i]
+   end
+   return data
+end
+
+function Vectors.standardBasis(n: number, i: number)
+   local data = {}
+   for j = 1, n do
+      if i == j then
+	 data[j] = 1
+      else
+	 data[j] = 0
+      end
    end
    return data
 end

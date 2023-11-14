@@ -31,6 +31,7 @@ type Object = Tools.Object
 local Scalars = require(script.Parent.Scalars)
 local Complex = Scalars.Complex
 local Vectors = require(script.Parent.Vectors)
+local Numerics = require(script.Parent.Numerics)
 
 local Matrices = {}
 
@@ -38,6 +39,13 @@ Matrices.constants = {}
 Matrices.constants.STRASSENLIMIT = 256
 Matrices.constants.SPARSESTRASSENLIMIT = 256
 Matrices.constants.COMPLEXSTRASSENLIMIT = 64
+
+--[[
+Throughout the library we will use the following conventions:
+
+ - functions that start with "to" or "set" will mutate the object 
+     all other functions will leave the matrix unchanged
+]]--
 
 local Matrix = {
    length = 0,
@@ -115,6 +123,41 @@ function Matrix:setSubmatrix(rowStart: number, rowEnd: number, columnStart: numb
    return self
 end
 
+function Matrix:addBand(value: number, position: number)
+   local cp = self:copy()
+   if position == 0 then
+      for i = 1, math.min(self.length, self.width) do
+	 cp[i][i] = value
+      end
+   elseif position > 0 then
+      for i = 1, math.min(self.length, self.width - position) do
+	 cp.data[i][i + position] = value
+      end
+   else
+      for i = 1, math.min(self.length + position, self.width) do
+	 cp.data[i - position][i] = value
+      end
+   end
+   return cp
+end
+
+function Matrix:toAddedBand(value: number, position: number)
+   if position == 0 then
+      for i = 1, math.min(self.length, self.width) do
+	 self[i][i] = value
+      end
+   elseif position > 0 then
+      for i = 1, math.min(self.length, self.width - position) do
+	 self[i][i + position] = value
+      end
+   else
+      for i = 1, math.min(self.length + position, self.width) do
+	 self[i - position][i] = value
+      end
+   end
+   return self
+end
+
 function Matrix:toScaled(lambda: number): Tensor
    for i = 1, self.length do
       for j = 1, self.width do
@@ -177,10 +220,29 @@ function Matrix:column(i: number): Vector
       error("Matrix doesn't have " .. tostring(i) .. " columns.")
    end
    local column = {}
-   for j = 1, self.width do
-      column[j] = self[i][j]
+   for j = 1, self.length do
+      column[j] = self[j][i]
    end
    return column
+end
+
+function Matrix:getColumn(i: number): Vector
+   return self:column(i)
+end
+
+function Matrix:row(i: number): Vector
+   if i > self.length then
+      error("Matrix doesn't have " .. tostring(i) .. " rows.")
+   end
+   local row = {}
+   for j = 1, self.width do
+      row[j] = self[i][j]
+   end
+   return row
+end
+
+function Matrix:getRow(i: number): Vector
+   return self:row(i)
 end
 
 local function _padStringToLength(string: string, length: number): string
@@ -207,9 +269,9 @@ function Matrix:pretty(n: number, m: number): string
    if length == 1 then
       result = "("
       for i = 1, width - 1 do
-	 result = result .. _padStringToLength(string.sub(tostring(self[1][i]), 1, n), 20) .. " "
+	 result = result .. _padStringToLength(string.sub(tostring(self[1][i]), 1, n), m) .. " "
       end
-      result = result .. _padStringToLength(string.sub(tostring(self[1][width]), 20), 1, n) .. ")"
+      result = result .. _padStringToLength(string.sub(tostring(self[1][width]), m), 1, n) .. ")"
       return result
    end
 
@@ -222,9 +284,9 @@ function Matrix:pretty(n: number, m: number): string
 	 result = result .. "|"
       end
       for j = 1, width - 1 do
-	 result = result .. _padStringToLength(string.sub(tostring(self[i][j]), 1, n), 20) .. " "
+	 result = result .. _padStringToLength(string.sub(tostring(self[i][j]), 1, n), m) .. " "
       end
-      result = result .. _padStringToLength(string.sub(tostring(self[i][width]), 1, n), 20)
+      result = result .. _padStringToLength(string.sub(tostring(self[i][width]), 1, n), m)
       if i == 1 then
 	 result = result .. "\\\n"
       elseif i == length then
@@ -736,8 +798,156 @@ function Matrix:LUDecomposition()
       end
    end
 
-   return { l, matrix, permutation }
+   return l, matrix, permutation
 end
+
+function Matrix:CholeskyDecomposition()
+   local matrix = self:copy()
+   local numberOfRows = #matrix
+   local numberOfColumns = #matrix[1]
+
+   if numberOfRows ~= numberOfColumns then
+      error("Cannot compute Cholesky of rectangular matrix.")
+   end
+
+   for i = 1, numberOfColumns do
+      for j = 1, i - 1 do
+	 matrix[i][i] -= matrix[j][i] ^ 2
+      end
+      if matrix[i][i] <= 0 then
+	 error("Matrix is not positive definite.")
+      end
+      matrix[i][i] = math.sqrt(matrix[i][i])
+      for j = i + 1, numberOfColumns do
+	 for k = 1, i - 1 do
+	    matrix[i][j] -= matrix[k][i] * matrix[k][j]
+	 end
+	 matrix[i][j] /= matrix[i][i]
+      end
+   end
+
+   for i = 1, numberOfColumns do
+      for j = 1, i - 1 do
+	 matrix[i][j] = 0
+      end
+   end
+
+   return matrix
+end
+
+function Matrix:GramSchmidtQR(tolerance)
+   tolerance = tolerance or 10 ^ -13
+   local numberOfRows = #self
+   local numberOfColumns = #self[1]
+   local Q = Matrix:new(Vectors.gramSchmidt(self:transpose(), tolerance))
+   local R = Q * self
+   for i = 1, #R do
+      for j = 1, math.min(i - 1, #R[1]) do
+	 R[i][j] = 0
+      end
+   end
+   Q = Q:transpose()
+   return Q, R
+end
+
+function Matrix:HouseholderQR(tolerance: number)
+   tolerance = tolerance or 10 ^ -13
+   local a = self:copy()
+   local g = {}
+   for i = 1, a.width - 1 do
+      local beta = 0
+      for j = i, a.length do
+	 beta = math.max(beta, math.abs(a[j][i]))
+      end
+      local sum = 0
+      for j = i, a.length do
+	 a[j][i] /= beta
+	 sum = sum + math.pow(a[j][i], 2)
+      end
+      local tau = math.sqrt(sum)
+      if a[i][i] < 0 then
+	 tau = -tau
+      end
+      local eta = a[i][i] + tau
+      a[i][i] = 1
+      for j = i + 1, a.length do
+	 a[j][i] /= eta
+      end
+      local gamma = eta / tau
+      g[#g + 1] = gamma
+      tau *= beta
+      
+      local everythingButIthCol = a:submatrix(i, a.length, i + 1, a.width)
+      local ithCol = a:submatrix(i, a.length, i, i)
+      
+      a:setSubmatrix(i, a.length, i + 1, a.width,
+		     everythingButIthCol -
+		     ithCol:scaled(gamma) * ithCol:transpose() * everythingButIthCol)
+
+      a[i][i] = -tau
+   end
+
+   return a, g
+end
+
+function Matrix.ExpandHouseholderQR(householderQR, gammaVector)
+   local R = householderQR:copy()
+   for i = 1, #R do
+      for j = 1, math.min(i - 1, #R[1]) do
+	 R[i][j] = 0
+      end
+   end
+   local Q = Matrix:identity(#R, #R)
+   for i = #R - 1, 1, -1 do
+      local uPartial = householderQR:submatrix(i + 1, #R, i, i):transpose()[1]
+      local u = {1}
+      for i = 1, #uPartial do
+	 u[i + 1] = uPartial[i]
+      end
+      u = Matrix:new(u)
+      qSub = Q:submatrix(i, #R, i, #R)
+      Q:setSubmatrix(i, #R, i, #R, qSub -
+		     u:scaled(gammaVector[i]) * u:transpose() * qSub)
+   end
+   return Q, R
+end
+
+function Matrix:FullHouseholderQR()
+   local a, g = self:HouseholderQR()
+   return Matrix.ExpandHouseholderQR(a, g)
+end
+
+function Matrix:GivensQR(tol)
+   tol = tol or 10 ^ -13
+   local QT = Matrix:identity(#self)
+   local R = self:copy()
+   for i = 1, self.width do
+      for j = self.length, i + 1, -1 do
+	 local a = R[i][i]
+	 local b = R[j][i]
+	 if math.abs(b) < tol then
+	    continue
+	 end
+	 local r = Numerics.hypot(a, b)
+	 R[i][i], R[j][i] = r, 0
+	 local c = a / r
+	 local s = -b / r
+	 for k = i + 1, self.width do
+	    local x = R[i][k]
+	    local y = R[j][k]
+	    R[i][k] = c * x - s * y
+	    R[j][k] = s * x + c * y
+	 end
+	 for k = 1, self.width do
+	    local x = QT[i][k]
+	    local y = QT[j][k]
+	    QT[i][k] = c * x - s * y
+	    QT[j][k] = s * x + c * y
+	 end
+      end
+   end
+   return QT:transpose(), R
+end	 
 
 function Matrix:newReflector(u: Vector)
    local data = {}
@@ -780,8 +990,8 @@ function Matrix:LinearLeastSquare(vector: Vector, tolerance: number)
 	 beta = math.max(beta, math.abs(a[j][i]))
       end
       local sum = 0
-      for j = i, n do
-	 a[j][i] = a[j][i] / beta
+      for j = i, a.length do
+	 a[j][i] /= beta
 	 sum = sum + math.pow(a[j][i], 2)
       end
       local tau = math.sqrt(sum)
@@ -791,10 +1001,10 @@ function Matrix:LinearLeastSquare(vector: Vector, tolerance: number)
       local eta = a[i][i] + tau
       a[i][i] = 1
       for j = i + 1, a.length do
-	 a[j][i] = a[j][i] / eta
+	 a[j][i] /= eta
       end
       local gamma = eta / tau
-      tau = tau * beta
+      tau *= beta
 
       local b = Matrix:zero(a.length, a.width)
 
@@ -806,7 +1016,7 @@ function Matrix:LinearLeastSquare(vector: Vector, tolerance: number)
 
       a[i][i] = -tau
    end
-   return a:submatrix(1, math.min(self.length, self.width), 1, math.min(self.length, self.width)):solve()
+   return a:submatrix(1, math.min(self.length, self.width), 1, math.min(self.length, self.width)):solve(vector)
 end
 
 --[[
@@ -847,6 +1057,16 @@ end
 
 function Matrix:dot(matrix)
    return (self:transpose() * matrix):trace()
+end
+
+function Matrix:frobenius()
+   local sum = 0
+   for i = 1, #self do
+      for j = 1, #self[1] do
+	 sum += self[i][j] ^ 2
+      end
+   end
+   return math.sqrt(sum)
 end
 
 --[[
@@ -2577,7 +2797,7 @@ function SparseMatrix:copy(): Object
    return SparseMatrix:new(data, self.length, self.width)
 end
 
-function SparseMatrix:addedBand(value: number, position: number)
+function SparseMatrix:addBand(value: number, position: number)
    local cp = self:copy()
    if position == 0 then
       for i = 1, math.min(self.length, self.width) do
@@ -2595,7 +2815,7 @@ function SparseMatrix:addedBand(value: number, position: number)
    return cp
 end
 
-function SparseMatrix:addBand(value: number, position: number)
+function SparseMatrix:toAddedBand(value: number, position: number)
    if position == 0 then
       for i = 1, math.min(self.length, self.width) do
 	 local index = self.width * (i - 1) + i
@@ -2658,6 +2878,22 @@ function SparseMatrix:getColumn(n: number): Vector
    local data = {}
    for i = 1, self.length do
       data[i] = self:get(i, n)
+   end
+   return data
+end
+
+function SparseMatrix:getDiagonal()
+   local data = {}
+   for i = 1, math.min(self.length, self.width) do
+      data[i] = self:get(i, i)
+   end
+   return data
+end
+
+function SparseMatrix:getSubdiagonal()
+   local data = {}
+   for i = 1, math.min(self.length - 1, self.width - 1) do
+      data[i] = self:get(i + 1, i)
    end
    return data
 end
@@ -2877,6 +3113,49 @@ function SparseMatrix:identity(n: number): Object
    return matrix
 end
 
+function SparseMatrix:scaledIdentity(n, mu)
+   local matrix = SparseMatrix:new({}, n)
+   for i = 1, n do
+      matrix:set(i, i, mu)
+   end
+   return matrix
+end
+
+function SparseMatrix:conjugate(matrix)
+   if getmetatable(matrix) == getmetatable(self) then
+      return matrix:transpose() * self * matrix
+   else
+      local newmatrix = SparseMatrix:new(matrix)
+      return newmatrix:transpose() * self * newmatrix
+   end
+end
+
+function SparseMatrix:scale(mu)
+   for i, v in self.data do
+      self[i] = mu * v
+   end
+end
+
+function SparseMatrix:scaled(mu)
+   local matrix = self:copy()
+   return matrix:scale(mu)
+end
+
+function SparseMatrix:rayleighQuotient(vector)
+   local vector2 = self:apply(vector)
+   local numerator = Vectors.dot(vector, vector2)
+   local denominator = Vectors.dot(vector, vector)
+   return numerator / denominator
+end
+
+function SparseMatrix:frobenius()
+   local sum = 0
+   for k, v in self.data do
+      sum += v ^ 2
+   end
+   return math.sqrt(sum)
+end
+
 function SparseMatrix:submatrix(rowStart: number, rowEnd: number, columnStart: number, columnEnd: number): Object
    local data = {}
    for k, v in pairs(self.data) do
@@ -2924,7 +3203,9 @@ function SparseMatrix:apply(vector: Vector): Vector
 	 c = self.width
       end
       local r = (k - c) / self.width + 1
-      data[r] = data[r] + v * vector[c]
+      if vector[c] then
+	 data[r] = data[r] + v * vector[c]
+      end
    end
 
    return data
@@ -2991,9 +3272,112 @@ function SparseMatrix:powerMethod(vector: Vector, tolerance: number): (number, V
    return (sum / #vector), vector
 end
 
+function SparseMatrix:inverseIteration(vector, mu, tolerance)
+   tolerance = tolerance or 10 ^ -13
+   mu = mu or 0
+   if not vector then
+      vector = {}
+      local iter = 1
+      for k, v in pairs(self.data) do
+	 if iter > self.width then
+	    break
+	 else
+	    vector[iter] = v
+	    iter += 1
+	 end
+      end
+      if iter == 1 then
+	 for i = 1, self.width do
+	    vector[i] = 0
+	 end
+	 return 0, vector
+      else
+	 for i = iter, self.width do
+	    vector[i] = 0
+	 end
+      end
+   end
+   local matrix = self - SparseMatrix:scaledIdentity(self.length, mu)
+   -- Repeatedly apply the matrix to the vector normalizing at each step until the change is minimal
+   local newVector = Vectors.scale(1 / Vectors.norm(vector), matrix:solve(vector,
+                                                                          tolerance))
+   local displacement = Vectors.sub(vector, newVector)
+   while Vectors.norm(displacement) > tolerance do
+      vector = newVector
+      newVector = Vectors.scale(1 / Vectors.norm(vector), matrix:solve(vector))
+      displacement = Vectors.sub(vector, newVector)
+   end
+   -- Right now, we have a vector that solves Ax = lx, but we don't know what l is!
+   vector = newVector
+   newVector = self:apply(vector)
+   local sum = 0
+   for i = 1, #vector do
+      if(vector[i] ~= 0) then
+	 sum += newVector[i] / vector[i]
+      end
+   end
+
+   return (sum / #vector), vector
+end
+
+function SparseMatrix:rayleighIteration(vector, mu, tolerance)
+   tolerance = tolerance or 10 ^ -13
+   -- Make a vector if one was not provided
+   if not vector then
+      vector = {}
+      local iter = 1
+      for k, v in pairs(self.data) do
+	 if iter > self.width then
+	    break
+	 else
+	    vector[iter] = v
+	    iter += 1
+	 end
+      end
+      if iter == 1 then
+	 for i = 1, self.width do
+	    vector[i] = 0
+	 end
+	 return 0, vector
+      else
+	 for i = iter, self.width do
+	    vector[i] = 0
+	 end
+      end
+   end
+   mu = mu or self:rayleighQuotient(vector)
+   local matrix = self - SparseMatrix:scaledIdentity(self.length, mu)
+   -- Repeatedly apply the matrix to the vector normalizing at each step until the change is minimal
+   local newVector = matrix:solve(vector)
+   newVector = Vectors.scale(1 / Vectors.norm(newVector), newVector)
+   local displacement = Vectors.sub(vector, newVector)
+   while Vectors.norm(displacement) > tolerance do
+      vector = newVector
+      mu = self:rayleighQuotient(vector)
+      matrix = self - SparseMatrix:scaledIdentity(self.length, mu)
+      if Vectors.norm(matrix:apply(vector)) < tolerance then
+	 break
+      end
+      newVector = matrix:solve(vector, tolerance)
+      newVector = Vectors.scale(1 / Vectors.norm(newVector), newVector)
+      displacement = Vectors.sub(vector, newVector)
+   end
+   -- Right now, we have a vector that solves Ax = lx, but we don't know what l is!
+   vector = newVector
+   newVector = self:apply(vector)
+   local sum = 0
+   for i = 1, #vector do
+      if(vector[i] ~= 0) then
+	 sum += newVector[i] / vector[i]
+      end
+   end
+
+   return (sum / #vector), vector
+end
+
 function SparseMatrix:arnoldiProcess(n: number, x: Vector, tolerance: number): Array<Vector>
    tolerance = tolerance or 10 ^ -13
-   n = n or math.min(self.length, self.width)
+   n = n or math.min(self.length, self.width) + 1
    local t = 0
    local q = {}
    local h = {}
@@ -3078,6 +3462,126 @@ function SparseMatrix:eigenvalues(n: number, x: Vector, tolerance: number)
    return eigenvalues
 end
 
+function SparseMatrix:symmetricCopy()
+   local n = math.min(self.length, self.width)
+   local data = {}
+   for i = 1, n do
+      for j = 1, i do
+	 data[n * (i - 1) + j] = self:get(i, j)
+	 data[n * (j - 1) + i] = self:get(i, j)
+      end
+   end
+   return SparseMatrix:new(data, n, n)
+end
+
+function SparseMatrix:tridiagonalize()
+   -- We will assume that the matrix is symmetric and take the lower
+   -- triangle as authoritative
+   local matrix = self:symmetricCopy()
+   for i = 1, self.length - 2 do
+      -- i is the current column
+      for j = i + 2, self.length do
+	 local a = matrix:get(i + 1, i)
+	 local b = matrix:get(j, i)
+	 if b == 0 then
+	    continue
+	 end
+	 local r = Numerics.hypot(a, b)
+	 local c = a / r
+	 local s = -b / r
+	 matrix:set(i + 1, i, r)
+	 matrix:set(i, i + 1, r)
+	 matrix:set(j, i, 0)
+	 matrix:set(i, j, 0)
+	 for k = i + 1, self.length do
+	    a = matrix:get(i + 1, k)
+	    b = matrix:get(j, k)
+	    matrix:set(i + 1, k, c * a - s * b)
+	    matrix:set(j, k, s * a + c * b)
+	    a = matrix:get(k, i + 1)
+	    b = matrix:get(k, j)
+	    matrix:set(k, i + 1, c * a - s * b)
+	    matrix:set(k, j, s * a + c * b)
+	 end
+      end
+   end
+   return matrix
+end
+
+function SparseMatrix:QRDecomposition(tol)
+   tol = tol or 10 ^ -13
+   local QT = SparseMatrix:identity(self.length)
+   local R = self:copy()
+   for i = 1, self.width do
+      for j = self.length, i + 1, -1 do
+	 local a = R:get(i, i)
+	 local b = R:get(j, i)
+	 if math.abs(b) < tol then
+	    continue
+	 end
+	 local r = Numerics.hypot(a, b)
+	 R:set(i, i, r)
+	 R:set(j, i, 0)
+	 local c = a / r
+	 local s = -b / r
+	 for k = i + 1, self.width do
+	    local x = R:get(i, k)
+	    local y = R:get(j, k)
+	    R:set(i, k, c * x - s * y)
+	    R:set(j, k, s * x + c * y)
+	 end
+	 for k = 1, self.width do
+	    local x = QT:get(i, k)
+	    local y = QT:get(j, k)
+	    QT:set(i, k, c * x - s * y)
+	    QT:set(j, k, s * x + c * y)
+	 end
+      end
+   end
+   return QT:transpose(), R
+end	 
+
+function SparseMatrix:QREigenvalues(tol)
+   tol = tol or 10 ^ -13
+   if self.length ~= self.width then
+      error("Sparse system is not square")
+   end
+   local matrix = self:tridiagonalize()
+   local sub = matrix:getSubdiagonal()
+   local err = Vectors.norm(sub) / #sub
+   local q = SparseMatrix:identity(self.length)
+   while err >= tol do
+      local Q, R = matrix:QRDecomposition(tol)
+      matrix = R * Q
+      q = Q * q
+      sub = matrix:getSubdiagonal()
+      err = Vectors.norm(sub) / #sub
+   end
+   return matrix:getDiagonal(), q
+end	 
+
+function SparseMatrix:QREigenvaluesAnalysis(tol)
+   tol = tol or 10 ^ -13
+   if self.length ~= self.width then
+      error("Sparse system is not square")
+   end
+   local matrix = self:tridiagonalize()
+   local sub = matrix:getSubdiagonal()
+   local err = Vectors.norm(sub) / #sub
+   local q = SparseMatrix:identity(self.length)
+   local qVec, dVec = {}, {}
+   while err >= tol do
+      local Q, R = matrix:QRDecomposition(tol)
+      matrix = R * Q
+      q = q * Q
+      qVec[#qVec + 1] = q
+      dVec[#dVec + 1] = matrix:getDiagonal()
+      sub = matrix:getSubdiagonal()
+      err = Vectors.norm(sub) / #sub
+   end
+   return matrix:getDiagonal(), q, qVec, dVec
+end
+
 function SparseMatrix:upperTriangularSolve(b: Vector)
    -- This overwrites the b vector
    if self.length ~= self.width then
@@ -3102,19 +3606,94 @@ function SparseMatrix:upperTriangularSolve(b: Vector)
    return b
 end
 
-function SparseMatrix:hessenbergLeastSquare(b: Vector)
-   -- This overwrites the b vector
-end
-
-function SparseMatrix:solve(b: Vector)
-   if self.length ~= self.width then
-      error("Sparse system is not square!")
+function SparseMatrix:hessenbergLeastSquare(b0: Vector)
+   -- This overwrites the b vector and self
+   -- We will compute this using Givens rotations!
+   local length = self.length
+   local width = self.width
+   for i = 1, length - 1 do
+      local index = (i - 1) * width + i
+      local indexPlus = i * width + i
+      local a, b = self.data[index], self.data[indexPlus]
+      if b == nil then
+	 continue
+      end
+      a = a or 0
+      local r = Numerics.hypot(a, b)
+      self.data[index], self.data[indexPlus] = r, 0
+      local c, s = a / r, -b / r
+      local iPlus = i + 1
+      b0[i], b0[iPlus] = c * b0[i] - s * b0[iPlus], s * b0[i] + c * b0[iPlus]
+      for j = i + 1, width do
+	 index = (i - 1) * width + j
+	 indexPlus = i * width + j
+	 local temp1 = self.data[index]
+	 local temp2 = self.data[indexPlus]
+	 local sum1 = 0
+	 local sum2 = 0
+	 if temp1 ~= nil then
+	    if temp2 ~= nil then
+	       sum1 = c * temp1 - s * temp2
+	       sum2 = s * temp1 + c * temp2
+	    else
+	       sum1 = c * temp1
+	       sum2 = s * temp1
+	    end
+	 else
+	    if temp2 ~= nill then
+	       sum1 = -s * temp2
+	       sum2 = c * temp2
+	    end
+	 end
+	 self.data[index], self.data[indexPlus] = sum1, sum2
+      end
    end
-
-   local n = self.length
-   local x = Vectors.randomVector()
+   local newLength = math.min(length, width)
+   return self:submatrix(1, newLength, 1, newLength):upperTriangularSolve(Tools.list.sublist(b0, newLength))
 end
 
+function SparseMatrix:GMRES(b, tolerance)
+   tolerance = tolerance or 10 ^ -13
+   local x0 = Vectors.zeros(self.width) --Initial Guess
+   local r0 = Vectors.sub(b, self:apply(x0))
+   local beta = Vectors.norm(r0)
+   local q, y, e
+   while beta >= tolerance do
+      q, h = self:arnoldiProcess(nil, r0)
+      e = Vectors.zeros(#q + 1)
+      e[1] = beta
+      local Q = SparseMatrix:new(q, #q, #q[1]):transpose()
+      y = h:hessenbergLeastSquare(e)
+      x0 = Vectors.add(x0, Q:apply(y))
+      r0 = Vectors.sub(b, self:apply(x0))
+      beta = Vectors.norm(r0)
+   end
+   return x0
+end
+
+function SparseMatrix:solve(b, tol)
+   return self:GMRES(b, tol)
+end
+
+function SparseMatrix:inverse(tol)
+   tol = tol or 10 ^ -13
+   if self.length ~= self.width then
+      error("Cannot invert a non-square matrix")
+   end
+   local iden = Matrix:identity(self.length)
+   local data = {}
+   for i = 1, self.length do
+      local e = iden:row(i)
+      local r = self:solve(e)
+      for j = 1, #r do
+	 if math.abs(r[j]) >= tol then
+	    data[self.width * (j - 1) + i] = r[j]
+	 end
+      end
+   end
+   return SparseMatrix:new(data, self.length, self.length)
+end
+	 
 Matrices.SparseMatrix = SparseMatrix
 
 --[[

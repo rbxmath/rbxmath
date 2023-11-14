@@ -15,7 +15,7 @@ local Numerics = {}
 
 function Numerics.hypot(a: number, b: number)
    a, b = math.abs(a), math.abs(b)
-   if a > b then
+   if a < b then
       a, b = b, a
    end
    return a * math.sqrt(1 + (b / a) ^ 2)
