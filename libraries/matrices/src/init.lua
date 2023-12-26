@@ -62,7 +62,7 @@ function Matrix:new(list: Tensor | Vector): Tensor
    else
       local matrix = {}
       for key, value in ipairs(list) do
-	 matrix[key] = { value }
+         matrix[key] = { value }
       end
       setmetatable(matrix, self)
       self.__index = self
@@ -89,7 +89,7 @@ function Matrix:copy(): Tensor
    for i = 1, self.length do
       data[i] = {}
       for j = 1, self.width do
-	 data[i][j] = self[i][j]
+         data[i][j] = self[i][j]
       end
    end
    return Matrix:new(data)
@@ -102,8 +102,8 @@ function Matrix:submatrix(rowStart: number, rowEnd: number, columnStart: number,
       data[row] = {}
       column = 1
       for j = columnStart, columnEnd, 1 do
-	 data[row][column] = self[i][j]
-	 column = column + 1
+         data[row][column] = self[i][j]
+         column = column + 1
       end
       row = row + 1
    end
@@ -115,8 +115,8 @@ function Matrix:setSubmatrix(rowStart: number, rowEnd: number, columnStart: numb
    for i = rowStart, rowEnd, 1 do
       column = 1
       for j = columnStart, columnEnd, 1 do
-	 self[i][j] = matrix[row][column]
-	 column = column + 1
+         self[i][j] = matrix[row][column]
+         column = column + 1
       end
       row = row + 1
    end
@@ -127,15 +127,15 @@ function Matrix:addBand(value: number, position: number)
    local cp = self:copy()
    if position == 0 then
       for i = 1, math.min(self.length, self.width) do
-	 cp[i][i] = value
+         cp[i][i] = value
       end
    elseif position > 0 then
       for i = 1, math.min(self.length, self.width - position) do
-	 cp.data[i][i + position] = value
+         cp.data[i][i + position] = value
       end
    else
       for i = 1, math.min(self.length + position, self.width) do
-	 cp.data[i - position][i] = value
+         cp.data[i - position][i] = value
       end
    end
    return cp
@@ -144,15 +144,15 @@ end
 function Matrix:toAddedBand(value: number, position: number)
    if position == 0 then
       for i = 1, math.min(self.length, self.width) do
-	 self[i][i] = value
+         self[i][i] = value
       end
    elseif position > 0 then
       for i = 1, math.min(self.length, self.width - position) do
-	 self[i][i + position] = value
+         self[i][i + position] = value
       end
    else
       for i = 1, math.min(self.length + position, self.width) do
-	 self[i - position][i] = value
+         self[i - position][i] = value
       end
    end
    return self
@@ -161,7 +161,7 @@ end
 function Matrix:toScaled(lambda: number): Tensor
    for i = 1, self.length do
       for j = 1, self.width do
-	 self[i][j] = lambda * self[i][j]
+         self[i][j] = lambda * self[i][j]
       end
    end
    return self
@@ -171,7 +171,7 @@ function Matrix:scaled(lambda: number): Tensor
    local copy = self:copy()
    for i = 1, copy.length do
       for j = 1, copy.width do
-	 copy[i][j] = lambda * copy[i][j]
+         copy[i][j] = lambda * copy[i][j]
       end
    end
    return copy
@@ -182,7 +182,7 @@ function Matrix:padTo(length: number, width: number): Tensor
    for i = 1, length, 1 do
       data[i] = {}
       for j = 1, width, 1 do
-	 data[i][j] = self[i][j] or 0
+         data[i][j] = self[i][j] or 0
       end
    end
    return Matrix:new(data)
@@ -202,9 +202,9 @@ function Matrix:strassenSubdivide(): Array<Tensor>
       local iPlus = i + size
       data1[i], data2[i], data3[i], data4[i] = {}, {}, {}, {}
       for j = 1, size, 1 do
-	 local jPlus = j + size
-	 data1[i][j], data2[i][j], data3[i][j], data4[i][j] =
-	    self[i][j] or 0, self[i][jPlus] or 0, self[iPlus][j] or 0, self[iPlus][jPlus] or 0
+         local jPlus = j + size
+         data1[i][j], data2[i][j], data3[i][j], data4[i][j] =
+            (self[i] or {})[j] or 0, (self[i] or {})[jPlus] or 0, (self[iPlus] or {})[j] or 0, (self[iPlus] or {})[jPlus] or 0
       end
    end
    return {
@@ -269,7 +269,7 @@ function Matrix:pretty(n: number, m: number): string
    if length == 1 then
       result = "("
       for i = 1, width - 1 do
-	 result = result .. _padStringToLength(string.sub(tostring(self[1][i]), 1, n), m) .. " "
+         result = result .. _padStringToLength(string.sub(tostring(self[1][i]), 1, n), m) .. " "
       end
       result = result .. _padStringToLength(string.sub(tostring(self[1][width]), m), 1, n) .. ")"
       return result
@@ -277,22 +277,22 @@ function Matrix:pretty(n: number, m: number): string
 
    for i = 1, length do
       if i == 1 then
-	 result = result .. "/"
+         result = result .. "/"
       elseif i == length then
-	 result = result .. "\\"
+         result = result .. "\\"
       else
-	 result = result .. "|"
+         result = result .. "|"
       end
       for j = 1, width - 1 do
-	 result = result .. _padStringToLength(string.sub(tostring(self[i][j]), 1, n), m) .. " "
+         result = result .. _padStringToLength(string.sub(tostring(self[i][j]), 1, n), m) .. " "
       end
       result = result .. _padStringToLength(string.sub(tostring(self[i][width]), 1, n), m)
       if i == 1 then
-	 result = result .. "\\\n"
+         result = result .. "\\\n"
       elseif i == length then
-	 result = result .. "/"
+         result = result .. "/"
       else
-	 result = result .. "|\n"
+         result = result .. "|\n"
       end
    end
    return result
@@ -320,7 +320,7 @@ function Matrix.__add(left: Tensor, right: Tensor): Tensor
    for i = 1, left.length, 1 do
       data[i] = {}
       for j = 1, left.width, 1 do
-	 data[i][j] = left[i][j] + right[i][j]
+         data[i][j] = left[i][j] + right[i][j]
       end
    end
 
@@ -336,7 +336,7 @@ function Matrix.__sub(left: Tensor, right: Tensor): Tensor
    for i = 1, left.length, 1 do
       data[i] = {}
       for j = 1, left.width, 1 do
-	 data[i][j] = left[i][j] - right[i][j]
+         data[i][j] = left[i][j] - right[i][j]
       end
    end
 
@@ -348,7 +348,7 @@ function Matrix.__mul(left: Tensor, right: Tensor): Tensor
       error("Attempting to multiply matrices of incompatible dimension!", -1)
    end
    local data
-   if math.max(left.length, left.width, right.length, right.width) >= Matrices.constants.STRASSENLIMIT then
+   if math.min(left.length, left.width, right.length, right.width) >= Matrices.constants.STRASSENLIMIT then
       --local tic = os.clock()
       local strassenLeft = left:strassenSubdivide()
       local strassenRight = right:strassenSubdivide()
@@ -363,30 +363,30 @@ function Matrix.__mul(left: Tensor, right: Tensor): Tensor
       local strassenResult = { M1 + M4 - M5 + M7, M3 + M5, M2 + M4, M1 - M2 + M3 + M6 }
       data = {}
       for i = 1, M1.length, 1 do
-	 local iPlus = i + M1.length
-	 data[i] = {}
-	 data[iPlus] = {}
-	 for j = 1, M1.width, 1 do
-	    local jPlus = j + M1.length
-	    data[i][j] = strassenResult[1][i][j]
-	    data[i][jPlus] = strassenResult[2][i][j]
-	    data[iPlus][j] = strassenResult[3][i][j]
-	    data[iPlus][jPlus] = strassenResult[4][i][j]
-	 end
+         local iPlus = i + M1.length
+         data[i] = {}
+         data[iPlus] = {}
+         for j = 1, M1.width, 1 do
+            local jPlus = j + M1.length
+            data[i][j] = strassenResult[1][i][j]
+            data[i][jPlus] = strassenResult[2][i][j]
+            data[iPlus][j] = strassenResult[3][i][j]
+            data[iPlus][jPlus] = strassenResult[4][i][j]
+         end
       end
       return Matrix:new(data):submatrix(1, left.length, 1, right.width)
    else
       data = {}
       for i = 1, left.length do
-	 local row = {}
-	 for j = 1, right.width do
-	    local val = 0
-	    for k = 1, left.width do
-	       val = val + left[i][k] * right[k][j]
-	    end
-	    row[j] = val
-	 end
-	 data[i] = row
+         local row = {}
+         for j = 1, right.width do
+            local val = 0
+            for k = 1, left.width do
+               val = val + left[i][k] * right[k][j]
+            end
+            row[j] = val
+         end
+         data[i] = row
       end
       return Matrix:new(data)
    end
@@ -415,11 +415,11 @@ function Matrix.__eq(left: Tensor, right: Tensor): boolean
       return false
    else
       for i = 1, left.length do
-	 for j = 1, left.width do
-	    if left[i][j] ~= right[i][j] then
-	       return false
-	    end
-	 end
+         for j = 1, left.width do
+            if left[i][j] ~= right[i][j] then
+               return false
+            end
+         end
       end
    end
    return true
@@ -441,7 +441,7 @@ function Matrix:zero(n: number, m: number): Tensor
    for i = 1, n do
       data[i] = {}
       for j = 1, m do
-	 data[i][j] = 0
+         data[i][j] = 0
       end
    end
    return Matrix:new(data)
@@ -453,7 +453,7 @@ function Matrix:random(n: number, m: number, a: number, b: number): Tensor
    for i = 1, n do
       data[i] = {}
       for j = 1, m do
-	 data[i][j] = (b - a) * math.random() + a
+         data[i][j] = (b - a) * math.random() + a
       end
    end
    return Matrix:new(data)
@@ -464,11 +464,11 @@ function Matrix:identity(n: number): Tensor
    for i = 1, n do
       data[i] = {}
       for j = 1, n do
-	 if i == j then
-	    data[i][j] = 1
-	 else
-	    data[i][j] = 0
-	 end
+         if i == j then
+            data[i][j] = 1
+         else
+            data[i][j] = 0
+         end
       end
    end
    return Matrix:new(data)
@@ -522,7 +522,7 @@ function Matrix:transpose()
    for j = 1, self.width do
       data[j] = {}
       for i = 1, self.length do
-	 data[j][i] = self[i][j]
+         data[j][i] = self[i][j]
       end
    end
    return Matrix:new(data)
@@ -533,7 +533,7 @@ function Matrix:toTranspose()
    for j = 1, self.width do
       data[j] = {}
       for i = 1, self.length do
-	 data[j][i] = self[i][j]
+         data[j][i] = self[i][j]
       end
    end
    self = data
@@ -555,48 +555,48 @@ function Matrix:inverse()
       local max = matrix[i][i] or 0
 
       for j = i, length do
-	 local maxCandidate = matrix[j][i]
-	 maxCandidate = math.abs(maxCandidate)
-	 if maxCandidate > max then
-	    max = maxCandidate
-	    maxRow = j
-	 end
+         local maxCandidate = matrix[j][i]
+         maxCandidate = math.abs(maxCandidate)
+         if maxCandidate > max then
+            max = maxCandidate
+            maxRow = j
+         end
       end
 
       if max == 0 then
-	 error("Matrix is not invertible.", -1)
+         error("Matrix is not invertible.", -1)
       end
 
       if maxRow ~= i then
-	 matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
-	 result[i], result[maxRow] = result[maxRow], result[i]
+         matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+         result[i], result[maxRow] = result[maxRow], result[i]
       end
 
       max = matrix[i][i]
 
       for j = i + 1, length do
-	 local val = matrix[j][i]
-	 local valOverMax = val / max
-	 matrix[j][i] = 0
-	 for k = 1, width do
-	    if k > i then
-	       matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
-	    end
-	    result[j][k] = result[j][k] - result[i][k] * valOverMax
-	 end
+         local val = matrix[j][i]
+         local valOverMax = val / max
+         matrix[j][i] = 0
+         for k = 1, width do
+            if k > i then
+               matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
+            end
+            result[j][k] = result[j][k] - result[i][k] * valOverMax
+         end
       end
    end
 
    for i = length, 1, -1 do
       local val = matrix[i][i]
       for j = 1, i - 1 do
-	 local val1 = matrix[i - j][i]
-	 for k = 1, width do
-	    result[i - j][k] = result[i - j][k] - val1 * result[i][k] / val
-	 end
+         local val1 = matrix[i - j][i]
+         for k = 1, width do
+            result[i - j][k] = result[i - j][k] - val1 * result[i][k] / val
+         end
       end
       for j = 1, width do
-	 result[i][j] = result[i][j] / val
+         result[i][j] = result[i][j] / val
       end
    end
 
@@ -618,48 +618,48 @@ function Matrix:toInverse()
       local max = matrix[i][i] or 0
 
       for j = i, length do
-	 local maxCandidate = matrix[j][i]
-	 maxCandidate = math.abs(maxCandidate)
-	 if maxCandidate > max then
-	    max = maxCandidate
-	    maxRow = j
-	 end
+         local maxCandidate = matrix[j][i]
+         maxCandidate = math.abs(maxCandidate)
+         if maxCandidate > max then
+            max = maxCandidate
+            maxRow = j
+         end
       end
 
       if max == 0 then
-	 error("Matrix is not invertible.", -1)
+         error("Matrix is not invertible.", -1)
       end
 
       if maxRow ~= i then
-	 matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
-	 result[i], result[maxRow] = result[maxRow], result[i]
+         matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+         result[i], result[maxRow] = result[maxRow], result[i]
       end
 
       max = matrix[i][i]
 
       for j = i + 1, length do
-	 local val = matrix[j][i]
-	 local valOverMax = val / max
-	 matrix[j][i] = 0
-	 for k = 1, width do
-	    if k > i then
-	       matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
-	    end
-	    result[j][k] = result[j][k] - result[i][k] * valOverMax
-	 end
+         local val = matrix[j][i]
+         local valOverMax = val / max
+         matrix[j][i] = 0
+         for k = 1, width do
+            if k > i then
+               matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
+            end
+            result[j][k] = result[j][k] - result[i][k] * valOverMax
+         end
       end
    end
 
    for i = length, 1, -1 do
       local val = matrix[i][i]
       for j = 1, i - 1 do
-	 local val1 = matrix[i - j][i]
-	 for k = 1, width do
-	    result[i - j][k] = result[i - j][k] - val1 * result[i][k] / val
-	 end
+         local val1 = matrix[i - j][i]
+         for k = 1, width do
+            result[i - j][k] = result[i - j][k] - val1 * result[i][k] / val
+         end
       end
       for j = 1, width do
-	 result[i][j] = result[i][j] / val
+         result[i][j] = result[i][j] / val
       end
    end
    self = result
@@ -692,34 +692,34 @@ function Matrix:solve(vector)
       local max = matrix[i][i]
 
       for j = i, numberOfRows do
-	 local maxCandidate = matrix[j][i]
-	 maxCandidate = math.abs(maxCandidate)
-	 if maxCandidate > max then
-	    max = maxCandidate
-	    maxRow = j
-	 end
+         local maxCandidate = matrix[j][i]
+         maxCandidate = math.abs(maxCandidate)
+         if maxCandidate > max then
+            max = maxCandidate
+            maxRow = j
+         end
       end
 
       if max == 0 then
-	 error("Matrix system is not solvable")
+         error("Matrix system is not solvable")
       end
 
       if maxRow ~= i then
-	 matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
-	 columnVector[i], columnVector[maxRow] = columnVector[maxRow], columnVector[i]
+         matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+         columnVector[i], columnVector[maxRow] = columnVector[maxRow], columnVector[i]
       end
 
       max = matrix[i][i]
 
       for j = i + 1, numberOfRows do
-	 local val = matrix[j][i]
-	 local valOverMax = val / max
-	 local columnVal1, columnVal2 = columnVector[j][1], columnVector[i][1]
-	 columnVector[j][1] = columnVal1 - valOverMax * columnVal2
-	 matrix[j][i] = 0
-	 for k = i + 1, numberOfColumns do
-	    matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
-	 end
+         local val = matrix[j][i]
+         local valOverMax = val / max
+         local columnVal1, columnVal2 = columnVector[j][1], columnVector[i][1]
+         columnVector[j][1] = columnVal1 - valOverMax * columnVal2
+         matrix[j][i] = 0
+         for k = i + 1, numberOfColumns do
+            matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
+         end
       end
    end
 
@@ -728,11 +728,11 @@ function Matrix:solve(vector)
    for i = numberOfRows, 1, -1 do
       local temp = 0
       for j = i + 1, numberOfColumns, 1 do
-	 temp = temp + matrix[i][j] * columnVector[j][1]
+         temp = temp + matrix[i][j] * columnVector[j][1]
       end
       columnVector[i][1] = columnVector[i][1]
       if matrix[i][i] == 0 then
-	 error("Matrix system is not solvable")
+         error("Matrix system is not solvable")
       end
       columnVector[i][1] = (columnVector[i][1] - temp) / matrix[i][i]
    end
@@ -765,36 +765,36 @@ function Matrix:LUDecomposition()
       local max = matrix[i][i]
 
       for j = i, numberOfRows do
-	 local maxCandidate = matrix[j][i]
-	 maxCandidate = math.abs(maxCandidate)
-	 if maxCandidate > max then
-	    max = maxCandidate
-	    maxRow = j
-	 end
+         local maxCandidate = matrix[j][i]
+         maxCandidate = math.abs(maxCandidate)
+         if maxCandidate > max then
+            max = maxCandidate
+            maxRow = j
+         end
       end
 
       if max == 0 then
-	 error("Matrix is not invertible")
+         error("Matrix is not invertible")
       end
 
       if maxRow ~= i then
-	 matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
-	 for k = 1, i - 1 do
-	    l[i][k], l[maxRow][k] = l[maxRow][k], l[i][k]
-	 end
-	 permutation[i], permutation[maxRow] = permutation[maxRow], permutation[i]
+         matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+         for k = 1, i - 1 do
+            l[i][k], l[maxRow][k] = l[maxRow][k], l[i][k]
+         end
+         permutation[i], permutation[maxRow] = permutation[maxRow], permutation[i]
       end
 
       max = matrix[i][i]
 
       for j = i + 1, numberOfRows do
-	 local val = matrix[j][i]
-	 local valOverMax = val / max
-	 l[j][i] = valOverMax
-	 matrix[j][i] = 0
-	 for k = i + 1, numberOfColumns do
-	    matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
-	 end
+         local val = matrix[j][i]
+         local valOverMax = val / max
+         l[j][i] = valOverMax
+         matrix[j][i] = 0
+         for k = i + 1, numberOfColumns do
+            matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
+         end
       end
    end
 
@@ -812,23 +812,23 @@ function Matrix:CholeskyDecomposition()
 
    for i = 1, numberOfColumns do
       for j = 1, i - 1 do
-	 matrix[i][i] -= matrix[j][i] ^ 2
+         matrix[i][i] -= matrix[j][i] ^ 2
       end
       if matrix[i][i] <= 0 then
-	 error("Matrix is not positive definite.")
+         error("Matrix is not positive definite.")
       end
       matrix[i][i] = math.sqrt(matrix[i][i])
       for j = i + 1, numberOfColumns do
-	 for k = 1, i - 1 do
-	    matrix[i][j] -= matrix[k][i] * matrix[k][j]
-	 end
-	 matrix[i][j] /= matrix[i][i]
+         for k = 1, i - 1 do
+            matrix[i][j] -= matrix[k][i] * matrix[k][j]
+         end
+         matrix[i][j] /= matrix[i][i]
       end
    end
 
    for i = 1, numberOfColumns do
       for j = 1, i - 1 do
-	 matrix[i][j] = 0
+         matrix[i][j] = 0
       end
    end
 
@@ -843,7 +843,7 @@ function Matrix:GramSchmidtQR(tolerance)
    local R = Q * self
    for i = 1, #R do
       for j = 1, math.min(i - 1, #R[1]) do
-	 R[i][j] = 0
+         R[i][j] = 0
       end
    end
    Q = Q:transpose()
@@ -857,21 +857,21 @@ function Matrix:HouseholderQR(tolerance: number)
    for i = 1, a.width - 1 do
       local beta = 0
       for j = i, a.length do
-	 beta = math.max(beta, math.abs(a[j][i]))
+         beta = math.max(beta, math.abs(a[j][i]))
       end
       local sum = 0
       for j = i, a.length do
-	 a[j][i] /= beta
-	 sum = sum + math.pow(a[j][i], 2)
+         a[j][i] /= beta
+         sum = sum + math.pow(a[j][i], 2)
       end
       local tau = math.sqrt(sum)
       if a[i][i] < 0 then
-	 tau = -tau
+         tau = -tau
       end
       local eta = a[i][i] + tau
       a[i][i] = 1
       for j = i + 1, a.length do
-	 a[j][i] /= eta
+         a[j][i] /= eta
       end
       local gamma = eta / tau
       g[#g + 1] = gamma
@@ -881,8 +881,8 @@ function Matrix:HouseholderQR(tolerance: number)
       local ithCol = a:submatrix(i, a.length, i, i)
       
       a:setSubmatrix(i, a.length, i + 1, a.width,
-		     everythingButIthCol -
-		     ithCol:scaled(gamma) * ithCol:transpose() * everythingButIthCol)
+                     everythingButIthCol -
+                     ithCol:scaled(gamma) * ithCol:transpose() * everythingButIthCol)
 
       a[i][i] = -tau
    end
@@ -894,7 +894,7 @@ function Matrix.ExpandHouseholderQR(householderQR, gammaVector)
    local R = householderQR:copy()
    for i = 1, #R do
       for j = 1, math.min(i - 1, #R[1]) do
-	 R[i][j] = 0
+         R[i][j] = 0
       end
    end
    local Q = Matrix:identity(#R, #R)
@@ -902,12 +902,12 @@ function Matrix.ExpandHouseholderQR(householderQR, gammaVector)
       local uPartial = householderQR:submatrix(i + 1, #R, i, i):transpose()[1]
       local u = {1}
       for i = 1, #uPartial do
-	 u[i + 1] = uPartial[i]
+         u[i + 1] = uPartial[i]
       end
       u = Matrix:new(u)
       qSub = Q:submatrix(i, #R, i, #R)
       Q:setSubmatrix(i, #R, i, #R, qSub -
-		     u:scaled(gammaVector[i]) * u:transpose() * qSub)
+                     u:scaled(gammaVector[i]) * u:transpose() * qSub)
    end
    return Q, R
 end
@@ -923,31 +923,31 @@ function Matrix:GivensQR(tol)
    local R = self:copy()
    for i = 1, self.width do
       for j = self.length, i + 1, -1 do
-	 local a = R[i][i]
-	 local b = R[j][i]
-	 if math.abs(b) < tol then
-	    continue
-	 end
-	 local r = Numerics.hypot(a, b)
-	 R[i][i], R[j][i] = r, 0
-	 local c = a / r
-	 local s = -b / r
-	 for k = i + 1, self.width do
-	    local x = R[i][k]
-	    local y = R[j][k]
-	    R[i][k] = c * x - s * y
-	    R[j][k] = s * x + c * y
-	 end
-	 for k = 1, self.width do
-	    local x = QT[i][k]
-	    local y = QT[j][k]
-	    QT[i][k] = c * x - s * y
-	    QT[j][k] = s * x + c * y
-	 end
+         local a = R[i][i]
+         local b = R[j][i]
+         if math.abs(b) < tol then
+            continue
+         end
+         local r = Numerics.hypot(a, b)
+         R[i][i], R[j][i] = r, 0
+         local c = a / r
+         local s = -b / r
+         for k = i + 1, self.width do
+            local x = R[i][k]
+            local y = R[j][k]
+            R[i][k] = c * x - s * y
+            R[j][k] = s * x + c * y
+         end
+         for k = 1, self.width do
+            local x = QT[i][k]
+            local y = QT[j][k]
+            QT[i][k] = c * x - s * y
+            QT[j][k] = s * x + c * y
+         end
       end
    end
    return QT:transpose(), R
-end	 
+end      
 
 function Matrix:newReflector(u: Vector)
    local data = {}
@@ -957,11 +957,11 @@ function Matrix:newReflector(u: Vector)
    for i = 1, length do
       data[i] = {}
       for j = 1, length do
-	 if i == j then
-	    data[i][j] = 1 - gamma * u[i] * u[j]
-	 else
-	    data[i][j] = -gamma * u[i] * u[j]
-	 end
+         if i == j then
+            data[i][j] = 1 - gamma * u[i] * u[j]
+         else
+            data[i][j] = -gamma * u[i] * u[j]
+         end
       end
    end
    return Matrix:new(data)
@@ -987,21 +987,21 @@ function Matrix:LinearLeastSquare(vector: Vector, tolerance: number)
    for i = 1, a.width do
       local beta = 0
       for j = i, a.length do
-	 beta = math.max(beta, math.abs(a[j][i]))
+         beta = math.max(beta, math.abs(a[j][i]))
       end
       local sum = 0
       for j = i, a.length do
-	 a[j][i] /= beta
-	 sum = sum + math.pow(a[j][i], 2)
+         a[j][i] /= beta
+         sum = sum + math.pow(a[j][i], 2)
       end
       local tau = math.sqrt(sum)
       if a[i][i] < 0 then
-	 tau = -tau
+         tau = -tau
       end
       local eta = a[i][i] + tau
       a[i][i] = 1
       for j = i + 1, a.length do
-	 a[j][i] /= eta
+         a[j][i] /= eta
       end
       local gamma = eta / tau
       tau *= beta
@@ -1034,7 +1034,7 @@ function Matrix:determinant()
    end
    local LUDecomposition
    local test = pcall(function()
-	 LUDecomposition = self:LUDecomposition()
+         LUDecomposition = self:LUDecomposition()
    end)
    if test == false then
       return 0
@@ -1063,10 +1063,20 @@ function Matrix:frobenius()
    local sum = 0
    for i = 1, #self do
       for j = 1, #self[1] do
-	 sum += self[i][j] ^ 2
+         sum += self[i][j] ^ 2
       end
    end
    return math.sqrt(sum)
+end
+
+function Matrix:entrywiseMax()
+   local max = 0
+   for i = 1, self.length do
+      for j = 1, self.width do
+	 max = math.max(max, math.abs(self[i][j]))
+      end
+   end
+   return max
 end
 
 --[[
@@ -1095,40 +1105,40 @@ function Matrix:hessenbergForm()
    for k = 1, n - 2 do
       local maxList = {}
       for i = k + 1, n do
-	 maxList[#maxList + 1] = math.abs(a[i][k])
+         maxList[#maxList + 1] = math.abs(a[i][k])
       end
       local beta = math.max(table.unpack(maxList))
       local gamma = 0
       if beta ~= 0 then
-	 local sum = 0
-	 for i = k + 1, n do
-	    a[i][k] = a[i][k] / beta
-	    sum = sum + math.pow(a[i][k], 2)
-	 end
-	 local tau = math.sqrt(sum)
-	 if a[k + 1][k] < 0 then
-	    tau = -tau
-	 end
-	 local eta = a[k + 1][k] + tau
-	 a[k + 1][k] = 1
-	 for i = k + 2, n do
-	    a[i][k] = a[i][k] / eta
-	 end
-	 gamma = eta / tau
-	 tau = tau * beta
+         local sum = 0
+         for i = k + 1, n do
+            a[i][k] = a[i][k] / beta
+            sum = sum + math.pow(a[i][k], 2)
+         end
+         local tau = math.sqrt(sum)
+         if a[k + 1][k] < 0 then
+            tau = -tau
+         end
+         local eta = a[k + 1][k] + tau
+         a[k + 1][k] = 1
+         for i = k + 2, n do
+            a[i][k] = a[i][k] / eta
+         end
+         gamma = eta / tau
+         tau = tau * beta
 
-	 local temp = a:submatrix(k + 1, n, k + 1, n)
-	 local temp2 = a:submatrix(k + 1, n, k, k)
-	 b:setSubmatrix(k + 1, n, 1, 1, (temp2:transpose() * temp):toScaled(-gamma):transpose())
-	 a:setSubmatrix(k + 1, n, k + 1, n, temp + temp2 * b:submatrix(k + 1, n, 1, 1):transpose())
+         local temp = a:submatrix(k + 1, n, k + 1, n)
+         local temp2 = a:submatrix(k + 1, n, k, k)
+         b:setSubmatrix(k + 1, n, 1, 1, (temp2:transpose() * temp):toScaled(-gamma):transpose())
+         a:setSubmatrix(k + 1, n, k + 1, n, temp + temp2 * b:submatrix(k + 1, n, 1, 1):transpose())
 
-	 temp = a:submatrix(1, n, k + 1, n)
-	 temp2 = a:submatrix(k + 1, n, k, k)
-	 b:setSubmatrix(1, n, 1, 1, (temp * temp2):toScaled(-gamma))
-	 a:setSubmatrix(1, n, k + 1, n, temp + b:submatrix(1, n, 1, 1) * temp2:transpose())
-	 a:setSubmatrix(k + 1, n, k, k, temp2:toScaled(0))
+         temp = a:submatrix(1, n, k + 1, n)
+         temp2 = a:submatrix(k + 1, n, k, k)
+         b:setSubmatrix(1, n, 1, 1, (temp * temp2):toScaled(-gamma))
+         a:setSubmatrix(1, n, k + 1, n, temp + b:submatrix(1, n, 1, 1) * temp2:transpose())
+         a:setSubmatrix(k + 1, n, k, k, temp2:toScaled(0))
 
-	 a[k + 1][k] = -tau
+         a[k + 1][k] = -tau
       end
    end
    return a
@@ -1147,42 +1157,250 @@ function Matrix:toHessenbergForm()
    for k = 1, n - 2 do
       local beta = 0
       for i = k + 1, n do
-	 beta = math.max(beta, math.abs(a[i][k]))
+         beta = math.max(beta, math.abs(a[i][k]))
       end
       local gamma = 0
       if beta ~= 0 then
-	 local sum = 0
-	 for i = k + 1, n do
-	    a[i][k] = a[i][k] / beta
-	    sum = sum + math.pow(a[i][k], 2)
-	 end
-	 local tau = math.sqrt(sum)
-	 if a[k + 1][k] < 0 then
-	    tau = -tau
-	 end
-	 local eta = a[k + 1][k] + tau
-	 a[k + 1][k] = 1
-	 for i = k + 2, n do
-	    a[i][k] = a[i][k] / eta
-	 end
-	 gamma = eta / tau
-	 tau = tau * beta
+         local sum = 0
+         for i = k + 1, n do
+            a[i][k] = a[i][k] / beta
+            sum = sum + math.pow(a[i][k], 2)
+         end
+         local tau = math.sqrt(sum)
+         if a[k + 1][k] < 0 then
+            tau = -tau
+         end
+         local eta = a[k + 1][k] + tau
+         a[k + 1][k] = 1
+         for i = k + 2, n do
+            a[i][k] = a[i][k] / eta
+         end
+         gamma = eta / tau
+         tau = tau * beta
 
-	 local temp = a:submatrix(k + 1, n, k + 1, n)
-	 local temp2 = a:submatrix(k + 1, n, k, k)
-	 b:setSubmatrix(k + 1, n, 1, 1, (temp2:transpose() * temp):toScaled(-gamma):transpose())
-	 a:setSubmatrix(k + 1, n, k + 1, n, temp + temp2 * b:submatrix(k + 1, n, 1, 1):transpose())
+         local temp = a:submatrix(k + 1, n, k + 1, n)
+         local temp2 = a:submatrix(k + 1, n, k, k)
+         b:setSubmatrix(k + 1, n, 1, 1, (temp2:transpose() * temp):toScaled(-gamma):transpose())
+         a:setSubmatrix(k + 1, n, k + 1, n, temp + temp2 * b:submatrix(k + 1, n, 1, 1):transpose())
 
-	 temp = a:submatrix(1, n, k + 1, n)
-	 temp2 = a:submatrix(k + 1, n, k, k)
-	 b:setSubmatrix(1, n, 1, 1, (temp * temp2):toScaled(-gamma))
-	 a:setSubmatrix(1, n, k + 1, n, temp + b:submatrix(1, n, 1, 1) * temp2:transpose())
-	 a:setSubmatrix(k + 1, n, k, k, temp2:toScaled(0))
+         temp = a:submatrix(1, n, k + 1, n)
+         temp2 = a:submatrix(k + 1, n, k, k)
+         b:setSubmatrix(1, n, 1, 1, (temp * temp2):toScaled(-gamma))
+         a:setSubmatrix(1, n, k + 1, n, temp + b:submatrix(1, n, 1, 1) * temp2:transpose())
+         a:setSubmatrix(k + 1, n, k, k, temp2:toScaled(0))
 
-	 a[k + 1][k] = -tau
+         a[k + 1][k] = -tau
       end
    end
    return a
+end
+
+function Matrix:diagonal(list)
+   local matrix = Matrix:identity(#list)
+   for i = 1, #list do
+      matrix[i][i] = list[i]
+   end
+   return matrix
+end
+
+function Matrix:getDiagonal()
+   local data = {}
+   for i = 1, math.min(self.length, self.width) do
+      data[i] = self[i][i]
+   end
+   return data
+end
+
+function Matrix:bidiagonalize(u, v, tol)
+   tol = tol or 10 ^ -13
+   local matrix = self:copy()
+   u = u or Matrix:identity(self.length)
+   v = v or Matrix:identity(self.width)
+   -- We will proceed in two reductions
+   for i = 1, math.max(self.length - 1, self.width - 1) do
+      -- We will roll up the ith column, if there is one!
+      if i < self.length then
+	 for j = i + 1, self.length do
+	    local a = matrix[i][i]
+	    local b = matrix[j][i]
+	    if math.abs(b) <= tol then
+	       continue
+	    end
+	    local r = Numerics.hypot(a, b)
+	    if r <= tol then
+	       matrix[i][i], matrix[j][i] = 0, 0
+	    end
+	    -- I want my diagonal to be positive because
+	    -- I want positive singular values
+	    if a < 0 then
+	       r = -r
+	    end
+	    local c = a / r
+	    local s = -b / r
+	    matrix[i][i], matrix[j][i] = r, 0
+	    for k = 1, self.length do
+	       u[i][k], u[j][k] = c * u[i][k] - s * u[j][k], s * u[i][k] + c * u[j][k]
+	    end
+	    for k = i + 1, self.width do
+	       matrix[i][k], matrix[j][k] = c * matrix[i][k] - s * matrix[j][k],
+		  s * matrix[i][k] + c * matrix[j][k]
+	    end
+	 end
+      end
+      -- We will roll up the ith row, if there is one!
+      if i < self.width then
+	 local col = i + 1
+	 for j = col + 1, self.width do
+	    local a = matrix[i][col]
+	    local b = matrix[i][j]
+	    if math.abs(b) <= tol then
+	       continue
+	    end
+	    local r = Numerics.hypot(a, b)
+	    if r <= tol then
+	       matrix[i][col], matrix[i][j] = 0, 0
+	    end
+	    local c = a / r
+	    local s = -b / r
+	    matrix[i][col], matrix[i][j] = r, 0
+	    for k = 1, self.width do
+	       v[col][k], v[j][k]
+		  = c * v[col][k] - s * v[j][k], s * v[col][k] + c * v[j][k]
+	    end
+	    for k = i + 1, self.length do
+	       matrix[k][col], matrix[k][j] = c * matrix[k][col] - s * matrix[k][j],
+		  s * matrix[k][col] + c * matrix[k][j]
+	    end
+	 end
+      end
+   end
+   return matrix, u, v
+end
+
+function Matrix:gkSVDOne(u, v, tol, maxIters)
+   u = u or Matrix:identity(self.length)
+   v = v or Matrix:identity(self.width)
+   tol = tol or 10 ^ -13
+   maxIters = maxIters or 10000
+   local n = math.min(self.length, self.width)
+   local matrix = self:submatrix(1, n, 1, n)
+   for i = 1, maxIters do
+      for i = 1, n - 1 do
+	 if math.abs(matrix[i][i + 1]) < tol then
+	    local sig1, u1, v1
+	       = matrix:submatrix(1, i, 1, i):gkSVDOne(nil,
+						       nil,
+						       tol,
+						       maxIters - i)
+	    local sig2, u2, v2
+	       = matrix:submatrix(i + 1, n, i + 1, n):gkSVDOne(nil,
+							       nil,
+							       tol,
+							       maxIters - i)
+	    u:setSubmatrix(1, i, 1, n, u1 * u:submatrix(1, i, 1, n))
+	    u:setSubmatrix(i + 1, n, 1, n, u2 * u:submatrix(i + 1, n, 1, n))
+	    v:setSubmatrix(1, i, 1, n, v1 * v:submatrix(1, i, 1, n))
+	    v:setSubmatrix(i + 1, n, 1, n, v2 * v:submatrix(i + 1, n, 1, n))
+	    return Tools.list.join(sig1, sig2), u, v
+	 end
+      end
+      local lambda1, lambda2, lambda
+      if n == 1 then
+	 return {matrix[1][1]}, Matrix:new({{1}}), Matrix:new({{1}})
+      elseif n == 2 then
+	 local a = matrix[1][1]^2
+	 local b = matrix[1][2]^2
+	 local c = matrix[2][2]^2
+	 lambda1 = 0.5 * (a + b + c - math.sqrt(-4 * a * c + (a + b + c)^2))
+	 lambda2 = 0.5 * (a + b + c + math.sqrt(-4 * a * c + (a + b + c)^2))
+	 if math.abs(lambda1 - b - c) < math.abs(lambda2 - b - c) then
+	    lambda = lambda1
+	 else
+	    lambda = lambda2
+	 end
+      else
+	 local a = matrix[n - 2][n - 1]^2
+	 local b = matrix[n - 1][n - 1]^2
+	 local c = matrix[n - 1][n]^2
+	 local d = matrix[n][n]^2
+	 lambda1 = 0.5 * (a + b + c + d +
+			  math.sqrt((a + b + c + d)^2 - 4 * (a * c + a * d + b * d)))
+	 lambda2 = 0.5 * (a + b + c + d -
+			  math.sqrt((a + b + c + d)^2 - 4 * (a * c + a * d + b * d)))
+	 if math.abs(lambda1 - c - d) < math.abs(lambda2 - c - d) then
+	    lambda = lambda1
+	 else
+	    lambda = lambda2
+	 end
+      end
+      local y, z = matrix[1][1]^2 - lambda, matrix[1][1] * matrix[1][2]
+      local r = Numerics.hypot(y, z)
+      
+      local c, s = y / r, -z / r
+      for k = 1, n do
+	 matrix[k][1], matrix[k][2] = c * matrix[k][1] - s * matrix[k][2],
+	    s * matrix[k][1] + c * matrix[k][2]
+      end
+      for k = 1, v.width do
+	 v[1][k], v[2][k] = c * v[1][k] - s * v[2][k], s * v[1][k] + c * v[2][k]
+      end
+      matrix, u, v = matrix:bidiagonalize(u, v, tol)
+   end
+   return matrix:getDiagonal(), u, v
+end
+
+function Matrix:tridiagonalize(que, tol)
+   tol = tol or 10 ^ -13
+   local matrix = self:copy()
+   que = que or Matrix:identity(self.length)
+   -- This is the top row
+   for i = 2, self.length - 1 do
+      local column = i - 1
+      -- This is the bottom row
+      for j = i + 1, self.length do
+         local a = matrix[i][column]
+         local b = matrix[j][column]
+	 if(math.abs(b) <= tol) then
+	    continue
+	 end
+         local r = Numerics.hypot(a, b)
+         -- Anything less than tolerance is assumed to be zero,
+	 -- so just set things to zero!
+         if r <= tol then
+            matrix[i][column], matrix[j][column], matrix[column][i], matrix[column][j]
+	       = 0, 0, 0, 0
+            continue
+         end
+         local c = a / r
+         local s = -b / r
+         matrix[i][column], matrix[j][column], matrix[column][i], matrix[column][j]
+	    = r, 0, r, 0
+	 for k = 1, self.width do
+	    que[i][k], que[j][k]
+	       = c * que[i][k] - s * que[j][k], s * que[i][k] + c * que[j][k]
+	 end
+	 -- This is the active column
+         for k = column + 1, self.width do
+            if i == k then
+               local a1 = matrix[i][i]
+               local a3 = matrix[j][j]
+               local a2 = matrix[i][j]
+               matrix[i][i] = c * (a1 * c - a2 * s) - s * (a2 * c - a3 * s)
+               matrix[j][j] = s * (a2 * c + a1 * s) + c * (a3 * c + a2 * s)
+               local kappa = s * (a1 * c - a2 * s) + c * (a2 * c - a3 * s)
+               matrix[i][j], matrix[j][i] = kappa, kappa
+            elseif j == k then
+               continue
+            else
+               matrix[i][k], matrix[j][k]
+		  = c * matrix[i][k] - s * matrix[j][k],
+		  s * matrix[i][k] + c * matrix[j][k]
+               matrix[k][i], matrix[k][j] = matrix[i][k], matrix[j][k]
+            end
+         end
+      end
+   end
+   return matrix, que
 end
 
 function Matrix:francisOne(tol, maxIters)
@@ -1201,15 +1419,15 @@ function Matrix:francisOne(tol, maxIters)
    if n == 2 then
       local temp1 = 4 * matrix[1][2] * matrix[2][1] + math.pow((matrix[1][1] - matrix[2][2]), 2)
       if temp1 < 0 then
-	 return {
-	    Complex:new((matrix[1][1] + matrix[2][2]) / 2, math.sqrt(-temp1) / 2),
-	    Complex:new((matrix[1][1] + matrix[2][2]) / 2, -math.sqrt(-temp1) / 2),
-	 }
+         return {
+            Complex:new((matrix[1][1] + matrix[2][2]) / 2, math.sqrt(-temp1) / 2),
+            Complex:new((matrix[1][1] + matrix[2][2]) / 2, -math.sqrt(-temp1) / 2),
+         }
       else
-	 return {
-	    (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2,
-	    (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2,
-	 }
+         return {
+            (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2,
+            (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2,
+         }
       end
    end
    local iterations = 0
@@ -1219,41 +1437,41 @@ function Matrix:francisOne(tol, maxIters)
       local min = 10 ^ 12
       local minimizer = 0
       for i = 1, n - 1 do
-	 if math.abs(matrix[i + 1][i]) < min then
-	    min = math.abs(matrix[i + 1][i])
-	    minimizer = i
-	 end
-	 if math.abs(matrix[i + 1][i]) < tol or (temp == minimizer and math.abs(tempMin - min) < tol) then
-	    return Tools.list.join(
-	       matrix:submatrix(1, i, 1, i):francisSix(tol, maxIters),
-	       matrix:submatrix(i + 1, n, i + 1, n):francisSix(tol, maxIters)
-	    )
-	 end
+         if math.abs(matrix[i + 1][i]) < min then
+            min = math.abs(matrix[i + 1][i])
+            minimizer = i
+         end
+         if math.abs(matrix[i + 1][i]) < tol or (temp == minimizer and math.abs(tempMin - min) < tol) then
+            return Tools.list.join(
+               matrix:submatrix(1, i, 1, i):francisSix(tol, maxIters),
+               matrix:submatrix(i + 1, n, i + 1, n):francisSix(tol, maxIters)
+            )
+         end
       end
       local shift = matrix[n][n]
       local u = {
-	 matrix[1][1] - shift + math.sqrt(math.pow(matrix[1][1] - shift, 2) + math.pow(matrix[2][1], 2)),
-	 matrix[2][1],
+         matrix[1][1] - shift + math.sqrt(math.pow(matrix[1][1] - shift, 2) + math.pow(matrix[2][1], 2)),
+         matrix[2][1],
       }
       local gamma = 2 / (math.pow(u[1], 2) + math.pow(u[2], 2))
       u = Matrix:new(u)
       local Q = Matrix:identity(2) - (u * u:transpose()):toScaled(gamma)
       for i = 1, n do
-	 matrix:setSubmatrix(1, 2, i, i, Q * matrix:submatrix(1, 2, i, i))
+         matrix:setSubmatrix(1, 2, i, i, Q * matrix:submatrix(1, 2, i, i))
       end
       for i = 1, n do
-	 matrix:setSubmatrix(i, i, 1, 2, matrix:submatrix(i, i, 1, 2) * Q:transpose())
+         matrix:setSubmatrix(i, i, 1, 2, matrix:submatrix(i, i, 1, 2) * Q:transpose())
       end
       matrix:toHessenbergForm()
       iterations = iterations + 1
       temp = minimizer
       tempMin = min
       if iterations == maxIters then
-	 --print("Francis One failed to converge in " .. tostring(maxIters) .. " iterations! Breaking on " .. tostring(min) .. ".")
-	 return Tools.list.join(
-	    matrix:submatrix(1, minimizer, 1, minimizer):francisOne(tol),
-	    matrix:submatrix(minimizer + 1, n, minimizer + 1, n):francisOne(tol)
-	 )
+         --print("Francis One failed to converge in " .. tostring(maxIters) .. " iterations! Breaking on " .. tostring(min) .. ".")
+         return Tools.list.join(
+            matrix:submatrix(1, minimizer, 1, minimizer):francisOne(tol),
+            matrix:submatrix(minimizer + 1, n, minimizer + 1, n):francisOne(tol)
+         )
       end
    end
    return matrix
@@ -1275,15 +1493,15 @@ function Matrix:francisTwo(tol, maxIters)
    if n == 2 then
       local temp1 = 4 * matrix[1][2] * matrix[2][1] + math.pow((matrix[1][1] - matrix[2][2]), 2)
       if temp1 < 0 then
-	 return {
-	    Complex:new((matrix[1][1] + matrix[2][2]) / 2, math.sqrt(-temp1) / 2),
-	    Complex:new((matrix[1][1] + matrix[2][2]) / 2, -math.sqrt(-temp1) / 2),
-	 }
+         return {
+            Complex:new((matrix[1][1] + matrix[2][2]) / 2, math.sqrt(-temp1) / 2),
+            Complex:new((matrix[1][1] + matrix[2][2]) / 2, -math.sqrt(-temp1) / 2),
+         }
       else
-	 return {
-	    (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2,
-	    (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2,
-	 }
+         return {
+            (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2,
+            (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2,
+         }
       end
    end
    local iterations = 0
@@ -1295,72 +1513,72 @@ function Matrix:francisTwo(tol, maxIters)
       local minimizer = 0
       -- Check if the lower diagonal has any zero elements and split
       for i = 1, n - 1 do
-	 if math.abs(matrix[i + 1][i]) < min then
-	    min = math.abs(matrix[i + 1][i])
-	    minimizer = i
-	 end
-	 if math.abs(matrix[i + 1][i]) < tol or (temp == minimizer and math.abs(tempMin - min) < tol) then
-	    return Tools.list.join(
-	       matrix:submatrix(1, i, 1, i):francisSix(tol, maxIters),
-	       matrix:submatrix(i + 1, n, i + 1, n):francisSix(tol, maxIters)
-	    )
-	 end
+         if math.abs(matrix[i + 1][i]) < min then
+            min = math.abs(matrix[i + 1][i])
+            minimizer = i
+         end
+         if math.abs(matrix[i + 1][i]) < tol or (temp == minimizer and math.abs(tempMin - min) < tol) then
+            return Tools.list.join(
+               matrix:submatrix(1, i, 1, i):francisSix(tol, maxIters),
+               matrix:submatrix(i + 1, n, i + 1, n):francisSix(tol, maxIters)
+            )
+         end
       end
       local shift = matrix:submatrix(n - 1, n, n - 1, n):francisOne()
       local u
       local gamma
       -- Compute the first column of shifted matrix
       if type(shift[1]) == "table" then
-	 local a11 = Complex:new(matrix[1][1], 0)
-	 local a12 = Complex:new(matrix[1][2], 0)
-	 local a21 = Complex:new(matrix[2][1], 0)
-	 local a22 = Complex:new(matrix[2][2], 0)
-	 local rho1 = shift[1]
-	 local rho2 = shift[2]
-	 u = {
-	    ((a11 - rho1) * (a11 - rho2) + a12 * a21)[1],
-	    (a21 * ((a11 + a22) - (rho1 + rho2)))[1],
-	    matrix[3][2] * matrix[2][1],
-	 }
-	 tau = Tools.list.norm(u)
-	 u[1] = u[1] + tau
-	 tau = Tools.list.norm(u)
-	 gamma = 2 / math.pow(tau, 2)
+         local a11 = Complex:new(matrix[1][1], 0)
+         local a12 = Complex:new(matrix[1][2], 0)
+         local a21 = Complex:new(matrix[2][1], 0)
+         local a22 = Complex:new(matrix[2][2], 0)
+         local rho1 = shift[1]
+         local rho2 = shift[2]
+         u = {
+            ((a11 - rho1) * (a11 - rho2) + a12 * a21)[1],
+            (a21 * ((a11 + a22) - (rho1 + rho2)))[1],
+            matrix[3][2] * matrix[2][1],
+         }
+         tau = Tools.list.norm(u)
+         u[1] = u[1] + tau
+         tau = Tools.list.norm(u)
+         gamma = 2 / math.pow(tau, 2)
       else
-	 local a11 = matrix[1][1]
-	 local a12 = matrix[1][2]
-	 local a21 = matrix[2][1]
-	 local a22 = matrix[2][2]
-	 local rho1 = shift[1]
-	 local rho2 = shift[2]
-	 u = {
-	    ((a11 - rho1) * (a11 - rho2) + a12 * a21),
-	    (a21 * ((a11 + a22) - (rho1 + rho2))),
-	    matrix[3][2] * matrix[2][1],
-	 }
-	 tau = Tools.list.norm(u)
-	 u[1] = u[1] + tau
-	 tau = Tools.list.norm(u)
-	 gamma = 2 / math.pow(tau, 2)
+         local a11 = matrix[1][1]
+         local a12 = matrix[1][2]
+         local a21 = matrix[2][1]
+         local a22 = matrix[2][2]
+         local rho1 = shift[1]
+         local rho2 = shift[2]
+         u = {
+            ((a11 - rho1) * (a11 - rho2) + a12 * a21),
+            (a21 * ((a11 + a22) - (rho1 + rho2))),
+            matrix[3][2] * matrix[2][1],
+         }
+         tau = Tools.list.norm(u)
+         u[1] = u[1] + tau
+         tau = Tools.list.norm(u)
+         gamma = 2 / math.pow(tau, 2)
       end
       -- Compute reflector
       u = Matrix:new(u)
       local Q = Matrix:identity(u.length) - (u * u:transpose()):toScaled(gamma)
       for i = 1, n do
-	 matrix:setSubmatrix(1, p + 1, i, i, Q * matrix:submatrix(1, p + 1, i, i))
+         matrix:setSubmatrix(1, p + 1, i, i, Q * matrix:submatrix(1, p + 1, i, i))
       end
       for i = 1, n do
-	 matrix:setSubmatrix(i, i, 1, p + 1, matrix:submatrix(i, i, 1, p + 1) * Q:transpose())
+         matrix:setSubmatrix(i, i, 1, p + 1, matrix:submatrix(i, i, 1, p + 1) * Q:transpose())
       end
       matrix:toHessenbergForm()
       iterations = iterations + 1
       temp = minimizer
       tempMin = min
       if iterations == maxIters then
-	 return Tools.list.join(
-	    matrix:submatrix(1, minimizer, 1, minimizer):francisTwo(tol),
-	    matrix:submatrix(minimizer + 1, n, minimizer + 1, n):francisTwo(tol)
-	 )
+         return Tools.list.join(
+            matrix:submatrix(1, minimizer, 1, minimizer):francisTwo(tol),
+            matrix:submatrix(minimizer + 1, n, minimizer + 1, n):francisTwo(tol)
+         )
       end
    end
    return matrix
@@ -1382,15 +1600,15 @@ function Matrix:francisThree(tol, maxIters)
    if n == 2 then
       local temp1 = 4 * matrix[1][2] * matrix[2][1] + math.pow((matrix[1][1] - matrix[2][2]), 2)
       if temp1 < 0 then
-	 return {
-	    Complex:new((matrix[1][1] + matrix[2][2]) / 2, math.sqrt(-temp1) / 2),
-	    Complex:new((matrix[1][1] + matrix[2][2]) / 2, -math.sqrt(-temp1) / 2),
-	 }
+         return {
+            Complex:new((matrix[1][1] + matrix[2][2]) / 2, math.sqrt(-temp1) / 2),
+            Complex:new((matrix[1][1] + matrix[2][2]) / 2, -math.sqrt(-temp1) / 2),
+         }
       else
-	 return {
-	    (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2,
-	    (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2,
-	 }
+         return {
+            (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2,
+            (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2,
+         }
       end
    elseif n == 3 then
       return self:francisTwo(tol, maxIters)
@@ -1404,16 +1622,16 @@ function Matrix:francisThree(tol, maxIters)
       local minimizer = 0
       -- Check if the lower diagonal has any zero elements and split
       for i = 1, n - 1 do
-	 if math.abs(matrix[i + 1][i]) < min then
-	    min = math.abs(matrix[i + 1][i])
-	    minimizer = i
-	 end
-	 if math.abs(matrix[i + 1][i]) < tol or (temp == minimizer and math.abs(tempMin - min) < tol) then
-	    return Tools.list.join(
-	       matrix:submatrix(1, i, 1, i):francisSix(tol, maxIters),
-	       matrix:submatrix(i + 1, n, i + 1, n):francisSix(tol, maxIters)
-	    )
-	 end
+         if math.abs(matrix[i + 1][i]) < min then
+            min = math.abs(matrix[i + 1][i])
+            minimizer = i
+         end
+         if math.abs(matrix[i + 1][i]) < tol or (temp == minimizer and math.abs(tempMin - min) < tol) then
+            return Tools.list.join(
+               matrix:submatrix(1, i, 1, i):francisSix(tol, maxIters),
+               matrix:submatrix(i + 1, n, i + 1, n):francisSix(tol, maxIters)
+            )
+         end
       end
       local shift = matrix:submatrix(n - 2, n, n - 2, n):francisOne(tol * 10, maxIters)
       Complex:sort(shift)
@@ -1421,114 +1639,114 @@ function Matrix:francisThree(tol, maxIters)
       local gamma
       -- Compute the first column of shifted matrix
       if type(shift[1]) == "table" or type(shift[2]) == "table" then
-	 local a11 = Complex:new(matrix[1][1], 0)
-	 local a12 = Complex:new(matrix[1][2], 0)
-	 local a13 = Complex:new(matrix[1][3], 0)
-	 local a21 = Complex:new(matrix[2][1], 0)
-	 local a22 = Complex:new(matrix[2][2], 0)
-	 local a23 = Complex:new(matrix[2][3], 0)
-	 local a32 = Complex:new(matrix[3][2], 0)
-	 local a33 = Complex:new(matrix[3][3], 0)
-	 local rho1, rho2, rho3
-	 if type(shift[1]) == "table" then
-	    rho1 = shift[1]
-	 else
-	    rho1 = Complex:new(shift[1], 0)
-	 end
-	 if type(shift[2]) == "table" then
-	    rho2 = shift[2]
-	 else
-	    rho2 = Complex:new(shift[2], 0)
-	 end
-	 if type(shift[3]) == "table" then
-	    rho3 = shift[3]
-	 else
-	    rho3 = Complex:new(shift[3], 0)
-	 end
-	 u = {
-	    (
-	       a21 * (a13 * a32 + a12 * (a11 + a22 - rho2 - rho3))
-	       + (a11 - rho1) * (a11 * a11 + a12 * a21 + rho2 * rho3 - a11 * (rho2 + rho3))
-	    )[1],
-	    (
-	       a21
-	       * (
-		  a12 * a21
-		  + a22 * a22
-		  + a23 * a32
-		  + (a11 - rho1) * (a11 + a22 - rho2 - rho3)
-		  + rho2 * rho3
-		  - a22 * (rho2 + rho3)
-		 )
-	    )[1],
-	    (a21 * a32 * (a11 + a22 + a33 - rho1 - rho2 - rho3))[1],
-	    matrix[2][1] * matrix[3][2] * matrix[4][3],
-	 }
-	 tau = Tools.list.norm(u)
-	 u[1] = u[1] + tau
-	 tau = Tools.list.norm(u)
-	 gamma = 2 / math.pow(tau, 2)
+         local a11 = Complex:new(matrix[1][1], 0)
+         local a12 = Complex:new(matrix[1][2], 0)
+         local a13 = Complex:new(matrix[1][3], 0)
+         local a21 = Complex:new(matrix[2][1], 0)
+         local a22 = Complex:new(matrix[2][2], 0)
+         local a23 = Complex:new(matrix[2][3], 0)
+         local a32 = Complex:new(matrix[3][2], 0)
+         local a33 = Complex:new(matrix[3][3], 0)
+         local rho1, rho2, rho3
+         if type(shift[1]) == "table" then
+            rho1 = shift[1]
+         else
+            rho1 = Complex:new(shift[1], 0)
+         end
+         if type(shift[2]) == "table" then
+            rho2 = shift[2]
+         else
+            rho2 = Complex:new(shift[2], 0)
+         end
+         if type(shift[3]) == "table" then
+            rho3 = shift[3]
+         else
+            rho3 = Complex:new(shift[3], 0)
+         end
+         u = {
+            (
+               a21 * (a13 * a32 + a12 * (a11 + a22 - rho2 - rho3))
+               + (a11 - rho1) * (a11 * a11 + a12 * a21 + rho2 * rho3 - a11 * (rho2 + rho3))
+            )[1],
+            (
+               a21
+               * (
+                  a12 * a21
+                  + a22 * a22
+                  + a23 * a32
+                  + (a11 - rho1) * (a11 + a22 - rho2 - rho3)
+                  + rho2 * rho3
+                  - a22 * (rho2 + rho3)
+                 )
+            )[1],
+            (a21 * a32 * (a11 + a22 + a33 - rho1 - rho2 - rho3))[1],
+            matrix[2][1] * matrix[3][2] * matrix[4][3],
+         }
+         tau = Tools.list.norm(u)
+         u[1] = u[1] + tau
+         tau = Tools.list.norm(u)
+         gamma = 2 / math.pow(tau, 2)
       else
-	 local a11 = matrix[1][1]
-	 local a12 = matrix[1][2]
-	 local a13 = matrix[1][3]
-	 local a21 = matrix[2][1]
-	 local a22 = matrix[2][2]
-	 local a23 = matrix[2][3]
-	 local a32 = matrix[3][2]
-	 local a33 = matrix[3][3]
-	 local rho1 = shift[1]
-	 local rho2 = shift[2]
-	 local rho3 = shift[3]
-	 u = {
-	    (
-	       a21 * (a13 * a32 + a12 * (a11 + a22 - rho2 - rho3))
-	       + (a11 - rho1) * (a11 ^ 2 + a12 * a21 + rho2 * rho3 - a11 * (rho2 + rho3))
-	    ),
-	    (
-	       a21
-	       * (
-		  a12 * a21
-		  + a22 ^ 2
-		  + a23 * a32
-		  + (a11 - rho1) * (a11 + a22 - rho2 - rho3)
-		  + rho2 * rho3
-		  - a22 * (rho2 + rho3)
-		 )
-	    ),
-	    (a21 * a32 * (a11 + a22 + a33 - rho1 - rho2 - rho3)),
-	    matrix[2][1] * matrix[3][2] * matrix[4][3],
-	 }
-	 tau = Tools.list.norm(u)
-	 u[1] = u[1] + tau
-	 tau = Tools.list.norm(u)
-	 gamma = 2 / math.pow(tau, 2)
+         local a11 = matrix[1][1]
+         local a12 = matrix[1][2]
+         local a13 = matrix[1][3]
+         local a21 = matrix[2][1]
+         local a22 = matrix[2][2]
+         local a23 = matrix[2][3]
+         local a32 = matrix[3][2]
+         local a33 = matrix[3][3]
+         local rho1 = shift[1]
+         local rho2 = shift[2]
+         local rho3 = shift[3]
+         u = {
+            (
+               a21 * (a13 * a32 + a12 * (a11 + a22 - rho2 - rho3))
+               + (a11 - rho1) * (a11 ^ 2 + a12 * a21 + rho2 * rho3 - a11 * (rho2 + rho3))
+            ),
+            (
+               a21
+               * (
+                  a12 * a21
+                  + a22 ^ 2
+                  + a23 * a32
+                  + (a11 - rho1) * (a11 + a22 - rho2 - rho3)
+                  + rho2 * rho3
+                  - a22 * (rho2 + rho3)
+                 )
+            ),
+            (a21 * a32 * (a11 + a22 + a33 - rho1 - rho2 - rho3)),
+            matrix[2][1] * matrix[3][2] * matrix[4][3],
+         }
+         tau = Tools.list.norm(u)
+         u[1] = u[1] + tau
+         tau = Tools.list.norm(u)
+         gamma = 2 / math.pow(tau, 2)
       end
       -- Compute reflector
       u = Matrix:new(u)
       local Q = Matrix:identity(u.length) - (u * u:transpose()):toScaled(gamma)
       for i = 1, n do
-	 matrix:setSubmatrix(1, p + 1, i, i, Q * matrix:submatrix(1, p + 1, i, i))
+         matrix:setSubmatrix(1, p + 1, i, i, Q * matrix:submatrix(1, p + 1, i, i))
       end
       for i = 1, n do
-	 matrix:setSubmatrix(i, i, 1, p + 1, matrix:submatrix(i, i, 1, p + 1) * Q:transpose())
+         matrix:setSubmatrix(i, i, 1, p + 1, matrix:submatrix(i, i, 1, p + 1) * Q:transpose())
       end
       matrix:toHessenbergForm()
       iterations = iterations + 1
       temp = minimizer
       tempMin = min
       if iterations == maxIters then
-	 print(
-	    "Francis Three failed to converge in "
-	    .. tostring(maxIters)
-	    .. " iterations! Breaking on "
-	    .. tostring(min)
-	    .. "."
-	 )
-	 return Tools.list.join(
-	    matrix:submatrix(1, minimizer, 1, minimizer):francisThree(tol),
-	    matrix:submatrix(minimizer + 1, n, minimizer + 1, n):francisThree(tol)
-	 )
+         print(
+            "Francis Three failed to converge in "
+            .. tostring(maxIters)
+            .. " iterations! Breaking on "
+            .. tostring(min)
+            .. "."
+         )
+         return Tools.list.join(
+            matrix:submatrix(1, minimizer, 1, minimizer):francisThree(tol),
+            matrix:submatrix(minimizer + 1, n, minimizer + 1, n):francisThree(tol)
+         )
       end
    end
    return matrix
@@ -1553,15 +1771,15 @@ function Matrix:francisSix(tol, maxIters)
    if n == 2 then
       local temp1 = 4 * matrix[1][2] * matrix[2][1] + math.pow((matrix[1][1] - matrix[2][2]), 2)
       if temp1 < 0 then
-	 return {
-	    Complex:new((matrix[1][1] + matrix[2][2]) / 2, math.sqrt(-temp1) / 2),
-	    Complex:new((matrix[1][1] + matrix[2][2]) / 2, -math.sqrt(-temp1) / 2),
-	 }
+         return {
+            Complex:new((matrix[1][1] + matrix[2][2]) / 2, math.sqrt(-temp1) / 2),
+            Complex:new((matrix[1][1] + matrix[2][2]) / 2, -math.sqrt(-temp1) / 2),
+         }
       else
-	 return {
-	    (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2,
-	    (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2,
-	 }
+         return {
+            (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2,
+            (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2,
+         }
       end
    elseif n == 3 then
       return self:francisTwo(tol, maxIters)
@@ -1578,16 +1796,16 @@ function Matrix:francisSix(tol, maxIters)
       local minimizer = 0
       -- Check if the lower diagonal has any zero elements and split
       for i = 1, n - 1 do
-	 if math.abs(matrix[i + 1][i]) < min then
-	    min = math.abs(matrix[i + 1][i])
-	    minimizer = i
-	 end
-	 if math.abs(matrix[i + 1][i]) < tol or (temp == minimizer and math.abs(tempMin - min) < tol) then
-	    return Tools.list.join(
-	       matrix:submatrix(1, i, 1, i):francisSix(tol, maxIters),
-	       matrix:submatrix(i + 1, n, i + 1, n):francisSix(tol, maxIters)
-	    )
-	 end
+         if math.abs(matrix[i + 1][i]) < min then
+            min = math.abs(matrix[i + 1][i])
+            minimizer = i
+         end
+         if math.abs(matrix[i + 1][i]) < tol or (temp == minimizer and math.abs(tempMin - min) < tol) then
+            return Tools.list.join(
+               matrix:submatrix(1, i, 1, i):francisSix(tol, maxIters),
+               matrix:submatrix(i + 1, n, i + 1, n):francisSix(tol, maxIters)
+            )
+         end
       end
       local shift = matrix:submatrix(n - p + 1, n, n - p + 1, n):francisThree(tol * 10, maxIters)
       Complex:sort(shift)
@@ -1595,128 +1813,128 @@ function Matrix:francisSix(tol, maxIters)
       local gamma
       -- Compute the first column of shifted matrix
       local a11, a12, a13, a14, a15, a16, a17 =
-	 Complex:new(matrix[1][1], 0),
-	 Complex:new(matrix[1][2], 0),
-	 Complex:new(matrix[1][3], 0),
-	 Complex:new(matrix[1][4], 0),
-	 Complex:new(matrix[1][5], 0),
-	 Complex:new(matrix[1][6], 0),
-	 Complex:new(matrix[1][7], 0)
+         Complex:new(matrix[1][1], 0),
+         Complex:new(matrix[1][2], 0),
+         Complex:new(matrix[1][3], 0),
+         Complex:new(matrix[1][4], 0),
+         Complex:new(matrix[1][5], 0),
+         Complex:new(matrix[1][6], 0),
+         Complex:new(matrix[1][7], 0)
       local a21, a22, a23, a24, a25, a26, a27 =
-	 Complex:new(matrix[2][1], 0),
-	 Complex:new(matrix[2][2], 0),
-	 Complex:new(matrix[2][3], 0),
-	 Complex:new(matrix[2][4], 0),
-	 Complex:new(matrix[2][5], 0),
-	 Complex:new(matrix[2][6], 0),
-	 Complex:new(matrix[2][7], 0)
+         Complex:new(matrix[2][1], 0),
+         Complex:new(matrix[2][2], 0),
+         Complex:new(matrix[2][3], 0),
+         Complex:new(matrix[2][4], 0),
+         Complex:new(matrix[2][5], 0),
+         Complex:new(matrix[2][6], 0),
+         Complex:new(matrix[2][7], 0)
       local a32, a33, a34, a35, a36, a37 =
-	 Complex:new(matrix[3][2], 0),
-	 Complex:new(matrix[3][3], 0),
-	 Complex:new(matrix[3][4], 0),
-	 Complex:new(matrix[3][5], 0),
-	 Complex:new(matrix[3][6], 0),
-	 Complex:new(matrix[3][7], 0)
+         Complex:new(matrix[3][2], 0),
+         Complex:new(matrix[3][3], 0),
+         Complex:new(matrix[3][4], 0),
+         Complex:new(matrix[3][5], 0),
+         Complex:new(matrix[3][6], 0),
+         Complex:new(matrix[3][7], 0)
       local a43, a44, a45, a46, a47 =
-	 Complex:new(matrix[4][3], 0),
-	 Complex:new(matrix[4][4], 0),
-	 Complex:new(matrix[4][5], 0),
-	 Complex:new(matrix[4][6], 0),
-	 Complex:new(matrix[4][7], 0)
+         Complex:new(matrix[4][3], 0),
+         Complex:new(matrix[4][4], 0),
+         Complex:new(matrix[4][5], 0),
+         Complex:new(matrix[4][6], 0),
+         Complex:new(matrix[4][7], 0)
       local a54, a55, a56, a57 =
-	 Complex:new(matrix[5][4], 0),
-	 Complex:new(matrix[5][5], 0),
-	 Complex:new(matrix[5][6], 0),
-	 Complex:new(matrix[5][7], 0)
+         Complex:new(matrix[5][4], 0),
+         Complex:new(matrix[5][5], 0),
+         Complex:new(matrix[5][6], 0),
+         Complex:new(matrix[5][7], 0)
       local a65, a66, a67 = Complex:new(matrix[6][5], 0), Complex:new(matrix[6][6], 0), Complex:new(matrix[6][7], 0)
       local a76, a77 = Complex:new(matrix[7][6], 0), Complex:new(matrix[7][7], 0)
       local rho1, rho2, rho3, rho4, rho5, rho6 =
-	 Complex:new(shift[1]),
-	 Complex:new(shift[2]),
-	 Complex:new(shift[3]),
-	 Complex:new(shift[4]),
-	 Complex:new(shift[5]),
-	 Complex:new(shift[6])
+         Complex:new(shift[1]),
+         Complex:new(shift[2]),
+         Complex:new(shift[3]),
+         Complex:new(shift[4]),
+         Complex:new(shift[5]),
+         Complex:new(shift[6])
       u = {
-	 (
-	    a21
-	    * ((a22 - rho2) * ((a22 - rho3) * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a32 * (a23 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a33 - rho4) * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a43 * (a12 * a24 + a13 * a34 + a15 * a54 + a14 * (a11 + a44 - rho5 - rho6)) + a13 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a12 * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))) + a32 * (a23 * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + (a33 - rho3) * (a23 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a33 - rho4) * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a43 * (a12 * a24 + a13 * a34 + a15 * a54 + a14 * (a11 + a44 - rho5 - rho6)) + a13 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a43 * (a24 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a34 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + (a44 - rho4) * (a12 * a24 + a13 * a34 + a15 * a54 + a14 * (a11 + a44 - rho5 - rho6)) + a54 * (a12 * a25 + a13 * a35 + a14 * a45 + a16 * a65 + a15 * (a11 + a55 - rho5 - rho6)) + a14 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a13 * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))) + a12 * (a21 * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + (a11 - rho3) * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))))
-	    + (a11 - rho1)
-	    * (a21 * ((a22 - rho3) * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a32 * (a23 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a33 - rho4) * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a43 * (a12 * a24 + a13 * a34 + a15 * a54 + a14 * (a11 + a44 - rho5 - rho6)) + a13 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a12 * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))) + (a11 - rho2) * (a21 * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + (a11 - rho3) * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))))
-	 )[1],
-	 (
-	    a21
-	    * (
-	       a12
-	       * a21
-	       * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6)) + (a11 - rho3) * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6)))
-	       + a32 * (a13 * a21 * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6)) + (a33 - rho3) * ((a33 - rho4) * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a43 * (a14 * a21 + a23 * a34 + a25 * a54 + a24 * (a22 + a44 - rho5 - rho6)) + a13 * a21 * (a11 + a22 - rho5 - rho6) + a23 * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + a43 * (a34 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + (a44 - rho4) * (a14 * a21 + a23 * a34 + a25 * a54 + a24 * (a22 + a44 - rho5 - rho6)) + a54 * (a15 * a21 + a23 * a35 + a24 * a45 + a26 * a65 + a25 * (a22 + a55 - rho5 - rho6)) + a14 * a21 * (a11 + a22 - rho5 - rho6) + a24 * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + a23 * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))))
-	       + (a22 - rho2) * (a12 * a21 * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6)) + a32 * ((a33 - rho4) * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a43 * (a14 * a21 + a23 * a34 + a25 * a54 + a24 * (a22 + a44 - rho5 - rho6)) + a13 * a21 * (a11 + a22 - rho5 - rho6) + a23 * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + (a22 - rho3) * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))))
-	       + (a11 - rho1)
-	       * (a12 * a21 * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6)) + a32 * ((a33 - rho4) * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a43 * (a14 * a21 + a23 * a34 + a25 * a54 + a24 * (a22 + a44 - rho5 - rho6)) + a13 * a21 * (a11 + a22 - rho5 - rho6) + a23 * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + (a22 - rho3) * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + (a11 - rho2) * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6)) + (a11 - rho3) * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6))))
-	      )
-	 )[1],
-	 (
-	    a21
-	    * a32
-	    * (
-	       a13 * a21 * a32 * (a11 + a22 + a33 - rho4 - rho5 - rho6)
-	       + a23 * a32 * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6))
-	       + a12 * a21 * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + (a11 - rho3) * (a11 + a22 + a33 - rho4 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6))
-	       + a43 * (a14 * a21 * a32 + (a44 - rho4) * (a24 * a32 + a35 * a54 + a34 * (a33 + a44 - rho5 - rho6)) + a54 * (a25 * a32 + a34 * a45 + a36 * a65 + a35 * (a33 + a55 - rho5 - rho6)) + a24 * a32 * (a22 + a33 - rho5 - rho6) + a34 * (a23 * a32 + a33 * a33 + a34 * a43 + rho5 * rho6 - a33 * (rho5 + rho6)))
-	       + (a33 - rho3) * (a13 * a21 * a32 + a43 * (a24 * a32 + a35 * a54 + a34 * (a33 + a44 - rho5 - rho6)) + a23 * a32 * (a22 + a33 - rho5 - rho6) + (a33 - rho4) * (a23 * a32 + a33 * a33 + a34 * a43 + rho5 * rho6 - a33 * (rho5 + rho6)))
-	       + (a22 - rho2) * (a13 * a21 * a32 + a43 * (a24 * a32 + a35 * a54 + a34 * (a33 + a44 - rho5 - rho6)) + a23 * a32 * (a22 + a33 - rho5 - rho6) + a12 * a21 * (a11 + a22 + a33 - rho4 - rho5 - rho6) + (a33 - rho4) * (a23 * a32 + a33 * a33 + a34 * a43 + rho5 * rho6 - a33 * (rho5 + rho6)) + (a22 - rho3) * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6)))
-	       + (a11 - rho1)
-	       * (a13 * a21 * a32 + a43 * (a24 * a32 + a35 * a54 + a34 * (a33 + a44 - rho5 - rho6)) + a23 * a32 * (a22 + a33 - rho5 - rho6) + a12 * a21 * (a11 + a22 + a33 - rho4 - rho5 - rho6) + (a33 - rho4) * (a23 * a32 + a33 * a33 + a34 * a43 + rho5 * rho6 - a33 * (rho5 + rho6)) + (a22 - rho3) * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6)) + (a11 - rho2) * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + (a11 - rho3) * (a11 + a22 + a33 - rho4 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6)))
-	      )
-	 )[1],
-	 (
-	    a21
-	    * a32
-	    * a43
-	    * (
-	       a13 * a21 * a32
-	       + a24 * a32 * a43
-	       + a54 * (a35 * a43 + a46 * a65 + a45 * (a44 + a55 - rho5 - rho6))
-	       + a34 * a43 * (a33 + a44 - rho5 - rho6)
-	       + a23 * a32 * (a22 + a33 + a44 - rho4 - rho5 - rho6)
-	       + a12 * a21 * (a11 + a22 + a33 + a44 - rho3 - rho4 - rho5 - rho6)
-	       + (a44 - rho4) * (a34 * a43 + a44 * a44 + a45 * a54 + rho5 * rho6 - a44 * (rho5 + rho6))
-	       + (a33 - rho3) * (a23 * a32 + a34 * a43 + a44 * a44 + a45 * a54 + (a33 - rho4) * (a33 + a44 - rho5 - rho6) + rho5 * rho6 - a44 * (rho5 + rho6))
-	       + (a22 - rho2) * (a12 * a21 + a23 * a32 + a34 * a43 + a44 * a44 + a45 * a54 + (a33 - rho4) * (a33 + a44 - rho5 - rho6) + (a22 - rho3) * (a22 + a33 + a44 - rho4 - rho5 - rho6) + rho5 * rho6 - a44 * (rho5 + rho6))
-	       + (a11 - rho1)
-	       * (a12 * a21 + a23 * a32 + a34 * a43 + a44 * a44 + a45 * a54 + (a33 - rho4) * (a33 + a44 - rho5 - rho6) + (a22 - rho3) * (a22 + a33 + a44 - rho4 - rho5 - rho6) + (a11 - rho2) * (a11 + a22 + a33 + a44 - rho3 - rho4 - rho5 - rho6) + rho5 * rho6 - a44 * (rho5 + rho6))
-	      )
-	 )[1],
-	 (
-	    a21
-	    * a32
-	    * a43
-	    * a54
-	    * (
-	       a12 * a21
-	       + a23 * a32
-	       + a34 * a43
-	       + a45 * a54
-	       + a55 * a55
-	       + a56 * a65
-	       + (a44 - rho4) * (a44 + a55 - rho5 - rho6)
-	       + (a33 - rho3) * (a33 + a44 + a55 - rho4 - rho5 - rho6)
-	       + (a22 - rho2) * (a22 + a33 + a44 + a55 - rho3 - rho4 - rho5 - rho6)
-	       + (a11 - rho1) * (a11 + a22 + a33 + a44 + a55 - rho2 - rho3 - rho4 - rho5 - rho6)
-	       + rho5 * rho6
-	       - a55 * (rho5 + rho6)
-	      )
-	 )[1],
-	 (
-	    a21
-	    * a32
-	    * a43
-	    * a54
-	    * a65
-	    * (a11 + a22 + a33 + a44 + a55 + a66 - rho1 - rho2 - rho3 - rho4 - rho5 - rho6)
-	 )[1],
-	 (a21 * a32 * a43 * a54 * a65 * a76)[1],
+         (
+            a21
+            * ((a22 - rho2) * ((a22 - rho3) * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a32 * (a23 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a33 - rho4) * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a43 * (a12 * a24 + a13 * a34 + a15 * a54 + a14 * (a11 + a44 - rho5 - rho6)) + a13 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a12 * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))) + a32 * (a23 * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + (a33 - rho3) * (a23 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a33 - rho4) * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a43 * (a12 * a24 + a13 * a34 + a15 * a54 + a14 * (a11 + a44 - rho5 - rho6)) + a13 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a43 * (a24 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a34 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + (a44 - rho4) * (a12 * a24 + a13 * a34 + a15 * a54 + a14 * (a11 + a44 - rho5 - rho6)) + a54 * (a12 * a25 + a13 * a35 + a14 * a45 + a16 * a65 + a15 * (a11 + a55 - rho5 - rho6)) + a14 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a13 * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))) + a12 * (a21 * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + (a11 - rho3) * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))))
+            + (a11 - rho1)
+            * (a21 * ((a22 - rho3) * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a32 * (a23 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a33 - rho4) * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a43 * (a12 * a24 + a13 * a34 + a15 * a54 + a14 * (a11 + a44 - rho5 - rho6)) + a13 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a12 * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))) + (a11 - rho2) * (a21 * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + (a11 - rho3) * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))))
+         )[1],
+         (
+            a21
+            * (
+               a12
+               * a21
+               * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6)) + (a11 - rho3) * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6)))
+               + a32 * (a13 * a21 * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6)) + (a33 - rho3) * ((a33 - rho4) * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a43 * (a14 * a21 + a23 * a34 + a25 * a54 + a24 * (a22 + a44 - rho5 - rho6)) + a13 * a21 * (a11 + a22 - rho5 - rho6) + a23 * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + a43 * (a34 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + (a44 - rho4) * (a14 * a21 + a23 * a34 + a25 * a54 + a24 * (a22 + a44 - rho5 - rho6)) + a54 * (a15 * a21 + a23 * a35 + a24 * a45 + a26 * a65 + a25 * (a22 + a55 - rho5 - rho6)) + a14 * a21 * (a11 + a22 - rho5 - rho6) + a24 * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + a23 * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))))
+               + (a22 - rho2) * (a12 * a21 * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6)) + a32 * ((a33 - rho4) * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a43 * (a14 * a21 + a23 * a34 + a25 * a54 + a24 * (a22 + a44 - rho5 - rho6)) + a13 * a21 * (a11 + a22 - rho5 - rho6) + a23 * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + (a22 - rho3) * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))))
+               + (a11 - rho1)
+               * (a12 * a21 * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6)) + a32 * ((a33 - rho4) * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a43 * (a14 * a21 + a23 * a34 + a25 * a54 + a24 * (a22 + a44 - rho5 - rho6)) + a13 * a21 * (a11 + a22 - rho5 - rho6) + a23 * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + (a22 - rho3) * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + (a11 - rho2) * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6)) + (a11 - rho3) * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6))))
+              )
+         )[1],
+         (
+            a21
+            * a32
+            * (
+               a13 * a21 * a32 * (a11 + a22 + a33 - rho4 - rho5 - rho6)
+               + a23 * a32 * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6))
+               + a12 * a21 * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + (a11 - rho3) * (a11 + a22 + a33 - rho4 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6))
+               + a43 * (a14 * a21 * a32 + (a44 - rho4) * (a24 * a32 + a35 * a54 + a34 * (a33 + a44 - rho5 - rho6)) + a54 * (a25 * a32 + a34 * a45 + a36 * a65 + a35 * (a33 + a55 - rho5 - rho6)) + a24 * a32 * (a22 + a33 - rho5 - rho6) + a34 * (a23 * a32 + a33 * a33 + a34 * a43 + rho5 * rho6 - a33 * (rho5 + rho6)))
+               + (a33 - rho3) * (a13 * a21 * a32 + a43 * (a24 * a32 + a35 * a54 + a34 * (a33 + a44 - rho5 - rho6)) + a23 * a32 * (a22 + a33 - rho5 - rho6) + (a33 - rho4) * (a23 * a32 + a33 * a33 + a34 * a43 + rho5 * rho6 - a33 * (rho5 + rho6)))
+               + (a22 - rho2) * (a13 * a21 * a32 + a43 * (a24 * a32 + a35 * a54 + a34 * (a33 + a44 - rho5 - rho6)) + a23 * a32 * (a22 + a33 - rho5 - rho6) + a12 * a21 * (a11 + a22 + a33 - rho4 - rho5 - rho6) + (a33 - rho4) * (a23 * a32 + a33 * a33 + a34 * a43 + rho5 * rho6 - a33 * (rho5 + rho6)) + (a22 - rho3) * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6)))
+               + (a11 - rho1)
+               * (a13 * a21 * a32 + a43 * (a24 * a32 + a35 * a54 + a34 * (a33 + a44 - rho5 - rho6)) + a23 * a32 * (a22 + a33 - rho5 - rho6) + a12 * a21 * (a11 + a22 + a33 - rho4 - rho5 - rho6) + (a33 - rho4) * (a23 * a32 + a33 * a33 + a34 * a43 + rho5 * rho6 - a33 * (rho5 + rho6)) + (a22 - rho3) * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6)) + (a11 - rho2) * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + (a11 - rho3) * (a11 + a22 + a33 - rho4 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6)))
+              )
+         )[1],
+         (
+            a21
+            * a32
+            * a43
+            * (
+               a13 * a21 * a32
+               + a24 * a32 * a43
+               + a54 * (a35 * a43 + a46 * a65 + a45 * (a44 + a55 - rho5 - rho6))
+               + a34 * a43 * (a33 + a44 - rho5 - rho6)
+               + a23 * a32 * (a22 + a33 + a44 - rho4 - rho5 - rho6)
+               + a12 * a21 * (a11 + a22 + a33 + a44 - rho3 - rho4 - rho5 - rho6)
+               + (a44 - rho4) * (a34 * a43 + a44 * a44 + a45 * a54 + rho5 * rho6 - a44 * (rho5 + rho6))
+               + (a33 - rho3) * (a23 * a32 + a34 * a43 + a44 * a44 + a45 * a54 + (a33 - rho4) * (a33 + a44 - rho5 - rho6) + rho5 * rho6 - a44 * (rho5 + rho6))
+               + (a22 - rho2) * (a12 * a21 + a23 * a32 + a34 * a43 + a44 * a44 + a45 * a54 + (a33 - rho4) * (a33 + a44 - rho5 - rho6) + (a22 - rho3) * (a22 + a33 + a44 - rho4 - rho5 - rho6) + rho5 * rho6 - a44 * (rho5 + rho6))
+               + (a11 - rho1)
+               * (a12 * a21 + a23 * a32 + a34 * a43 + a44 * a44 + a45 * a54 + (a33 - rho4) * (a33 + a44 - rho5 - rho6) + (a22 - rho3) * (a22 + a33 + a44 - rho4 - rho5 - rho6) + (a11 - rho2) * (a11 + a22 + a33 + a44 - rho3 - rho4 - rho5 - rho6) + rho5 * rho6 - a44 * (rho5 + rho6))
+              )
+         )[1],
+         (
+            a21
+            * a32
+            * a43
+            * a54
+            * (
+               a12 * a21
+               + a23 * a32
+               + a34 * a43
+               + a45 * a54
+               + a55 * a55
+               + a56 * a65
+               + (a44 - rho4) * (a44 + a55 - rho5 - rho6)
+               + (a33 - rho3) * (a33 + a44 + a55 - rho4 - rho5 - rho6)
+               + (a22 - rho2) * (a22 + a33 + a44 + a55 - rho3 - rho4 - rho5 - rho6)
+               + (a11 - rho1) * (a11 + a22 + a33 + a44 + a55 - rho2 - rho3 - rho4 - rho5 - rho6)
+               + rho5 * rho6
+               - a55 * (rho5 + rho6)
+              )
+         )[1],
+         (
+            a21
+            * a32
+            * a43
+            * a54
+            * a65
+            * (a11 + a22 + a33 + a44 + a55 + a66 - rho1 - rho2 - rho3 - rho4 - rho5 - rho6)
+         )[1],
+         (a21 * a32 * a43 * a54 * a65 * a76)[1],
       }
       tau = Tools.list.norm(u)
       u[1] = u[1] + tau
@@ -1726,39 +1944,518 @@ function Matrix:francisSix(tol, maxIters)
       u = Matrix:new(u)
       local Q = Matrix:identity(u.length) - (u * u:transpose()):toScaled(gamma)
       for i = 1, n do
-	 matrix:setSubmatrix(1, p + 1, i, i, Q * matrix:submatrix(1, p + 1, i, i))
+         matrix:setSubmatrix(1, p + 1, i, i, Q * matrix:submatrix(1, p + 1, i, i))
       end
       for i = 1, n do
-	 matrix:setSubmatrix(i, i, 1, p + 1, matrix:submatrix(i, i, 1, p + 1) * Q:transpose())
+         matrix:setSubmatrix(i, i, 1, p + 1, matrix:submatrix(i, i, 1, p + 1) * Q:transpose())
       end
       --[[for k = 1, n - p - 1 do
-	 u = matrix:submatrix(k + 1, k + p + 1, k, k)
-	 local tau = math.sqrt((u:transpose() * u)[1][1])
-	 u[1][1] = u[1][1] + tau
-	 tau = math.sqrt((u:transpose() * u)[1][1])
-	 gamma = 2 / math.pow(tau, 2)
-	 Q = Matrix:identity(p + 1) - (u * u:transpose()):toScaled(gamma)
-	 matrix:setSubmatrix(k + 1, k + p + 1, k, n, Q * matrix:submatrix(k + 1, k + p + 1, k, n))
-	 matrix:setSubmatrix(k, n, k + 1, k + p + 1, matrix:submatrix(k, n, k + 1, k + p + 1) * Q:transpose())
-	 end]]
+         u = matrix:submatrix(k + 1, k + p + 1, k, k)
+         local tau = math.sqrt((u:transpose() * u)[1][1])
+         u[1][1] = u[1][1] + tau
+         tau = math.sqrt((u:transpose() * u)[1][1])
+         gamma = 2 / math.pow(tau, 2)
+         Q = Matrix:identity(p + 1) - (u * u:transpose()):toScaled(gamma)
+         matrix:setSubmatrix(k + 1, k + p + 1, k, n, Q * matrix:submatrix(k + 1, k + p + 1, k, n))
+         matrix:setSubmatrix(k, n, k + 1, k + p + 1, matrix:submatrix(k, n, k + 1, k + p + 1) * Q:transpose())
+         end]]
       matrix:toHessenbergForm()
       iterations = iterations + 1
       temp = minimizer
       tempMin = min
       if iterations == maxIters then
-	 print(
-	    "Francis Six failed to converge in "
-	    .. tostring(maxIters)
-	    .. " iterations! Breaking on "
-	    .. tostring(min)
-	    .. "."
-	 )
-	 return Tools.list.join(
-	    matrix:submatrix(1, minimizer, 1, minimizer):francisSix(tol),
-	    matrix:submatrix(minimizer + 1, n, minimizer + 1, n):francisSix(tol)
-	 )
+         print(
+            "Francis Six failed to converge in "
+            .. tostring(maxIters)
+            .. " iterations! Breaking on "
+            .. tostring(min)
+            .. "."
+         )
+         return Tools.list.join(
+            matrix:submatrix(1, minimizer, 1, minimizer):francisSix(tol),
+            matrix:submatrix(minimizer + 1, n, minimizer + 1, n):francisSix(tol)
+         )
       end
    end
+   return matrix
+end
+
+function Matrix:symmetricFrancisOne(que, tol, maxIters)
+   que = que or Matrix:identity(self.length)
+   tol = tol or 10 ^ -7
+   maxIters = maxIters or 1000
+   local matrix
+   if self.length == 1 and self.width == 1 then
+      return { self[1][1] }, Matrix:new({{1}})
+   elseif self.length ~= self.width then
+      matrix = self:padTo(math.max(self.length, self.width))
+      self = matrix
+   else
+      matrix = self
+   end
+   local n = matrix.length
+   if n == 2 then
+      local temp1 = 4 * matrix[1][2] * matrix[2][1] +
+	 math.pow((matrix[1][1] - matrix[2][2]), 2)
+      if matrix[1][2] < tol then
+	 return {matrix[1][1], matrix[2][2]}, Matrix:identity(2)
+      else
+	 local lambda1 = (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2
+	 local lambda2 = (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2
+	 local vect = {matrix[2][2] - lambda1, matrix[1][2]}
+	 local norm = Numerics.hypot(vect[1], vect[2])
+	 local c, d = vect[1] / norm, vect[2] / norm
+	 return {lambda1, lambda2}, Matrix:new({{c, -d}, {d, c}})
+      end
+   end
+   local iterations = 0
+   local temp = 0
+   local tempMin = 0
+   local p = 1
+   while iterations < maxIters do
+      local min = 10 ^ 12
+      local minimizer = 0
+      for i = 1, n - 1 do
+         if math.abs(matrix[i + 1][i]) < min then
+            min = math.abs(matrix[i + 1][i])
+            minimizer = i
+         end
+         if math.abs(matrix[i + 1][i]) < tol
+            or (temp == minimizer and math.abs(tempMin - min) < tol) then
+            local eig1, que1 =
+               matrix:submatrix(1, i, 1, i):symmetricFrancisOne(Matrix:identity(i),
+                                                                tol,
+                                                                maxIters)
+            local eig2, que2 =
+               matrix:submatrix(i + 1, n,
+				i + 1, n):symmetricFrancisOne(Matrix:identity(n - i),
+							      tol,
+							      maxIters)
+            que:setSubmatrix(1, i, 1, n, que1 * que:submatrix(1, i, 1, n))
+            que:setSubmatrix(i + 1, n, 1, n, que2 * que:submatrix(i + 1, n, 1, n))
+            return Tools.list.join(eig1, eig2), que
+         end
+      end
+      local shift = matrix[n][n]
+      local u = {
+         matrix[1][1] - shift + math.sqrt(math.pow(matrix[1][1] - shift, 2)
+					  + math.pow(matrix[2][1], 2)),
+         matrix[2][1],
+      }
+      local gamma = 2 / (math.pow(u[1], 2) + math.pow(u[2], 2))
+      u = Matrix:new(u)
+      local Q = Matrix:identity(2) - (u * u:transpose()):toScaled(gamma)
+      for i = 1, n do
+         matrix:setSubmatrix(1, p + 1, i, i, Q * matrix:submatrix(1, p + 1, i, i))
+      end
+      for i = 1, n do
+         matrix:setSubmatrix(i, i, 1, p + 1,
+			     matrix:submatrix(i, i, 1, p + 1) * Q:transpose())
+      end
+      que:setSubmatrix(1, p + 1, 1, n, Q * que:submatrix(1, p + 1, 1, n))
+      matrix, que = matrix:tridiagonalize(que, tol)
+      iterations = iterations + 1
+      temp = minimizer
+      tempMin = min
+      if iterations == maxIters then
+         local eig1, que1 =
+            matrix:submatrix(1, minimizer, 1, minimizer)
+	    :symmetricFrancisOne(Matrix:identity(minimizer),
+				 tol,
+				 maxIters)
+         local eig2, que2 =
+            matrix:submatrix(minimizer + 1, n, minimizer + 1, n):symmetricFrancisOne(Matrix:identity(n - minimizer),
+                                                                                     tol,
+                                                                                     maxIters)
+         que:setSubmatrix(1,
+			  minimizer,
+			  1,
+			  n,
+			  que1 * que:submatrix(1, minimizer, 1, n))
+         que:setSubmatrix(minimizer + 1,
+			  n,
+			  1,
+			  n,
+			  que2 * que:submatrix(minimizer + 1, n, 1, n))
+         return Tools.list.join(eig1, eig2), que
+      end
+   end
+   print("You shouldn't have gotten here")
+   return matrix
+end
+
+function Matrix:symmetricFrancisTwo(que, tol, maxIters)
+   tol = tol or 10 ^ -7
+   maxIters = maxIters or 10000
+   local matrix
+   if self.length == 1 and self.width == 1 then
+      return { self[1][1] }, Matrix:new({{1}})
+   elseif self.length ~= self.width then
+      matrix = self:padTo(math.max(self.length, self.width))
+      self = matrix
+   else
+      matrix = self
+   end
+   local n = matrix.length
+   if n == 2 then
+      local temp1 = 4 * matrix[1][2] * matrix[2][1] + math.pow((matrix[1][1] - matrix[2][2]), 2)
+      if matrix[1][2] < tol then
+	 return {matrix[1][1], matrix[2][2]}, Matrix:identity(2)
+      else
+	 local lambda1 = (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2
+	 local lambda2 = (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2
+	 local vect = {matrix[2][2] - lambda1, matrix[1][2]}
+	 local norm = Numerics.hypot(vect[1], vect[2])
+	 local c, d = vect[1] / norm, vect[2] / norm
+	 return {lambda1, lambda2}, Matrix:new({{c, -d}, {d, c}})
+      end
+   elseif n == 3 then
+      return self:symmetricFrancisOne(que, tol, maxIters)
+   end
+   local iterations = 0
+   local temp = 0
+   local tempMin = 0
+   local p = 2
+   while iterations < maxIters do
+      local min = 10 ^ 12
+      local minimizer = 0
+      -- Check if the lower diagonal has any zero elements and split
+      for i = 1, n - 1 do
+         if math.abs(matrix[i + 1][i]) < min then
+            min = math.abs(matrix[i + 1][i])
+            minimizer = i
+         end
+         if math.abs(matrix[i + 1][i]) < tol
+            or (temp == minimizer and math.abs(tempMin - min) < tol) then
+            local eig1, que1 =
+               matrix:submatrix(1, i, 1, i):symmetricFrancisTwo(Matrix:identity(i),
+                                                                tol,
+                                                                maxIters)
+            local eig2, que2 =
+               matrix:submatrix(i + 1, n, i + 1, n):symmetricFrancisTwo(Matrix:identity(n - i),
+                                                                        tol,
+                                                                        maxIters)
+            que:setSubmatrix(1, i, 1, n, que1 * que:submatrix(1, i, 1, n))
+            que:setSubmatrix(i + 1, n, 1, n, que2 * que:submatrix(i + 1, n, 1, n))
+            return Tools.list.join(eig1, eig2), que
+         end
+      end
+      local shift = matrix:submatrix(n - 1, n, n - 1, n):francisOne()
+      local u
+      local gamma
+      -- Compute the first column of shifted matrix
+      if type(shift[1]) == "table" then
+         local a11 = Complex:new(matrix[1][1], 0)
+         local a12 = Complex:new(matrix[1][2], 0)
+         local a21 = Complex:new(matrix[2][1], 0)
+         local a22 = Complex:new(matrix[2][2], 0)
+         local rho1 = shift[1]
+         local rho2 = shift[2]
+         u = {
+            ((a11 - rho1) * (a11 - rho2) + a12 * a21)[1],
+            (a21 * ((a11 + a22) - (rho1 + rho2)))[1],
+            matrix[3][2] * matrix[2][1],
+         }
+         tau = Tools.list.norm(u)
+         u[1] = u[1] + tau
+         tau = Tools.list.norm(u)
+         gamma = 2 / math.pow(tau, 2)
+      else
+         local a11 = matrix[1][1]
+         local a12 = matrix[1][2]
+         local a21 = matrix[2][1]
+         local a22 = matrix[2][2]
+         local rho1 = shift[1]
+         local rho2 = shift[2]
+         u = {
+            ((a11 - rho1) * (a11 - rho2) + a12 * a21),
+            (a21 * ((a11 + a22) - (rho1 + rho2))),
+            matrix[3][2] * matrix[2][1],
+         }
+         tau = Tools.list.norm(u)
+         u[1] = u[1] + tau
+         tau = Tools.list.norm(u)
+         gamma = 2 / math.pow(tau, 2)
+      end
+      -- Compute reflector
+      u = Matrix:new(u)
+      local Q = Matrix:identity(u.length) - (u * u:transpose()):toScaled(gamma)
+      for i = 1, n do
+         matrix:setSubmatrix(1, p + 1, i, i, Q * matrix:submatrix(1, p + 1, i, i))
+      end
+      for i = 1, n do
+         matrix:setSubmatrix(i, i, 1, p + 1, matrix:submatrix(i, i, 1, p + 1) * Q:transpose())
+      end
+      que:setSubmatrix(1, p + 1, 1, n, Q * que:submatrix(1, p + 1, 1, n))
+      matrix, que = matrix:tridiagonalize(que, tol)
+      iterations = iterations + 1
+      temp = minimizer
+      tempMin = min
+      if iterations == maxIters then
+         local eig1, que1 =
+            matrix:submatrix(1, minimizer, 1, minimizer):symmetricFrancisTwo(Matrix:identity(minimizer),
+                                                                             tol,
+                                                                             maxIters)
+         local eig2, que2 =
+            matrix:submatrix(minimizer + 1, n, minimizer + 1, n):symmetricFrancisTwo(Matrix:identity(n - minimizer),
+                                                                                     tol,
+                                                                                     maxIters)
+         que:setSubmatrix(1,
+			  minimizer,
+			  1,
+			  n,
+			  que1 * que:submatrix(1, minimizer, 1, n))
+         que:setSubmatrix(minimizer + 1,
+			  n,
+			  1,
+			  n,
+			  que2 * que:submatrix(minimizer + 1, n, 1, n))
+         return Tools.list.join(eig1, eig2), que
+      end
+   end
+   print("You shouldn't have gotten here")
+   return matrix
+end
+
+function Matrix:symmetricFrancisSix(que, tol, maxIters)
+   -- Set Defaults
+   tol = tol or 10 ^ -13
+   maxIters = maxIters or 10000
+   -- Create Matrix
+   local matrix
+   if self.length == 1 and self.width == 1 then
+      return { self[1][1] }, Matrix:new({{1}})
+   elseif self.length ~= self.width then
+      -- We will assume that the matrix was meant to be square
+      matrix = self:padTo(math.max(self.length, self.width))
+      self = matrix
+   else
+      matrix = self
+   end
+   -- Handle the case where n is too small
+   local n = matrix.length
+   if n == 2 then
+      local temp1 = 4 * matrix[1][2] * matrix[2][1] + math.pow((matrix[1][1] - matrix[2][2]), 2)
+      if matrix[1][2] < tol then
+	 return {matrix[1][1], matrix[2][2]}, Matrix:identity(2)
+      else
+	 local lambda1 = (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2
+	 local lambda2 = (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2
+	 local vect = {matrix[2][2] - lambda1, matrix[1][2]}
+	 local norm = Numerics.hypot(vect[1], vect[2])
+	 local c, d = vect[1] / norm, vect[2] / norm
+	 return {lambda1, lambda2}, Matrix:new({{c, -d}, {d, c}})
+      end
+   elseif n < 7 then
+      return self:symmetricFrancisTwo(que, tol, maxIters)
+   end
+   -- Setup variables
+   local iterations = 0
+   local temp = 0
+   local tempMin = 0
+   local p = 6
+   while iterations < maxIters do
+      local min = 10 ^ 12
+      local minimizer = 0
+      -- Check if the lower diagonal has any zero elements and split
+      for i = 1, n - 1 do
+         if math.abs(matrix[i + 1][i]) < min then
+            min = math.abs(matrix[i + 1][i])
+            minimizer = i
+         end
+         if math.abs(matrix[i + 1][i]) < tol or
+            (temp == minimizer and math.abs(tempMin - min) < tol) then
+            local eig1, que1 =
+               matrix:submatrix(1, i, 1, i):symmetricFrancisSix(Matrix:identity(i),
+                                                                tol,
+                                                                maxIters)
+            local eig2, que2 =
+               matrix:submatrix(i + 1, n, i + 1, n):symmetricFrancisSix(Matrix:identity(n - i),
+                                                                        tol,
+                                                                        maxIters)
+            que:setSubmatrix(1, i, 1, n, que1 * que:submatrix(1, i, 1, n))
+            que:setSubmatrix(i + 1, n, 1, n, que2 * que:submatrix(i + 1, n, 1, n))
+            return Tools.list.join(eig1, eig2), que
+         end
+      end
+      local shift = matrix:submatrix(n - p + 1, n, n - p + 1, n):francisThree(tol * 10, maxIters)
+      Complex:sort(shift)
+      local u
+      local gamma
+      -- Compute the first column of shifted matrix
+      local a11, a12, a13, a14, a15, a16, a17 =
+         Complex:new(matrix[1][1], 0),
+         Complex:new(matrix[1][2], 0),
+         Complex:new(matrix[1][3], 0),
+         Complex:new(matrix[1][4], 0),
+         Complex:new(matrix[1][5], 0),
+         Complex:new(matrix[1][6], 0),
+         Complex:new(matrix[1][7], 0)
+      local a21, a22, a23, a24, a25, a26, a27 =
+         Complex:new(matrix[2][1], 0),
+         Complex:new(matrix[2][2], 0),
+         Complex:new(matrix[2][3], 0),
+         Complex:new(matrix[2][4], 0),
+         Complex:new(matrix[2][5], 0),
+         Complex:new(matrix[2][6], 0),
+         Complex:new(matrix[2][7], 0)
+      local a32, a33, a34, a35, a36, a37 =
+         Complex:new(matrix[3][2], 0),
+         Complex:new(matrix[3][3], 0),
+         Complex:new(matrix[3][4], 0),
+         Complex:new(matrix[3][5], 0),
+         Complex:new(matrix[3][6], 0),
+         Complex:new(matrix[3][7], 0)
+      local a43, a44, a45, a46, a47 =
+         Complex:new(matrix[4][3], 0),
+         Complex:new(matrix[4][4], 0),
+         Complex:new(matrix[4][5], 0),
+         Complex:new(matrix[4][6], 0),
+         Complex:new(matrix[4][7], 0)
+      local a54, a55, a56, a57 =
+         Complex:new(matrix[5][4], 0),
+         Complex:new(matrix[5][5], 0),
+         Complex:new(matrix[5][6], 0),
+         Complex:new(matrix[5][7], 0)
+      local a65, a66, a67 = Complex:new(matrix[6][5], 0), Complex:new(matrix[6][6], 0), Complex:new(matrix[6][7], 0)
+      local a76, a77 = Complex:new(matrix[7][6], 0), Complex:new(matrix[7][7], 0)
+      local rho1, rho2, rho3, rho4, rho5, rho6 =
+         Complex:new(shift[1]),
+         Complex:new(shift[2]),
+         Complex:new(shift[3]),
+         Complex:new(shift[4]),
+         Complex:new(shift[5]),
+         Complex:new(shift[6])
+      u = {
+         (
+            a21
+            * ((a22 - rho2) * ((a22 - rho3) * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a32 * (a23 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a33 - rho4) * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a43 * (a12 * a24 + a13 * a34 + a15 * a54 + a14 * (a11 + a44 - rho5 - rho6)) + a13 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a12 * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))) + a32 * (a23 * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + (a33 - rho3) * (a23 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a33 - rho4) * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a43 * (a12 * a24 + a13 * a34 + a15 * a54 + a14 * (a11 + a44 - rho5 - rho6)) + a13 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a43 * (a24 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a34 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + (a44 - rho4) * (a12 * a24 + a13 * a34 + a15 * a54 + a14 * (a11 + a44 - rho5 - rho6)) + a54 * (a12 * a25 + a13 * a35 + a14 * a45 + a16 * a65 + a15 * (a11 + a55 - rho5 - rho6)) + a14 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a13 * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))) + a12 * (a21 * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + (a11 - rho3) * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))))
+            + (a11 - rho1)
+            * (a21 * ((a22 - rho3) * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a32 * (a23 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a33 - rho4) * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a43 * (a12 * a24 + a13 * a34 + a15 * a54 + a14 * (a11 + a44 - rho5 - rho6)) + a13 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + a12 * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))) + (a11 - rho2) * (a21 * ((a22 - rho4) * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + a32 * (a12 * a23 + a14 * a43 + a13 * (a11 + a33 - rho5 - rho6)) + a12 * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6))) + (a11 - rho3) * (a21 * (a13 * a32 + a12 * (a11 + a22 - rho5 - rho6)) + (a11 - rho4) * (a11 * a11 + a12 * a21 + rho5 * rho6 - a11 * (rho5 + rho6)))))
+         )[1],
+         (
+            a21
+            * (
+               a12
+               * a21
+               * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6)) + (a11 - rho3) * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6)))
+               + a32 * (a13 * a21 * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6)) + (a33 - rho3) * ((a33 - rho4) * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a43 * (a14 * a21 + a23 * a34 + a25 * a54 + a24 * (a22 + a44 - rho5 - rho6)) + a13 * a21 * (a11 + a22 - rho5 - rho6) + a23 * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + a43 * (a34 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + (a44 - rho4) * (a14 * a21 + a23 * a34 + a25 * a54 + a24 * (a22 + a44 - rho5 - rho6)) + a54 * (a15 * a21 + a23 * a35 + a24 * a45 + a26 * a65 + a25 * (a22 + a55 - rho5 - rho6)) + a14 * a21 * (a11 + a22 - rho5 - rho6) + a24 * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + a23 * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))))
+               + (a22 - rho2) * (a12 * a21 * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6)) + a32 * ((a33 - rho4) * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a43 * (a14 * a21 + a23 * a34 + a25 * a54 + a24 * (a22 + a44 - rho5 - rho6)) + a13 * a21 * (a11 + a22 - rho5 - rho6) + a23 * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + (a22 - rho3) * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))))
+               + (a11 - rho1)
+               * (a12 * a21 * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6)) + a32 * ((a33 - rho4) * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a43 * (a14 * a21 + a23 * a34 + a25 * a54 + a24 * (a22 + a44 - rho5 - rho6)) + a13 * a21 * (a11 + a22 - rho5 - rho6) + a23 * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + (a22 - rho3) * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6))) + (a11 - rho2) * (a32 * (a13 * a21 + a24 * a43 + a23 * (a22 + a33 - rho5 - rho6)) + a12 * a21 * (a11 + a22 - rho5 - rho6) + (a22 - rho4) * (a12 * a21 + a22 * a22 + a23 * a32 + rho5 * rho6 - a22 * (rho5 + rho6)) + (a11 - rho3) * (a12 * a21 + a22 * a22 + a23 * a32 + (a11 - rho4) * (a11 + a22 - rho5 - rho6) + rho5 * rho6 - a22 * (rho5 + rho6))))
+              )
+         )[1],
+         (
+            a21
+            * a32
+            * (
+               a13 * a21 * a32 * (a11 + a22 + a33 - rho4 - rho5 - rho6)
+               + a23 * a32 * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6))
+               + a12 * a21 * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + (a11 - rho3) * (a11 + a22 + a33 - rho4 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6))
+               + a43 * (a14 * a21 * a32 + (a44 - rho4) * (a24 * a32 + a35 * a54 + a34 * (a33 + a44 - rho5 - rho6)) + a54 * (a25 * a32 + a34 * a45 + a36 * a65 + a35 * (a33 + a55 - rho5 - rho6)) + a24 * a32 * (a22 + a33 - rho5 - rho6) + a34 * (a23 * a32 + a33 * a33 + a34 * a43 + rho5 * rho6 - a33 * (rho5 + rho6)))
+               + (a33 - rho3) * (a13 * a21 * a32 + a43 * (a24 * a32 + a35 * a54 + a34 * (a33 + a44 - rho5 - rho6)) + a23 * a32 * (a22 + a33 - rho5 - rho6) + (a33 - rho4) * (a23 * a32 + a33 * a33 + a34 * a43 + rho5 * rho6 - a33 * (rho5 + rho6)))
+               + (a22 - rho2) * (a13 * a21 * a32 + a43 * (a24 * a32 + a35 * a54 + a34 * (a33 + a44 - rho5 - rho6)) + a23 * a32 * (a22 + a33 - rho5 - rho6) + a12 * a21 * (a11 + a22 + a33 - rho4 - rho5 - rho6) + (a33 - rho4) * (a23 * a32 + a33 * a33 + a34 * a43 + rho5 * rho6 - a33 * (rho5 + rho6)) + (a22 - rho3) * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6)))
+               + (a11 - rho1)
+               * (a13 * a21 * a32 + a43 * (a24 * a32 + a35 * a54 + a34 * (a33 + a44 - rho5 - rho6)) + a23 * a32 * (a22 + a33 - rho5 - rho6) + a12 * a21 * (a11 + a22 + a33 - rho4 - rho5 - rho6) + (a33 - rho4) * (a23 * a32 + a33 * a33 + a34 * a43 + rho5 * rho6 - a33 * (rho5 + rho6)) + (a22 - rho3) * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6)) + (a11 - rho2) * (a12 * a21 + a23 * a32 + a33 * a33 + a34 * a43 + (a22 - rho4) * (a22 + a33 - rho5 - rho6) + (a11 - rho3) * (a11 + a22 + a33 - rho4 - rho5 - rho6) + rho5 * rho6 - a33 * (rho5 + rho6)))
+              )
+         )[1],
+         (
+            a21
+            * a32
+            * a43
+            * (
+               a13 * a21 * a32
+               + a24 * a32 * a43
+               + a54 * (a35 * a43 + a46 * a65 + a45 * (a44 + a55 - rho5 - rho6))
+               + a34 * a43 * (a33 + a44 - rho5 - rho6)
+               + a23 * a32 * (a22 + a33 + a44 - rho4 - rho5 - rho6)
+               + a12 * a21 * (a11 + a22 + a33 + a44 - rho3 - rho4 - rho5 - rho6)
+               + (a44 - rho4) * (a34 * a43 + a44 * a44 + a45 * a54 + rho5 * rho6 - a44 * (rho5 + rho6))
+               + (a33 - rho3) * (a23 * a32 + a34 * a43 + a44 * a44 + a45 * a54 + (a33 - rho4) * (a33 + a44 - rho5 - rho6) + rho5 * rho6 - a44 * (rho5 + rho6))
+               + (a22 - rho2) * (a12 * a21 + a23 * a32 + a34 * a43 + a44 * a44 + a45 * a54 + (a33 - rho4) * (a33 + a44 - rho5 - rho6) + (a22 - rho3) * (a22 + a33 + a44 - rho4 - rho5 - rho6) + rho5 * rho6 - a44 * (rho5 + rho6))
+               + (a11 - rho1)
+               * (a12 * a21 + a23 * a32 + a34 * a43 + a44 * a44 + a45 * a54 + (a33 - rho4) * (a33 + a44 - rho5 - rho6) + (a22 - rho3) * (a22 + a33 + a44 - rho4 - rho5 - rho6) + (a11 - rho2) * (a11 + a22 + a33 + a44 - rho3 - rho4 - rho5 - rho6) + rho5 * rho6 - a44 * (rho5 + rho6))
+              )
+         )[1],
+         (
+            a21
+            * a32
+            * a43
+            * a54
+            * (
+               a12 * a21
+               + a23 * a32
+               + a34 * a43
+               + a45 * a54
+               + a55 * a55
+               + a56 * a65
+               + (a44 - rho4) * (a44 + a55 - rho5 - rho6)
+               + (a33 - rho3) * (a33 + a44 + a55 - rho4 - rho5 - rho6)
+               + (a22 - rho2) * (a22 + a33 + a44 + a55 - rho3 - rho4 - rho5 - rho6)
+               + (a11 - rho1) * (a11 + a22 + a33 + a44 + a55 - rho2 - rho3 - rho4 - rho5 - rho6)
+               + rho5 * rho6
+               - a55 * (rho5 + rho6)
+              )
+         )[1],
+         (
+            a21
+            * a32
+            * a43
+            * a54
+            * a65
+            * (a11 + a22 + a33 + a44 + a55 + a66 - rho1 - rho2 - rho3 - rho4 - rho5 - rho6)
+         )[1],
+         (a21 * a32 * a43 * a54 * a65 * a76)[1],
+      }
+      tau = Tools.list.norm(u)
+      u[1] = u[1] + tau
+      tau = Tools.list.norm(u)
+      gamma = 2 / math.pow(tau, 2)
+      -- Compute reflector
+      u = Matrix:new(u)
+      local Q = Matrix:identity(u.length) - (u * u:transpose()):toScaled(gamma)
+      for i = 1, n do
+         matrix:setSubmatrix(1, p + 1, i, i, Q * matrix:submatrix(1, p + 1, i, i))
+      end
+      for i = 1, n do
+         matrix:setSubmatrix(i, i, 1, p + 1, matrix:submatrix(i, i, 1, p + 1) * Q:transpose())
+      end
+      que:setSubmatrix(1, p + 1, 1, n, Q * que:submatrix(1, p + 1, 1, n))
+      matrix, que = matrix:tridiagonalize(que, tol)
+      iterations = iterations + 1
+      temp = minimizer
+      tempMin = min
+      if iterations == maxIters then
+         print(
+            "Francis Six failed to converge in "
+            .. tostring(maxIters)
+            .. " iterations! Breaking on "
+            .. tostring(min)
+            .. "."
+         )
+         local eig1, que1 = matrix:submatrix(
+            1,
+            minimizer,
+            1,
+            minimizer):symmetricFrancisSix(Matrix:identity(minimizer), tol, maxIters)
+         local eig2, que2 = matrix:submatrix(minimizer + 1,
+                                             n,
+                                             minimizer + 1,
+                                             n):symmetricFrancisSix(Matrix:identity(minimizer), tol, maxIters)
+         que:setSubmatrix(1,
+                          minimizer,
+                          1,
+                          n,
+                          que1 * que:submatrix(1, minimizer, 1, n))
+         que:setSubmatrix(minimizer + 1,
+                          n,
+                          1,
+                          n,
+                          que2 * que:submatrix(minimizer + 1, n, 1, n))
+         return Tools.list.join(eig1, eig2), que
+      end
+   end
+   print("You shouldn't have gotten here")
    return matrix
 end
 
@@ -1767,6 +2464,11 @@ function Matrix:eigenvalues()
    local eigList = matrix:francisSix()
    Complex:sort(eigList, "d")
    return Tools.list.sublist(eigList, math.min(matrix.length, matrix.width))
+end
+
+function Matrix:symmetricEigendecomposition(tol)
+   local matrix, que = self:tridiagonalize(tol)
+   return matrix:symmetricFrancisSix(que, tol)
 end
 
 Matrices.Matrix = Matrix
@@ -1779,27 +2481,27 @@ local ComplexMatrix = {
 function ComplexMatrix:new(list, realQ)
    if type(list[1]) == "table" then
       if realQ == true then
-	 for i, v in ipairs(list) do
-	    for j = 1, #v do
-	       list[i][j] = Complex:new(list[i][j])
-	    end
-	 end
-	 setmetatable(list, self)
-	 self.__index = self
-	 list.length = #list
-	 list.width = #list[1]
-	 return list
+         for i, v in ipairs(list) do
+            for j = 1, #v do
+               list[i][j] = Complex:new(list[i][j])
+            end
+         end
+         setmetatable(list, self)
+         self.__index = self
+         list.length = #list
+         list.width = #list[1]
+         return list
       else
-	 setmetatable(list, self)
-	 self.__index = self
-	 list.length = #list
-	 list.width = #list[1]
-	 return list
+         setmetatable(list, self)
+         self.__index = self
+         list.length = #list
+         list.width = #list[1]
+         return list
       end
    else
       local matrix = {}
       for key, value in ipairs(list) do
-	 matrix[key] = { value }
+         matrix[key] = { value }
       end
       setmetatable(matrix, self)
       self.__index = self
@@ -1826,7 +2528,7 @@ function ComplexMatrix:copy()
    for i = 1, self.length do
       data[i] = {}
       for j = 1, self.width do
-	 data[i][j] = self[i][j]
+         data[i][j] = self[i][j]
       end
    end
    return ComplexMatrix:new(data)
@@ -1839,8 +2541,8 @@ function ComplexMatrix:submatrix(rowStart, rowEnd, columnStart, columnEnd)
       data[row] = {}
       column = 1
       for j = columnStart, columnEnd, 1 do
-	 data[row][column] = self[i][j]
-	 column = column + 1
+         data[row][column] = self[i][j]
+         column = column + 1
       end
       row = row + 1
    end
@@ -1852,12 +2554,12 @@ function ComplexMatrix:setSubmatrix(rowStart, rowEnd, columnStart, columnEnd, ma
    for i = rowStart, rowEnd, 1 do
       column = 1
       for j = columnStart, columnEnd, 1 do
-	 if realQ == true then
-	    self[i][j] = Complex:new(matrix[row][column])
-	 else
-	    self[i][j] = matrix[row][column]
-	 end
-	 column = column + 1
+         if realQ == true then
+            self[i][j] = Complex:new(matrix[row][column])
+         else
+            self[i][j] = matrix[row][column]
+         end
+         column = column + 1
       end
       row = row + 1
    end
@@ -1867,7 +2569,7 @@ end
 function ComplexMatrix:toScaled(lambda)
    for i = 1, self.length do
       for j = 1, self.width do
-	 self[i][j] = self[i][j]:scale(lambda)
+         self[i][j] = self[i][j]:scale(lambda)
       end
    end
    return self
@@ -1877,7 +2579,7 @@ function ComplexMatrix:scaled(lambda)
    local copy = self:copy()
    for i = 1, copy.length do
       for j = 1, copy.width do
-	 copy[i][j] = copy[i][j]:scale(lambda)
+         copy[i][j] = copy[i][j]:scale(lambda)
       end
    end
    return copy
@@ -1888,7 +2590,7 @@ function ComplexMatrix:padTo(length, width)
    for i = 1, length, 1 do
       data[i] = {}
       for j = 1, width, 1 do
-	 data[i][j] = self[i][j] or Complex:new(0)
+         data[i][j] = self[i][j] or Complex:new(0)
       end
    end
    return ComplexMatrix:new(data)
@@ -1908,12 +2610,12 @@ function ComplexMatrix:strassenSubdivide()
       local iPlus = i + size
       data1[i], data2[i], data3[i], data4[i] = {}, {}, {}, {}
       for j = 1, size, 1 do
-	 local jPlus = j + size
-	 data1[i][j], data2[i][j], data3[i][j], data4[i][j] =
-	    self[i][j] or Complex:new(0),
-	    self[i][jPlus] or Complex:new(0),
-	    self[iPlus][j] or Complex:new(0),
-	    self[iPlus][jPlus] or Complex:new(0)
+         local jPlus = j + size
+         data1[i][j], data2[i][j], data3[i][j], data4[i][j] =
+            self[i][j] or Complex:new(0),
+            self[i][jPlus] or Complex:new(0),
+            self[iPlus][j] or Complex:new(0),
+            self[iPlus][jPlus] or Complex:new(0)
       end
    end
    return {
@@ -1959,7 +2661,7 @@ function ComplexMatrix:pretty(n, m)
    if length == 1 then
       result = "("
       for i = 1, width - 1 do
-	 result = result .. _padStringToLength(string.sub(tostring(self[1][i]), 1, n), 20) .. " "
+         result = result .. _padStringToLength(string.sub(tostring(self[1][i]), 1, n), 20) .. " "
       end
       result = result .. _padStringToLength(string.sub(tostring(self[1][width]), 20), 1, n) .. ")"
       return result
@@ -1967,22 +2669,22 @@ function ComplexMatrix:pretty(n, m)
 
    for i = 1, length do
       if i == 1 then
-	 result = result .. "/"
+         result = result .. "/"
       elseif i == length then
-	 result = result .. "\\"
+         result = result .. "\\"
       else
-	 result = result .. "|"
+         result = result .. "|"
       end
       for j = 1, width - 1 do
-	 result = result .. _padStringToLength(string.sub(tostring(self[i][j]), 1, n), 20) .. " "
+         result = result .. _padStringToLength(string.sub(tostring(self[i][j]), 1, n), 20) .. " "
       end
       result = result .. _padStringToLength(string.sub(tostring(self[i][width]), 1, n), 20)
       if i == 1 then
-	 result = result .. "\\\n"
+         result = result .. "\\\n"
       elseif i == length then
-	 result = result .. "/"
+         result = result .. "/"
       else
-	 result = result .. "|\n"
+         result = result .. "|\n"
       end
    end
    return result
@@ -2010,7 +2712,7 @@ function ComplexMatrix.__add(left, right)
    for i = 1, left.length, 1 do
       data[i] = {}
       for j = 1, left.width, 1 do
-	 data[i][j] = left[i][j] + right[i][j]
+         data[i][j] = left[i][j] + right[i][j]
       end
    end
 
@@ -2026,7 +2728,7 @@ function ComplexMatrix.__sub(left, right)
    for i = 1, left.length, 1 do
       data[i] = {}
       for j = 1, left.width, 1 do
-	 data[i][j] = left[i][j] - right[i][j]
+         data[i][j] = left[i][j] - right[i][j]
       end
    end
 
@@ -2053,30 +2755,30 @@ function ComplexMatrix.__mul(left, right)
       local strassenResult = { M1 + M4 - M5 + M7, M3 + M5, M2 + M4, M1 - M2 + M3 + M6 }
       data = {}
       for i = 1, M1.length, 1 do
-	 local iPlus = i + M1.length
-	 data[i] = {}
-	 data[iPlus] = {}
-	 for j = 1, M1.width, 1 do
-	    local jPlus = j + M1.length
-	    data[i][j] = strassenResult[1][i][j]
-	    data[i][jPlus] = strassenResult[2][i][j]
-	    data[iPlus][j] = strassenResult[3][i][j]
-	    data[iPlus][jPlus] = strassenResult[4][i][j]
-	 end
+         local iPlus = i + M1.length
+         data[i] = {}
+         data[iPlus] = {}
+         for j = 1, M1.width, 1 do
+            local jPlus = j + M1.length
+            data[i][j] = strassenResult[1][i][j]
+            data[i][jPlus] = strassenResult[2][i][j]
+            data[iPlus][j] = strassenResult[3][i][j]
+            data[iPlus][jPlus] = strassenResult[4][i][j]
+         end
       end
       return ComplexMatrix:new(data):submatrix(1, left.length, 1, right.width)
    else
       data = {}
       for i = 1, left.length do
-	 local row = {}
-	 for j = 1, right.width do
-	    local val = Complex:new(0)
-	    for k = 1, left.width do
-	       val = val + left[i][k] * right[k][j]
-	    end
-	    row[j] = val
-	 end
-	 data[i] = row
+         local row = {}
+         for j = 1, right.width do
+            local val = Complex:new(0)
+            for k = 1, left.width do
+               val = val + left[i][k] * right[k][j]
+            end
+            row[j] = val
+         end
+         data[i] = row
       end
       return ComplexMatrix:new(data)
    end
@@ -2105,11 +2807,11 @@ function ComplexMatrix.__eq(left, right)
       return false
    else
       for i = 1, left.length do
-	 for j = 1, left.width do
-	    if left[i][j] ~= right[i][j] then
-	       return false
-	    end
-	 end
+         for j = 1, left.width do
+            if left[i][j] ~= right[i][j] then
+               return false
+            end
+         end
       end
    end
    return true
@@ -2131,7 +2833,7 @@ function ComplexMatrix:zero(n, m)
    for i = 1, n do
       data[i] = {}
       for j = 1, m do
-	 data[i][j] = Complex:new(0)
+         data[i][j] = Complex:new(0)
       end
    end
    return ComplexMatrix:new(data)
@@ -2144,7 +2846,7 @@ function ComplexMatrix:random(n, m, a, b)
    for i = 1, n do
       data[i] = {}
       for j = 1, m do
-	 data[i][j] = Complex:new((b - a) * math.random() + a, (b - a) * math.random() + a)
+         data[i][j] = Complex:new((b - a) * math.random() + a, (b - a) * math.random() + a)
       end
    end
    return ComplexMatrix:new(data)
@@ -2155,11 +2857,11 @@ function ComplexMatrix:identity(n)
    for i = 1, n do
       data[i] = {}
       for j = 1, n do
-	 if i == j then
-	    data[i][j] = Complex:new(1)
-	 else
-	    data[i][j] = Complex:new(0)
-	 end
+         if i == j then
+            data[i][j] = Complex:new(1)
+         else
+            data[i][j] = Complex:new(0)
+         end
       end
    end
    return ComplexMatrix:new(data)
@@ -2205,7 +2907,7 @@ function ComplexMatrix:transpose()
    for j = 1, self.width do
       data[j] = {}
       for i = 1, self.length do
-	 data[j][i] = self[i][j]
+         data[j][i] = self[i][j]
       end
    end
    return ComplexMatrix:new(data)
@@ -2216,7 +2918,7 @@ function ComplexMatrix:conjugateTranspose()
    for j = 1, self.width do
       data[j] = {}
       for i = 1, self.length do
-	 data[j][i] = self[i][j]:conjugate()
+         data[j][i] = self[i][j]:conjugate()
       end
    end
    return ComplexMatrix:new(data)
@@ -2227,7 +2929,7 @@ function ComplexMatrix:toTranspose()
    for j = 1, self.width do
       data[j] = {}
       for i = 1, self.length do
-	 data[j][i] = self[i][j]
+         data[j][i] = self[i][j]
       end
    end
    self = data
@@ -2239,7 +2941,7 @@ function ComplexMatrix:toConjugateTranspose()
    for j = 1, self.width do
       data[j] = {}
       for i = 1, self.length do
-	 data[j][i] = self[i][j]:conjugate()
+         data[j][i] = self[i][j]:conjugate()
       end
    end
    self = data
@@ -2261,48 +2963,48 @@ function ComplexMatrix:inverse()
       local max = matrix[i][i] or Complex:new(0)
 
       for j = i, length do
-	 local maxCandidate = matrix[j][i]
-	 maxCandidate = maxCandidate:norm()
-	 if maxCandidate > max then
-	    max = maxCandidate
-	    maxRow = j
-	 end
+         local maxCandidate = matrix[j][i]
+         maxCandidate = maxCandidate:norm()
+         if maxCandidate > max then
+            max = maxCandidate
+            maxRow = j
+         end
       end
 
       if max == 0 then
-	 error("Matrix is not invertible.", -1)
+         error("Matrix is not invertible.", -1)
       end
 
       if maxRow ~= i then
-	 matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
-	 result[i], result[maxRow] = result[maxRow], result[i]
+         matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+         result[i], result[maxRow] = result[maxRow], result[i]
       end
 
       max = matrix[i][i]
 
       for j = i + 1, length do
-	 local val = matrix[j][i]
-	 local valOverMax = val:scale(1 / max)
-	 matrix[j][i] = Complex:new(0)
-	 for k = 1, width do
-	    if k > i then
-	       matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
-	    end
-	    result[j][k] = result[j][k] - result[i][k] * valOverMax
-	 end
+         local val = matrix[j][i]
+         local valOverMax = val:scale(1 / max)
+         matrix[j][i] = Complex:new(0)
+         for k = 1, width do
+            if k > i then
+               matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
+            end
+            result[j][k] = result[j][k] - result[i][k] * valOverMax
+         end
       end
    end
 
    for i = length, 1, -1 do
       local val = matrix[i][i]
       for j = 1, i - 1 do
-	 local val1 = matrix[i - j][i]
-	 for k = 1, width do
-	    result[i - j][k] = result[i - j][k] - val1 * result[i][k] / val
-	 end
+         local val1 = matrix[i - j][i]
+         for k = 1, width do
+            result[i - j][k] = result[i - j][k] - val1 * result[i][k] / val
+         end
       end
       for j = 1, width do
-	 result[i][j] = result[i][j] / val
+         result[i][j] = result[i][j] / val
       end
    end
 
@@ -2324,48 +3026,48 @@ function ComplexMatrix:toInverse()
       local max = matrix[i][i] or Complex:new(0)
 
       for j = i, length do
-	 local maxCandidate = matrix[j][i]
-	 maxCandidate = maxCandidate:norm()
-	 if maxCandidate > max then
-	    max = maxCandidate
-	    maxRow = j
-	 end
+         local maxCandidate = matrix[j][i]
+         maxCandidate = maxCandidate:norm()
+         if maxCandidate > max then
+            max = maxCandidate
+            maxRow = j
+         end
       end
 
       if max == 0 then
-	 error("Matrix is not invertible.", -1)
+         error("Matrix is not invertible.", -1)
       end
 
       if maxRow ~= i then
-	 matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
-	 result[i], result[maxRow] = result[maxRow], result[i]
+         matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+         result[i], result[maxRow] = result[maxRow], result[i]
       end
 
       max = matrix[i][i]
 
       for j = i + 1, length do
-	 local val = matrix[j][i]
-	 local valOverMax = val:scale(1 / max)
-	 matrix[j][i] = Complex:new(0)
-	 for k = 1, width do
-	    if k > i then
-	       matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
-	    end
-	    result[j][k] = result[j][k] - result[i][k] * valOverMax
-	 end
+         local val = matrix[j][i]
+         local valOverMax = val:scale(1 / max)
+         matrix[j][i] = Complex:new(0)
+         for k = 1, width do
+            if k > i then
+               matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
+            end
+            result[j][k] = result[j][k] - result[i][k] * valOverMax
+         end
       end
    end
 
    for i = length, 1, -1 do
       local val = matrix[i][i]
       for j = 1, i - 1 do
-	 local val1 = matrix[i - j][i]
-	 for k = 1, width do
-	    result[i - j][k] = result[i - j][k] - val1 * result[i][k] / val
-	 end
+         local val1 = matrix[i - j][i]
+         for k = 1, width do
+            result[i - j][k] = result[i - j][k] - val1 * result[i][k] / val
+         end
       end
       for j = 1, width do
-	 result[i][j] = result[i][j] / val
+         result[i][j] = result[i][j] / val
       end
    end
    self = result
@@ -2398,34 +3100,34 @@ function ComplexMatrix:solve(vector)
       local max = matrix[i][i]
 
       for j = i, numberOfRows do
-	 local maxCandidate = matrix[j][i]
-	 maxCandidate = maxCandidate:norm()
-	 if maxCandidate > max then
-	    max = maxCandidate
-	    maxRow = j
-	 end
+         local maxCandidate = matrix[j][i]
+         maxCandidate = maxCandidate:norm()
+         if maxCandidate > max then
+            max = maxCandidate
+            maxRow = j
+         end
       end
 
       if max == 0 then
-	 error("Matrix system is not solvable")
+         error("Matrix system is not solvable")
       end
 
       if maxRow ~= i then
-	 matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
-	 columnVector[i], columnVector[maxRow] = columnVector[maxRow], columnVector[i]
+         matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+         columnVector[i], columnVector[maxRow] = columnVector[maxRow], columnVector[i]
       end
 
       max = matrix[i][i]
 
       for j = i + 1, numberOfRows do
-	 local val = matrix[j][i]
-	 local valOverMax = val:scale(1 / max)
-	 local columnVal1, columnVal2 = columnVector[j][1], columnVector[i][1]
-	 columnVector[j][1] = columnVal1 - valOverMax * columnVal2
-	 matrix[j][i] = Complex:new(0)
-	 for k = i + 1, numberOfColumns do
-	    matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
-	 end
+         local val = matrix[j][i]
+         local valOverMax = val:scale(1 / max)
+         local columnVal1, columnVal2 = columnVector[j][1], columnVector[i][1]
+         columnVector[j][1] = columnVal1 - valOverMax * columnVal2
+         matrix[j][i] = Complex:new(0)
+         for k = i + 1, numberOfColumns do
+            matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
+         end
       end
    end
 
@@ -2434,11 +3136,11 @@ function ComplexMatrix:solve(vector)
    for i = numberOfRows, 1, -1 do
       local temp = Complex:new(0)
       for j = i + 1, numberOfColumns, 1 do
-	 temp = temp + matrix[i][j] * columnVector[j][1]
+         temp = temp + matrix[i][j] * columnVector[j][1]
       end
       columnVector[i][1] = columnVector[i][1]
       if matrix[i][i]:norm() == 0 then
-	 error("Matrix system is not solvable")
+         error("Matrix system is not solvable")
       end
       columnVector[i][1] = (columnVector[i][1] - temp) / matrix[i][i]
    end
@@ -2471,36 +3173,36 @@ function ComplexMatrix:LUDecomposition()
       local max = matrix[i][i]
 
       for j = i, numberOfRows do
-	 local maxCandidate = matrix[j][i]
-	 maxCandidate = maxCandidate:norm()
-	 if maxCandidate > max then
-	    max = maxCandidate
-	    maxRow = j
-	 end
+         local maxCandidate = matrix[j][i]
+         maxCandidate = maxCandidate:norm()
+         if maxCandidate > max then
+            max = maxCandidate
+            maxRow = j
+         end
       end
 
       if max == 0 then
-	 error("Matrix is not invertible")
+         error("Matrix is not invertible")
       end
 
       if maxRow ~= i then
-	 matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
-	 for k = 1, i - 1 do
-	    l[i][k], l[maxRow][k] = l[maxRow][k], l[i][k]
-	 end
-	 permutation[i], permutation[maxRow] = permutation[maxRow], permutation[i]
+         matrix[i], matrix[maxRow] = matrix[maxRow], matrix[i]
+         for k = 1, i - 1 do
+            l[i][k], l[maxRow][k] = l[maxRow][k], l[i][k]
+         end
+         permutation[i], permutation[maxRow] = permutation[maxRow], permutation[i]
       end
 
       max = matrix[i][i]
 
       for j = i + 1, numberOfRows do
-	 local val = matrix[j][i]
-	 local valOverMax = val:scale(1 / max)
-	 l[j][i] = valOverMax
-	 matrix[j][i] = Complex:new(0)
-	 for k = i + 1, numberOfColumns do
-	    matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
-	 end
+         local val = matrix[j][i]
+         local valOverMax = val:scale(1 / max)
+         l[j][i] = valOverMax
+         matrix[j][i] = Complex:new(0)
+         for k = i + 1, numberOfColumns do
+            matrix[j][k] = matrix[j][k] - matrix[i][k] * valOverMax
+         end
       end
    end
 
@@ -2522,7 +3224,7 @@ function ComplexMatrix:determinant()
    end
    local LUDecomposition
    local test = pcall(function()
-	 LUDecomposition = self:LUDecomposition()
+         LUDecomposition = self:LUDecomposition()
    end)
    if test == false then
       return Complex:new(0)
@@ -2574,13 +3276,13 @@ function ComplexMatrix:hessenbergForm()
       local gamma = 0
       local sum = 0
       for i = k + 1, n do
-	 sum = sum + a[i][k]:norm() ^ 2
+         sum = sum + a[i][k]:norm() ^ 2
       end
       local tau = math.sqrt(sum)
       a[k + 1][k] = a[k + 1][k] - Complex:new(tau)
       local sum = 0
       for i = k + 1, n do
-	 sum = sum + a[i][k]:norm() ^ 2
+         sum = sum + a[i][k]:norm() ^ 2
       end
       gamma = 2 / sum
 
@@ -2614,37 +3316,37 @@ function ComplexMatrix:toHessenbergForm()
    for k = 1, n - 2 do
       local maxList = {}
       for i = k + 1, n do
-	 maxList[#maxList + 1] = a[i][k]:norm()
+         maxList[#maxList + 1] = a[i][k]:norm()
       end
       local beta = math.max(table.unpack(maxList))
       local gamma = 0
       if beta ~= 0 then
-	 local sum = Complex:new(0)
-	 for i = k + 1, n do
-	    a[i][k] = a[i][k]:scale(1 / beta)
-	    sum = sum + a[i][k]:norm() ^ 2
-	 end
-	 local tau = math.sqrt(sum)
-	 local eta = a[k + 1][k]:norm() + tau
-	 a[k + 1][k] = Complex:new(1)
-	 for i = k + 2, n do
-	    a[i][k] = a[i][k]:scale(1 / eta)
-	 end
-	 gamma = eta / tau
-	 tau = tau * beta
+         local sum = Complex:new(0)
+         for i = k + 1, n do
+            a[i][k] = a[i][k]:scale(1 / beta)
+            sum = sum + a[i][k]:norm() ^ 2
+         end
+         local tau = math.sqrt(sum)
+         local eta = a[k + 1][k]:norm() + tau
+         a[k + 1][k] = Complex:new(1)
+         for i = k + 2, n do
+            a[i][k] = a[i][k]:scale(1 / eta)
+         end
+         gamma = eta / tau
+         tau = tau * beta
 
-	 local temp = a:submatrix(k + 1, n, k + 1, n)
-	 local temp2 = a:submatrix(k + 1, n, k, k)
-	 b:setSubmatrix(k + 1, n, 1, 1, (temp2:conjugateTranspose() * temp):toScaled(-gamma):conjugateTranspose())
-	 a:setSubmatrix(k + 1, n, k + 1, n, temp + temp2 * b:submatrix(k + 1, n, 1, 1):conjugateTranspose())
+         local temp = a:submatrix(k + 1, n, k + 1, n)
+         local temp2 = a:submatrix(k + 1, n, k, k)
+         b:setSubmatrix(k + 1, n, 1, 1, (temp2:conjugateTranspose() * temp):toScaled(-gamma):conjugateTranspose())
+         a:setSubmatrix(k + 1, n, k + 1, n, temp + temp2 * b:submatrix(k + 1, n, 1, 1):conjugateTranspose())
 
-	 temp = a:submatrix(1, n, k + 1, n)
-	 temp2 = a:submatrix(k + 1, n, k, k)
-	 b:setSubmatrix(1, n, 1, 1, (temp * temp2):toScaled(-gamma))
-	 a:setSubmatrix(1, n, k + 1, n, temp + b:submatrix(1, n, 1, 1) * temp2:conjugateTranspose())
-	 a:setSubmatrix(k + 1, n, k, k, temp2:toScaled(0))
+         temp = a:submatrix(1, n, k + 1, n)
+         temp2 = a:submatrix(k + 1, n, k, k)
+         b:setSubmatrix(1, n, 1, 1, (temp * temp2):toScaled(-gamma))
+         a:setSubmatrix(1, n, k + 1, n, temp + b:submatrix(1, n, 1, 1) * temp2:conjugateTranspose())
+         a:setSubmatrix(k + 1, n, k, k, temp2:toScaled(0))
 
-	 a[k + 1][k] = Complex:new(-tau)
+         a[k + 1][k] = Complex:new(-tau)
       end
    end
    return a
@@ -2678,7 +3380,6 @@ Matrices.ComplexMatrix = ComplexMatrix
 
 local SparseMatrix = {
    length = 0,
-   rowConstant = 0,
    width = 0,
    data = nil,
 }
@@ -2694,12 +3395,13 @@ end
 
 function SparseMatrix:tableSet(table: Tensor): Object
    for i, _ in pairs(table) do
+      local rowconstant = self.width * (i - 1)
       for j, w in pairs(table[i]) do
-	 if w == 0 then
-	    self.data[self.width * (i - 1) + j] = nil
-	 else
-	    self.data[self.width * (i - 1) + j] = w
-	 end
+         if w == 0 then
+            self.data[rowconstant + j] = nil
+         else
+            self.data[rowconstant + j] = w
+         end
       end
    end
    return self
@@ -2709,19 +3411,20 @@ function SparseMatrix:rowSet(i: number, table: Vector): Object
    local rowConstant = self.width * (i - 1)
    for j, w in pairs(table) do
       if w == 0 then
-	 self.data[rowConstant + j] = nil
+         self.data[rowConstant + j] = nil
       else
-	 self.data[rowConstant + j] = w
+         self.data[rowConstant + j] = w
       end
    end
 end
 
 function SparseMatrix:columnSet(i: number, table: Vector): Object
+   local rowconstant = i - self.width
    for j, w in pairs(table) do
       if w == 0 then
-	 self.data[self.width * (j - 1) + i] = nil
+         self.data[self.width * j + rowconstant] = nil
       else
-	 self.data[self.width * (j - 1) + i] = w
+         self.data[self.width * j + rowconstant] = w
       end
    end
    return self
@@ -2765,7 +3468,7 @@ function SparseMatrix:new(list: Tensor, length: number, width: number): Object
       sparseMatrix.width = width
       sparseMatrix.data = {}
       for i, v in pairs(list) do
-	 sparseMatrix.data[i] = v
+         sparseMatrix.data[i] = v
       end
       return sparseMatrix
    end
@@ -2774,7 +3477,7 @@ end
 function SparseMatrix:clean(): Object
    for i, v in pairs(self.data) do
       if v == 0 then
-	 self.data[i] = nil
+         self.data[i] = nil
       end
    end
    return self
@@ -2783,7 +3486,7 @@ end
 function SparseMatrix:numericalClean(tol: number): Object
    for i, v in pairs(self.data) do
       if math.abs(v) < tol then
-	 self.data[i] = nil
+         self.data[i] = nil
       end
    end
    return self
@@ -2801,15 +3504,15 @@ function SparseMatrix:addBand(value: number, position: number)
    local cp = self:copy()
    if position == 0 then
       for i = 1, math.min(self.length, self.width) do
-	 cp.data[self.width * (i - 1) + i] = value
+         cp.data[self.width * (i - 1) + i] = value
       end
    elseif position > 0 then
       for i = 1, math.min(self.length, self.width - position) do
-	 cp.data[self.width * (i - 1) + i + position] = value
+         cp.data[self.width * (i - 1) + i + position] = value
       end
    else
       for i = 1, math.min(self.length + position, self.width) do
-	 cp.data[self.width * (i - 1 - position) + i] = value
+         cp.data[self.width * (i - 1 - position) + i] = value
       end
    end
    return cp
@@ -2818,30 +3521,30 @@ end
 function SparseMatrix:toAddedBand(value: number, position: number)
    if position == 0 then
       for i = 1, math.min(self.length, self.width) do
-	 local index = self.width * (i - 1) + i
-	 if self.data[index] then
-	    self.data[index] += value
-	 else
-	    self.data[index] = value
-	 end
+         local index = self.width * (i - 1) + i
+         if self.data[index] then
+            self.data[index] += value
+         else
+            self.data[index] = value
+         end
       end
    elseif position > 0 then
       for i = 1, math.min(self.length, self.width - position) do
-	 local index = self.width * (i - 1) + i + position
-	 if self.data[index] then
-	    self.data[index] += value
-	 else
-	    self.data[index] = value
-	 end
+         local index = self.width * (i - 1) + i + position
+         if self.data[index] then
+            self.data[index] += value
+         else
+            self.data[index] = value
+         end
       end
    else
       for i = 1, math.min(self.length + position, self.width) do
-	 local index = self.width * (i - 1 - position) + i
-	 if self.data[index] then
-	    self.data[index] += value
-	 else
-	    self.data[index] = value
-	 end
+         local index = self.width * (i - 1 - position) + i
+         if self.data[index] then
+            self.data[index] += value
+         else
+            self.data[index] = value
+         end
       end
    end
    return self
@@ -2859,8 +3562,10 @@ end
 function SparseMatrix:transpose()
    local data = {}
    for i = 1, self.length do
+      local columnconstant = i - self.length
+      local rowconstant = (i - 1) * self.width
       for j = 1, self.width do
-	 data[(j - 1) * self.length + i] = self.data[(i - 1) * self.width + j]
+         data[j * self.length + columnconstant] = self.data[rowconstant + j]
       end
    end
    return SparseMatrix:new(data, self.width, self.length)
@@ -2903,7 +3608,7 @@ function SparseMatrix:toDense()
    for i = 1, self.length do
       data[i] = {}
       for j = 1, self.width do
-	 data[i][j] = self:get(i, j)
+         data[i][j] = self:get(i, j)
       end
    end
    
@@ -2916,7 +3621,7 @@ function SparseMatrix.__tostring(matrix: Object): string
    for i = 1, matrix.length - 1 do
       result = result .. "{"
       for j = 1, matrix.width - 1 do
-	 result = result .. tostring(matrix:get(i, j)) .. ", "
+         result = result .. tostring(matrix:get(i, j)) .. ", "
       end
       result = result .. tostring(matrix:get(i, matrix.width)) .. "}, "
    end
@@ -2944,7 +3649,7 @@ function SparseMatrix:pretty(n: number, m: number): string
    if length == 1 then
       result = "("
       for i = 1, width - 1 do
-	 result = result .. _padStringToLength(string.sub(tostring(self.get(1, i)), 1, n), 20) .. " "
+         result = result .. _padStringToLength(string.sub(tostring(self.get(1, i)), 1, n), 20) .. " "
       end
       result = result .. _padStringToLength(string.sub(tostring(self.get(1, width)), 1, n), 20) .. ")"
       return result
@@ -2952,22 +3657,22 @@ function SparseMatrix:pretty(n: number, m: number): string
 
    for i = 1, length do
       if i == 1 then
-	 result = result .. "/"
+         result = result .. "/"
       elseif i == length then
-	 result = result .. "\\"
+         result = result .. "\\"
       else
-	 result = result .. "|"
+         result = result .. "|"
       end
       for j = 1, width - 1 do
-	 result = result .. _padStringToLength(string.sub(tostring(self.get(i, j)), 1, n), 20) .. " "
+         result = result .. _padStringToLength(string.sub(tostring(self.get(i, j)), 1, n), 20) .. " "
       end
       result = result .. _padStringToLength(string.sub(tostring(self.get(i, width)), 1, n), 20)
       if i == 1 then
-	 result = result .. "\\\n"
+         result = result .. "\\\n"
       elseif i == length then
-	 result = result .. "/"
+         result = result .. "/"
       else
-	 result = result .. "|\n"
+         result = result .. "|\n"
       end
    end
    return result
@@ -2994,11 +3699,11 @@ function SparseMatrix:strassenSubdivide(): Array<Object>
    for i = 1, size, 1 do
       local iPlus = i + size
       for j = 1, size, 1 do
-	 local jPlus = j + size
-	 data1:set(i, j, self:get(i, j))
-	 data2:set(i, j, self:get(i, jPlus))
-	 data3:set(i, j, self:get(iPlus, j))
-	 data4:set(i, j, self:get(iPlus, jPlus))
+         local jPlus = j + size
+         data1:set(i, j, self:get(i, j))
+         data2:set(i, j, self:get(i, jPlus))
+         data3:set(i, j, self:get(iPlus, j))
+         data4:set(i, j, self:get(iPlus, jPlus))
       end
    end
    return {
@@ -3021,9 +3726,9 @@ function SparseMatrix.__add(left: Object, right: Object): Object
    for i, v in pairs(right.data) do
       local val = (data.data[i] or 0) + v
       if val == 0 then
-	 data.data[i] = nil
+         data.data[i] = nil
       else
-	 data.data[i] = val
+         data.data[i] = val
       end
    end
 
@@ -3042,9 +3747,9 @@ function SparseMatrix.__sub(left: Object, right: Object): Object
    for i, v in pairs(right.data) do
       local val = (data.data[i] or 0) - v
       if val == 0 then
-	 data.data[i] = nil
+         data.data[i] = nil
       else
-	 data.data[i] = val
+         data.data[i] = val
       end
    end
 
@@ -3065,25 +3770,25 @@ function SparseMatrix.__mul(left: Object, right: Object): Object
    for k, v in pairs(leftData) do
       local c = k % leftWidth
       if c == 0 then
-	 c = leftWidth
+         c = leftWidth
       end
       local r = math.floor((k - c) / leftWidth)
       for kk, vv in pairs(rightData) do
-	 local cc = kk % rightWidth
-	 if cc == 0 then
-	    cc = rightWidth
-	 end
-	 local rr = math.floor((kk - cc) / rightWidth)
-	 if c == rr + 1 then
-	    local rcc = cc + r * rightWidth
-	    local temp = data[rcc]
-	    local vvv = v * vv
-	    if temp ~= nil and vvv ~= 0 then
-	       data[rcc] = temp + vvv
-	    elseif vvv ~= 0 then
-	       data[rcc] = vvv
-	    end
-	 end
+         local cc = kk % rightWidth
+         if cc == 0 then
+            cc = rightWidth
+         end
+         local rr = math.floor((kk - cc) / rightWidth)
+         if c == rr + 1 then
+            local rcc = cc + r * rightWidth
+            local temp = data[rcc]
+            local vvv = v * vv
+            if temp ~= nil and vvv ~= 0 then
+               data[rcc] = temp + vvv
+            elseif vvv ~= 0 then
+               data[rcc] = vvv
+            end
+         end
       end
    end
    return SparseMatrix:new(data, leftLength, rightWidth)
@@ -3095,7 +3800,7 @@ function SparseMatrix.__eq(left: Object, right: Object): boolean
    else
       local test = left - right
       for _, v in pairs(test.data) do
-	 return false
+         return false
       end
    end
    return true
@@ -3132,13 +3837,27 @@ end
 
 function SparseMatrix:scale(mu)
    for i, v in self.data do
-      self[i] = mu * v
+      self.data[i] = mu * v
    end
+   return self
 end
 
 function SparseMatrix:scaled(mu)
    local matrix = self:copy()
    return matrix:scale(mu)
+end
+
+function SparseMatrix:kroneckerProduct(matrix)
+   local result = SparseMatrix:new({}, self.length * matrix.length, self.width * matrix.width)
+   for i = 1, self.length do
+      for j = 1, self.width do
+	 local scalar = self:get(i, j)
+	 if scalar ~= 0 then
+	    result:setSubmatrix((i - 1) * matrix.width + 1, (j - 1) * matrix.length + 1, matrix:scaled(scalar))
+	 end
+      end
+   end
+   return result
 end
 
 function SparseMatrix:rayleighQuotient(vector)
@@ -3161,15 +3880,15 @@ function SparseMatrix:submatrix(rowStart: number, rowEnd: number, columnStart: n
    for k, v in pairs(self.data) do
       local c = k % self.width
       if c == 0 then
-	 c = self.width
+         c = self.width
       end
       local r = (k - c) / self.width + 1
       if rowStart <= r and r <= rowEnd and columnStart <= c and c <= columnEnd then
-	 local rc = columnEnd - columnStart + 1
-	 local nr = r - rowStart
-	 local nc = c - columnStart + 1
-	 rc = rc * nr + nc
-	 data[rc] = v
+         local rc = columnEnd - columnStart + 1
+         local nr = r - rowStart
+         local nc = c - columnStart + 1
+         rc = rc * nr + nc
+         data[rc] = v
       end
    end
    return SparseMatrix:new(data, rowEnd - rowStart + 1, columnEnd - columnStart + 1)
@@ -3179,15 +3898,13 @@ function SparseMatrix:setSubmatrix(rowStart: number, columnStart: number, matrix
    for k, v in pairs(matrix.data) do
       local c = k % matrix.width
       if c == 0 then
-	 c = matrix.width
+         c = matrix.width
       end
       local r = (k - c) / matrix.width + 1
-      if rowStart <= r and columnStart <= c then
-	 local nr = r + rowStart - 2
-	 local nc = c + columnStart - 1
-	 local rc = self.width * nr + nc
-	 self.data[rc] = v
-      end
+      local nr = r + rowStart - 2
+      local nc = c + columnStart - 1
+      local rc = self.width * nr + nc
+      self.data[rc] = v
    end
    return self
 end
@@ -3200,11 +3917,11 @@ function SparseMatrix:apply(vector: Vector): Vector
    for k, v in pairs(self.data) do
       local c = k % self.width
       if c == 0 then
-	 c = self.width
+         c = self.width
       end
       local r = (k - c) / self.width + 1
       if vector[c] then
-	 data[r] = data[r] + v * vector[c]
+         data[r] = data[r] + v * vector[c]
       end
    end
 
@@ -3233,22 +3950,22 @@ function SparseMatrix:powerMethod(vector: Vector, tolerance: number): (number, V
       vector = {}
       local iter = 1
       for k, v in pairs(self.data) do
-	 if iter > self.width then
-	    break
-	 else
-	    vector[iter] = v
-	    iter += 1
-	 end
+         if iter > self.width then
+            break
+         else
+            vector[iter] = v
+            iter += 1
+         end
       end
       if iter == 1 then
-	 for i = 1, self.width do
-	    vector[i] = 0
-	 end
-	 return 0, vector
+         for i = 1, self.width do
+            vector[i] = 0
+         end
+         return 0, vector
       else
-	 for i = iter, self.width do
-	    vector[i] = 0
-	 end
+         for i = iter, self.width do
+            vector[i] = 0
+         end
       end
    end
    -- Repeatedly apply the matrix to the vector normalizing at each step until the change is minimal
@@ -3265,7 +3982,7 @@ function SparseMatrix:powerMethod(vector: Vector, tolerance: number): (number, V
    local sum = 0
    for i = 1, #vector do
       if(vector[i] ~= 0) then
-	 sum += newVector[i] / vector[i]
+         sum += newVector[i] / vector[i]
       end
    end
 
@@ -3279,22 +3996,22 @@ function SparseMatrix:inverseIteration(vector, mu, tolerance)
       vector = {}
       local iter = 1
       for k, v in pairs(self.data) do
-	 if iter > self.width then
-	    break
-	 else
-	    vector[iter] = v
-	    iter += 1
-	 end
+         if iter > self.width then
+            break
+         else
+            vector[iter] = v
+            iter += 1
+         end
       end
       if iter == 1 then
-	 for i = 1, self.width do
-	    vector[i] = 0
-	 end
-	 return 0, vector
+         for i = 1, self.width do
+            vector[i] = 0
+         end
+         return 0, vector
       else
-	 for i = iter, self.width do
-	    vector[i] = 0
-	 end
+         for i = iter, self.width do
+            vector[i] = 0
+         end
       end
    end
    local matrix = self - SparseMatrix:scaledIdentity(self.length, mu)
@@ -3313,7 +4030,7 @@ function SparseMatrix:inverseIteration(vector, mu, tolerance)
    local sum = 0
    for i = 1, #vector do
       if(vector[i] ~= 0) then
-	 sum += newVector[i] / vector[i]
+         sum += newVector[i] / vector[i]
       end
    end
 
@@ -3327,22 +4044,22 @@ function SparseMatrix:rayleighIteration(vector, mu, tolerance)
       vector = {}
       local iter = 1
       for k, v in pairs(self.data) do
-	 if iter > self.width then
-	    break
-	 else
-	    vector[iter] = v
-	    iter += 1
-	 end
+         if iter > self.width then
+            break
+         else
+            vector[iter] = v
+            iter += 1
+         end
       end
       if iter == 1 then
-	 for i = 1, self.width do
-	    vector[i] = 0
-	 end
-	 return 0, vector
+         for i = 1, self.width do
+            vector[i] = 0
+         end
+         return 0, vector
       else
-	 for i = iter, self.width do
-	    vector[i] = 0
-	 end
+         for i = iter, self.width do
+            vector[i] = 0
+         end
       end
    end
    mu = mu or self:rayleighQuotient(vector)
@@ -3356,7 +4073,7 @@ function SparseMatrix:rayleighIteration(vector, mu, tolerance)
       mu = self:rayleighQuotient(vector)
       matrix = self - SparseMatrix:scaledIdentity(self.length, mu)
       if Vectors.norm(matrix:apply(vector)) < tolerance then
-	 break
+         break
       end
       newVector = matrix:solve(vector, tolerance)
       newVector = Vectors.scale(1 / Vectors.norm(newVector), newVector)
@@ -3368,7 +4085,7 @@ function SparseMatrix:rayleighIteration(vector, mu, tolerance)
    local sum = 0
    for i = 1, #vector do
       if(vector[i] ~= 0) then
-	 sum += newVector[i] / vector[i]
+         sum += newVector[i] / vector[i]
       end
    end
 
@@ -3386,22 +4103,22 @@ function SparseMatrix:arnoldiProcess(n: number, x: Vector, tolerance: number): A
       t += 1
       q[i] = self:apply(q[i - 1])
       for j = 1, i - 1 do
-	 if not h[j] then
-	    h[j] = {}
-	 end
-	 local dot = Vectors.dot(q[j], q[i])
-	 if math.abs(dot) > tolerance then
-	    h[j][i - 1] = dot
-	 end
-	 q[i] = Vectors.sub(q[i], Vectors.scale(dot, q[j]))
+         if not h[j] then
+            h[j] = {}
+         end
+         local dot = Vectors.dot(q[j], q[i])
+         if math.abs(dot) > tolerance then
+            h[j][i - 1] = dot
+         end
+         q[i] = Vectors.sub(q[i], Vectors.scale(dot, q[j]))
       end
       if not h[i] then
-	 h[i] = {}
+         h[i] = {}
       end
       local norm = Vectors.norm(q[i])
       if math.abs(norm) < tolerance then
-	 q[i] = nil
-	 break
+         q[i] = nil
+         break
       end
       h[i][i - 1] = norm
       q[i] = Vectors.scale(1 / norm, q[i])
@@ -3431,18 +4148,18 @@ function SparseMatrix:eigenvalues(n: number, x: Vector, tolerance: number)
    while Vectors.norm(Vectors.sub(oldEigenvalues, eigenvalues)) > tolerance do
       t=0
       for i = 2, m do
-	 t += 1
-	 q[i] = self:apply(q[i - 1])
-	 for j = 1, i - 1 do
-	    local dot = Vectors.dot(q[j], q[i])
-	    q[i] = Vectors.sub(q[i], Vectors.scale(dot, q[j]))
-	 end
-	 local norm = Vectors.norm(q[i])
-	 if math.abs(norm) < tolerance then
-	    q[i] = nil
-	    break
-	 end
-	 q[i] = Vectors.scale(1 / norm, q[i])
+         t += 1
+         q[i] = self:apply(q[i - 1])
+         for j = 1, i - 1 do
+            local dot = Vectors.dot(q[j], q[i])
+            q[i] = Vectors.sub(q[i], Vectors.scale(dot, q[j]))
+         end
+         local norm = Vectors.norm(q[i])
+         if math.abs(norm) < tolerance then
+            q[i] = nil
+            break
+         end
+         q[i] = Vectors.scale(1 / norm, q[i])
       end
       Q = SparseMatrix:new(q)
       -- print(Q)
@@ -3451,9 +4168,9 @@ function SparseMatrix:eigenvalues(n: number, x: Vector, tolerance: number)
       oldEigenvalues = Tools.list.copy(eigenvalues)
       eigenvalues = Tools.list.sublist(H:numericalClean(tolerance):toDense():eigenvalues(tolerance), n)
       if #oldEigenvalues < #eigenvalues then
-	 oldEigenvalues = Tools.list.copy(eigenvalues)
-	 oldEigenvalues[1] *= 2
-	 oldEigenvalues[1] += tolerance
+         oldEigenvalues = Tools.list.copy(eigenvalues)
+         oldEigenvalues[1] *= 2
+         oldEigenvalues[1] += tolerance
       end
       local temp = q[#q]
       q = {}
@@ -3467,8 +4184,8 @@ function SparseMatrix:symmetricCopy()
    local data = {}
    for i = 1, n do
       for j = 1, i do
-	 data[n * (i - 1) + j] = self:get(i, j)
-	 data[n * (j - 1) + i] = self:get(i, j)
+         data[n * (i - 1) + j] = self:get(i, j)
+         data[n * (j - 1) + i] = self:get(i, j)
       end
    end
    return SparseMatrix:new(data, n, n)
@@ -3481,28 +4198,28 @@ function SparseMatrix:tridiagonalize()
    for i = 1, self.length - 2 do
       -- i is the current column
       for j = i + 2, self.length do
-	 local a = matrix:get(i + 1, i)
-	 local b = matrix:get(j, i)
-	 if b == 0 then
-	    continue
-	 end
-	 local r = Numerics.hypot(a, b)
-	 local c = a / r
-	 local s = -b / r
-	 matrix:set(i + 1, i, r)
-	 matrix:set(i, i + 1, r)
-	 matrix:set(j, i, 0)
-	 matrix:set(i, j, 0)
-	 for k = i + 1, self.length do
-	    a = matrix:get(i + 1, k)
-	    b = matrix:get(j, k)
-	    matrix:set(i + 1, k, c * a - s * b)
-	    matrix:set(j, k, s * a + c * b)
-	    a = matrix:get(k, i + 1)
-	    b = matrix:get(k, j)
-	    matrix:set(k, i + 1, c * a - s * b)
-	    matrix:set(k, j, s * a + c * b)
-	 end
+         local a = matrix:get(i + 1, i)
+         local b = matrix:get(j, i)
+         if b == 0 then
+            continue
+         end
+         local r = Numerics.hypot(a, b)
+         local c = a / r
+         local s = -b / r
+         matrix:set(i + 1, i, r)
+         matrix:set(i, i + 1, r)
+         matrix:set(j, i, 0)
+         matrix:set(i, j, 0)
+         for k = i + 1, self.length do
+            a = matrix:get(i + 1, k)
+            b = matrix:get(j, k)
+            matrix:set(i + 1, k, c * a - s * b)
+            matrix:set(j, k, s * a + c * b)
+            a = matrix:get(k, i + 1)
+            b = matrix:get(k, j)
+            matrix:set(k, i + 1, c * a - s * b)
+            matrix:set(k, j, s * a + c * b)
+         end
       end
    end
    return matrix
@@ -3514,32 +4231,32 @@ function SparseMatrix:QRDecomposition(tol)
    local R = self:copy()
    for i = 1, self.width do
       for j = self.length, i + 1, -1 do
-	 local a = R:get(i, i)
-	 local b = R:get(j, i)
-	 if math.abs(b) < tol then
-	    continue
-	 end
-	 local r = Numerics.hypot(a, b)
-	 R:set(i, i, r)
-	 R:set(j, i, 0)
-	 local c = a / r
-	 local s = -b / r
-	 for k = i + 1, self.width do
-	    local x = R:get(i, k)
-	    local y = R:get(j, k)
-	    R:set(i, k, c * x - s * y)
-	    R:set(j, k, s * x + c * y)
-	 end
-	 for k = 1, self.width do
-	    local x = QT:get(i, k)
-	    local y = QT:get(j, k)
-	    QT:set(i, k, c * x - s * y)
-	    QT:set(j, k, s * x + c * y)
-	 end
+         local a = R:get(i, i)
+         local b = R:get(j, i)
+         if math.abs(b) < tol then
+            continue
+         end
+         local r = Numerics.hypot(a, b)
+         R:set(i, i, r)
+         R:set(j, i, 0)
+         local c = a / r
+         local s = -b / r
+         for k = i + 1, self.width do
+            local x = R:get(i, k)
+            local y = R:get(j, k)
+            R:set(i, k, c * x - s * y)
+            R:set(j, k, s * x + c * y)
+         end
+         for k = 1, self.width do
+            local x = QT:get(i, k)
+            local y = QT:get(j, k)
+            QT:set(i, k, c * x - s * y)
+            QT:set(j, k, s * x + c * y)
+         end
       end
    end
    return QT:transpose(), R
-end	 
+end      
 
 function SparseMatrix:QREigenvalues(tol)
    tol = tol or 10 ^ -13
@@ -3558,7 +4275,7 @@ function SparseMatrix:QREigenvalues(tol)
       err = Vectors.norm(sub) / #sub
    end
    return matrix:getDiagonal(), q
-end	 
+end      
 
 function SparseMatrix:QREigenvaluesAnalysis(tol)
    tol = tol or 10 ^ -13
@@ -3593,13 +4310,13 @@ function SparseMatrix:upperTriangularSolve(b: Vector)
    for i = #b, 1, -1 do
       temp = self:get(i, i)
       if temp == 0 then
-	 error("Sparse system is not solvable")
+         error("Sparse system is not solvable")
       end
       for j = #b, i + 1, -1 do
-	 temp2 = self:get(i, j)
-	 if temp2 ~= 0 then
-	    b[i] -= temp2 * b[j]
-	 end
+         temp2 = self:get(i, j)
+         if temp2 ~= 0 then
+            b[i] -= temp2 * b[j]
+         end
       end
       b[i] /= temp
    end
@@ -3616,7 +4333,7 @@ function SparseMatrix:hessenbergLeastSquare(b0: Vector)
       local indexPlus = i * width + i
       local a, b = self.data[index], self.data[indexPlus]
       if b == nil then
-	 continue
+         continue
       end
       a = a or 0
       local r = Numerics.hypot(a, b)
@@ -3625,27 +4342,27 @@ function SparseMatrix:hessenbergLeastSquare(b0: Vector)
       local iPlus = i + 1
       b0[i], b0[iPlus] = c * b0[i] - s * b0[iPlus], s * b0[i] + c * b0[iPlus]
       for j = i + 1, width do
-	 index = (i - 1) * width + j
-	 indexPlus = i * width + j
-	 local temp1 = self.data[index]
-	 local temp2 = self.data[indexPlus]
-	 local sum1 = 0
-	 local sum2 = 0
-	 if temp1 ~= nil then
-	    if temp2 ~= nil then
-	       sum1 = c * temp1 - s * temp2
-	       sum2 = s * temp1 + c * temp2
-	    else
-	       sum1 = c * temp1
-	       sum2 = s * temp1
-	    end
-	 else
-	    if temp2 ~= nill then
-	       sum1 = -s * temp2
-	       sum2 = c * temp2
-	    end
-	 end
-	 self.data[index], self.data[indexPlus] = sum1, sum2
+         index = (i - 1) * width + j
+         indexPlus = i * width + j
+         local temp1 = self.data[index]
+         local temp2 = self.data[indexPlus]
+         local sum1 = 0
+         local sum2 = 0
+         if temp1 ~= nil then
+            if temp2 ~= nil then
+               sum1 = c * temp1 - s * temp2
+               sum2 = s * temp1 + c * temp2
+            else
+               sum1 = c * temp1
+               sum2 = s * temp1
+            end
+         else
+            if temp2 ~= nill then
+               sum1 = -s * temp2
+               sum2 = c * temp2
+            end
+         end
+         self.data[index], self.data[indexPlus] = sum1, sum2
       end
    end
    local newLength = math.min(length, width)
@@ -3675,6 +4392,25 @@ function SparseMatrix:solve(b, tol)
    return self:GMRES(b, tol)
 end
 
+function SparseMatrix:conjugateGradient(b, x, tol)
+   x = x or Vectors.zeros(A.width)
+   local r = Vectors.sub(b, self:apply(x))
+   local rr = r
+   local p = r
+   local res = Vectors.norm(r)
+   while res > tol do
+      local q = self:apply(p)
+      local alpha = Vectors.dot(r, r) / Vectors.dot(p, q)
+      x = Vectors.add(x, Vectors.scale(alpha, p))
+      r = Vectors.sub(r, Vectors.scale(alpha, q))
+      res = Vectors.norm(r)
+      local beta = Vectors.dot(r, r) / Vectors.dot(rr, rr)
+      rr = r
+      p = Vectors.add(r, Vectors.scale(beta, p))
+   end
+   return x
+end
+
 function SparseMatrix:inverse(tol)
    tol = tol or 10 ^ -13
    if self.length ~= self.width then
@@ -3686,15 +4422,22 @@ function SparseMatrix:inverse(tol)
       local e = iden:row(i)
       local r = self:solve(e)
       for j = 1, #r do
-	 if math.abs(r[j]) >= tol then
-	    data[self.width * (j - 1) + i] = r[j]
-	 end
+         if math.abs(r[j]) >= tol then
+            data[self.width * (j - 1) + i] = r[j]
+         end
       end
    end
    return SparseMatrix:new(data, self.length, self.length)
 end
-	 
+         
 Matrices.SparseMatrix = SparseMatrix
+
+--- WARNING EXPERIMENTAL!
+
+local SparseSymmetricMatrix = {
+   length = 0,
+   data = nil
+}
 
 --[[
    +--------------------------------------------------+
@@ -3710,28 +4453,28 @@ function Matrices.constants.ComputeStrassenLimit()
    for i = 1, 100, 1 do
       local data = {}
       for j = 1, math.pow(2, i), 1 do
-	 data[j] = {}
-	 for k = 1, math.pow(2, i) do
-	    data[j][k] = 1
-	 end
+         data[j] = {}
+         for k = 1, math.pow(2, i) do
+            data[j][k] = 1
+         end
       end
       local matrix = Matrix:new(data)
       Matrices.constants.STRASSENLIMIT = math.floor(math.pow(2, i))
       local tic = os.clock()
       for j = 1, 10, 1 do
-	 local store = matrix * matrix
+         local store = matrix * matrix
       end
       local time = (os.clock() - tic)
       Matrices.constants.STRASSENLIMIT = math.floor(math.pow(2, i + 1))
       tic = os.clock()
       for j = 1, 10, 1 do
-	 local store = matrix * matrix
+         local store = matrix * matrix
       end
       local time2 = (os.clock() - tic)
       if time < time2 then
-	 print(time, time2)
-	 Matrices.constants.STRASSENLIMIT = math.floor(math.pow(2, i))
-	 return nil
+         print(time, time2)
+         Matrices.constants.STRASSENLIMIT = math.floor(math.pow(2, i))
+         return nil
       end
    end
 end
@@ -3743,19 +4486,19 @@ function Matrices.constants.ComputeSparseStrassenLimit()
       Matrices.constants.SPARSESTRASSENLIMIT = math.floor(math.pow(2, i))
       local tic = os.clock()
       for j = 1, 1000, 1 do
-	 local store = matrix * matrix
+         local store = matrix * matrix
       end
       local time = (os.clock() - tic)
       Matrices.constants.SPARSESTRASSENLIMIT = math.floor(math.pow(2, i + 1))
       tic = os.clock()
       for j = 1, 1000, 1 do
-	 local store = matrix * matrix
+         local store = matrix * matrix
       end
       local time2 = (os.clock() - tic)
       if time < time2 then
-	 print(time, time2)
-	 Matrices.constants.SPARSESTRASSENLIMIT = math.floor(math.pow(2, i))
-	 return nil
+         print(time, time2)
+         Matrices.constants.SPARSESTRASSENLIMIT = math.floor(math.pow(2, i))
+         return nil
       end
    end
 end
@@ -3767,19 +4510,19 @@ function Matrices.constants.ComputeComplexStrassenLimit()
       Matrices.constants.COMPLEXSTRASSENLIMIT = math.floor(math.pow(2, i))
       local tic = os.clock()
       for j = 1, 100, 1 do
-	 local store = matrix * matrix
+         local store = matrix * matrix
       end
       local time = (os.clock() - tic)
       Matrices.constants.COMPLEXSTRASSENLIMIT = math.floor(math.pow(2, i + 1))
       tic = os.clock()
       for j = 1, 100, 1 do
-	 local store = matrix * matrix
+         local store = matrix * matrix
       end
       local time2 = (os.clock() - tic)
       if time < time2 then
-	 print(time, time2)
-	 Matrices.constants.COMPLEXSTRASSENLIMIT = math.floor(math.pow(2, i))
-	 return nil
+         print(time, time2)
+         Matrices.constants.COMPLEXSTRASSENLIMIT = math.floor(math.pow(2, i))
+         return nil
       end
    end
 end

@@ -5,7 +5,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 ]]
 
 local Tools = require(script.Parent.Tools)
+local Vectors = require(script.Parent.Vectors)
 local MA = require(script.Parent.Matrices)
+local Matrix = MA.Matrix
 
 local EPSILON = 10 ^ -13
 
@@ -18,7 +20,7 @@ NumericalMethods.solvers = {}
 	given by a and b respectively using Regula Falsi. This method only works if
 	f(a) and f(b) have different signs.
 
-	@param f --- A differentiable function
+	@param f --- A continuous
 	@param t --- The right hand value in the equation f(x) = t
 	@param a --- Left bound of the search interval
 	@param b --- Right bound of the search interval
@@ -94,6 +96,199 @@ function NumericalMethods.solvers.newtonsMethod(
 		valuePrime = fPrime(x)
 	end
 	return x
+end
+
+--[=[
+	Attempts to solve the problem f(x) = t for x using Newton's method.
+	This might take a long time to run if the function is bad.
+
+	@param f --- A differentiable function taking in n floats and outputing an array of n floats
+	@param df --- A function representing the Jacobian of f
+	@param t --- The right hand value in the equation f(x) = t
+	@param x --- An initial guess at a solution.
+	@param tol --- An optional parameter to specify a tolerance for root finding.
+--]=]
+function NumericalMethods.solvers.jacobianNewtonsMethod(
+      f: (number) -> number,
+      df,
+      t: number,
+      x: number,
+      tol: number
+						       ): number
+   local deriv = df(unpack(x))
+   local n = #deriv
+   tol = tol or EPSILON
+   t = t or Vectors.zeros(n)
+   local value = Vectors.zeros(n)
+   local funct = f(unpack(x))
+   for i = 1, n do
+      value[i] = funct[i] - t[i]
+   end
+   local valuePrime = Matrix:zero(n, n)
+   for i = 1, n do
+      for j = 1, n do
+	 valuePrime[i][j] = deriv[i][j]
+      end
+   end
+   while Vectors.norm(value) >= tol do
+      x = Vectors.sub(x, valuePrime:solve(value))
+      funct = f(unpack(x))
+      for i = 1, n do
+	 value[i] = funct[i] - t[i]
+      end
+      deriv = df(unpack(x))
+      for i = 1, n do
+	 for j = 1, n do
+	    valuePrime[i][j] = deriv[i][j]
+	 end
+      end
+   end
+   return x
+end
+
+--[=[
+	Attempts to solve the problem f(x) = t for x using Newton's method.
+	This might take a long time to run if the function is bad.
+
+	@param f --- A differentiable function taking in n floats and outputing an array of n floats
+	@param df --- A function representing the Jacobian of f
+	@param t --- The right hand value in the equation f(x) = t
+	@param x --- An initial guess at a solution.
+	@param tol --- An optional parameter to specify a tolerance for root finding.
+--]=]
+function NumericalMethods.solvers.jacobianNewtonsMethod(
+      f: (number) -> number,
+      df,
+      t: number,
+      x: number,
+      tol: number
+						       ): number
+   local deriv = df(unpack(x))
+   local n = #deriv
+   tol = tol or EPSILON
+   t = t or Vectors.zeros(n)
+   local value = Vectors.zeros(n)
+   local funct = f(unpack(x))
+   for i = 1, n do
+      value[i] = funct[i] - t[i]
+   end
+   local valuePrime = Matrix:zero(n, n)
+   for i = 1, n do
+      for j = 1, n do
+	 valuePrime[i][j] = deriv[i][j]
+      end
+   end
+   while Vectors.norm(value) >= tol do
+      x = Vectors.sub(x, valuePrime:solve(value))
+      print(Tools.list.tostring(x))
+      funct = f(unpack(x))
+      for i = 1, n do
+	 value[i] = funct[i] - t[i]
+      end
+      deriv = df(unpack(x))
+      for i = 1, n do
+	 for j = 1, n do
+	    valuePrime[i][j] = deriv[i][j]
+	 end
+      end
+   end
+   return x
+end
+
+--[=[
+	Attempts to solve the problem f(x) = t for x using Newton's method.
+	This might take a long time to run if the function is bad.
+
+	@param f --- A differentiable function taking in n floats and outputing an array of n floats
+	@param df --- A function representing the Jacobian of f
+	@param t --- The right hand value in the equation f(x) = t
+	@param x --- An initial guess at a solution.
+	@param tol --- An optional parameter to specify a tolerance for root finding.
+--]=]
+function NumericalMethods.solvers.thresholdedNewtonsMinimization(
+      f: (number) -> number,
+      grad,
+      hess,
+      x: number,
+      thresh,
+      tol: number
+						       ): number
+   local deriv = hess(unpack(x))
+   local n = #deriv
+   tol = tol or EPSILON
+   local value = grad(unpack(x))
+   local valuePrime = Matrix:zero(n, n)
+   for i = 1, n do
+      for j = 1, n do
+	 valuePrime[i][j] = deriv[i][j]
+      end
+   end
+   local d, q = valuePrime:symmetricFrancisOne(nil, tol)
+   for i = 1, #d do
+      d[i] = math.max(thresh, d[i])
+   end
+   valuePrime = q:transpose() * Matrix:diagonal(d) * q
+   while Vectors.norm(value) >= tol do
+      x = Vectors.sub(x, valuePrime:solve(value))
+      print(Tools.list.tostring(x))
+      value = grad(unpack(x))
+      deriv = hess(unpack(x))
+      for i = 1, n do
+	 for j = 1, n do
+	    valuePrime[i][j] = deriv[i][j]
+	 end
+      end
+      d, q = valuePrime:symmetricFrancisOne(nil, tol)
+      for i = 1, #d do
+	 d[i] = math.max(thresh, d[i])
+      end
+      valuePrime = q:transpose() * Matrix:diagonal(d) * q
+   end
+   return x
+end
+
+--[=[
+   Attempts to find a local extrema of the twice differentiable function f(x) using Newton's method
+
+   @param f --- A twice differentiable scalar function
+   @param grad --- An array of functions representing the gradient of f
+   @param hess --- An array of arrays of functions representing the Hessian of f
+   @param x --- An initial guess at a solution.
+   @param tol --- An optional parameter to specify a tolerance for gradient root finding.
+--]=]
+function NumericalMethods.solvers.newtonsExtrema(f, grad, hess, x, tol)
+   local n = #x
+   x = x or Vectors.zeros(n)
+   return NumericalMethods.solvers.jacobianNewtonsMethod(grad,
+							 hess,
+							 Vectors.zeros(n),
+							 x,
+							 tol)
+end
+
+--[=[
+   Attempts to find a local minimimum of the once differentiable function f using gradient descent
+
+   @param f --- A once differentiable scalar function
+   @param grad --- An array of functions representing the gradient of f
+   @param x --- An initial guess at a solution.
+   @param tol --- An optional parameter to specify a tolerance for gradient root finding.
+--]=]
+function NumericalMethods.solvers.gradientDescent(f, grad, x, tol, maxIters)
+   tol = tol or EPSILON
+   maxIters = maxIters or math.huge
+   local n = #x
+   local iter = 0
+   local des = grad(unpack(x))
+   local res = Vectors.norm(des)
+   while res > tol and iter < maxIters do
+      x = Vectors.sub(x, des)
+      des = grad(unpack(x))
+      print(Tools.list.tostring(x))
+      res = Vectors.norm(des)
+      iter += 1
+   end
+   return x
 end
 
 --[=[
