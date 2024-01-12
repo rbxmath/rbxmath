@@ -28,7 +28,7 @@ end
 local _integerPower = function (a, b)
     local integer = 1
 
-    for i = 1, b, 1 do
+    for _ = 1, b, 1 do
         integer = integer * a
     end
 
@@ -281,6 +281,8 @@ function Tools.list.linspace (a, b, n)
     for i = 0, n-1, 1 do
         result[i + 1] = a + (b - a) * i / (n - 1)
     end
+
+    return result
 end
 
 function Tools.list.copy (array)
@@ -346,7 +348,7 @@ function _padStringToLength (string, length)
         result = result .. " "
     end
     local width = length - #result
-    for i = 1, width / 2 do
+    for _ = 1, width / 2 do
         result = " " .. result .. " "
     end
     return result
@@ -355,7 +357,7 @@ end
 function _padStringRightToLength (string, length)
     local result = string
     local width = length - #result
-    for i = 1, width do
+    for _ = 1, width do
         result = result .. " "
     end
     return result
@@ -366,7 +368,7 @@ Tools.admin = {}
 function Tools.admin.makeBanners (header, body, width)
     width = width or 50
     local result = "+"
-    for i = 1, width do
+    for _ = 1, width do
         result = result .. "-"
     end
     result = result .. "+\n"
@@ -374,7 +376,7 @@ function Tools.admin.makeBanners (header, body, width)
     result = result .. _padStringToLength(header, width)
     result = result .. "|\n"
     result = result .. "+"
-    for i = 1, width do
+    for _ = 1, width do
         result = result .. "-"
     end
     result = result .. "+\n"
@@ -401,7 +403,7 @@ function Tools.admin.makeBanners (header, body, width)
         end
     end
     result = result .. "+"
-    for i = 1, width do
+    for _ = 1, width do
         result = result .. "-"
     end
     result = result .. "+\n"
