@@ -41,10 +41,10 @@ Matrices.constants.SPARSESTRASSENLIMIT = 256
 Matrices.constants.COMPLEXSTRASSENLIMIT = 64
 
 --[[
-Throughout the library we will use the following conventions:
+   Throughout the library we will use the following conventions:
 
- - functions that start with "to" or "set" will mutate the object 
-     all other functions will leave the matrix unchanged
+   - functions that start with "to" or "set" will mutate the object 
+   all other functions will leave the matrix unchanged
 ]]--
 
 local Matrix = {
@@ -215,19 +215,26 @@ function Matrix:strassenSubdivide(): Array<Tensor>
    }
 end
 
-function Matrix:column(i: number): Vector
+function Matrix:column(i: number, start: number): Vector
    if i > self.width then
       error("Matrix doesn't have " .. tostring(i) .. " columns.")
    end
+   start = start or 1
    local column = {}
-   for j = 1, self.length do
-      column[j] = self[j][i]
+   local ii = 1
+   for j = start, self.length do
+      column[ii] = self[j][i]
+      ii += 1
    end
    return column
 end
 
-function Matrix:getColumn(i: number): Vector
-   return self:column(i)
+function Matrix:getColumn(i: number, start: number): Vector
+   return self:column(i, start)
+end
+
+function Matrix:getColumnVector(i: number, start: number): Vector
+   return self:column(i, start)
 end
 
 function Matrix:row(i: number): Vector
@@ -427,6 +434,980 @@ end
 
 --[[
    +--------------------------------------------------+
+   |             Linear Algebra Subroutines           |
+   +--------------------------------------------------+
+   |Some common matrix operations can be dramatically |
+   |improved if they are implemented all at once.     |
+   |These are implemented here for use by "power      |
+   |users" and for internal efficiency.               |
+   +--------------------------------------------------+
+   |As a guide to the reader the following symbols are|
+   |used in function names:                           |
+   |                                                  |
+   | s   --- Scalar value                             |
+   | m   --- Matrix                                   |
+   | p   --- Plus                                     |
+   | v   --- Vector                                   |
+   | r1u --- Rank One Update                          |
+   | b   --- Block                                    |
+   +--------------------------------------------------+
+--]]
+
+--[[
+   +--------------------------------------------------+
+   |              Matrix Vector Operations            |
+   +--------------------------------------------------+
+--]]
+
+--[=[
+   Computes the matrix vector product Ax.
+
+   @param matrix --- The matrix A in the matrix vector product Ax
+   @param vector --- The vector x in the matrix vector product Ax
+   @param unsafe --- If true, no checks will be done on the dimensions
+
+   @return --- The matrix vector product Ax.
+--]=]
+function Matrix.mv(matrix, vector, unsafe)
+   if not unsafe and matrix.width ~= #vector then
+      error("Matrix and vector are of incompatible size!")
+   end
+   local output = {}
+   for i = 1, matrix.length do
+      local row = matrix[i]
+      local sum = 0
+      for k, v in row do
+	 sum += v * vector[k]
+      end
+      output[i] = sum
+   end
+   return output
+end
+
+--[=[
+   Computes the vector matrix product y^T A.
+
+   @param vector --- The vector y in the vector matrix product y^T A
+   @param matrix --- The matrix A in the vector matrix product y^T A
+   @param unsafe --- If true, no checks will be done on the dimensions
+
+   @return --- The vector matrix product y^T A.
+--]=]
+function Matrix.vm(vector, matrix, unsafe)
+   if not unsafe and matrix.length ~= #vector then
+      error("Matrix and vector are of incompatible size!")
+   end
+   local output = {}
+   for k, v in ipairs(vector) do
+      local sum = 0
+      for i = 1, matrix.length do
+	 sum += v * matrix[k][i]
+      end
+      output[k] = sum
+   end
+   return output
+end
+
+--[=[
+   Computes the iterative matrix product ABx.
+
+   @param matrix1 --- The matrix A in the matrix product ABx
+   @param matrix2 --- The matrix B in the matrix product ABx
+   @param vector  --- The vector x in the matrix product ABx
+   @param unsafe  --- If true, no check will be done on the dimensions 
+
+   @return --- The iterative matrix product ABx
+--]=]
+function Matrix.mmv(matrix1, matrix2, vector, unsafe)
+   return Matrix.mv(matrix1, Matrix.mv(matrix2, vector, unsafe), unsafe)
+end
+
+--[=[
+   Computes the iterative matrix product A^n x.
+
+   @param matrix --- The matrix A in the matrix product A^n x
+   @param power  --- The integer n in the matrix product A^n x
+   @param vector --- The vector x in the matrix product A^n x
+   @param unsafe --- If true, no checks will be done on the dimensions
+
+   @return --- The iterative matrix product A^n x
+--]=]
+function Matrix.imv(matrix, power, vector, unsafe)
+   local output = Matrix.mv(matrix, vector, unsafe)
+   for i = 2, power do
+      output = Matrix.mv(matrix, output, unsafe)
+   end
+   return output
+end
+
+--[=[
+   Computes the scalar-matrix-vector product cAx.
+
+   @param scalar --- The scalar c in the scalar-matrix-vector product cAx
+   @param matrix --- The matrix A in the scalar-matrix-vector product cAx
+   @param vector --- The vector x in the scalar-matrix-vectro product cAx
+   @param unsafe --- If true, no checks will be done on the dimensions
+
+   @return --- The scalar-matrix-vector product cAx
+--]=]
+function Matrix.smv(scalar, matrix, vector, unsafe)
+   if not unsafe and matrix.width ~= #vector then
+      error("Matrix and vector are of incompatible size!")
+   end
+   local output = {}
+   for i = 1, matrix.length do
+      local row = matrix[i]
+      local sum = 0
+      for k, v in row do
+	 sum += v * vector[k]
+      end
+      output[i] = scalar * sum
+   end
+   return output
+end
+
+--[=[
+   Computes the vector sum Ax + y.
+
+   @param matrix  --- The matrix A in the sum Ax + y
+   @param vector1 --- The vector x in the sum Ax + y
+   @param vector2 --- The vector y in the sum Ax + y
+   @param unsage  --- If true, no checks will be done on the dimensions
+
+   @return --- The sum Ax + y
+--]=]
+function Matrix.mvpv(matrix, vector1, vector2, unsafe)
+   if not unsafe and matrix.width ~= #vector1 then
+      error("Matrix and vector are of incompatible size!")
+   elseif not unsafe and matrix.length ~= #vector2 then
+      error("Attempting to add vectors of incompatible size!")
+   end
+   local output = {}
+   for i = 1, matrix.length do
+      local row = matrix[i]
+      local sum = vector2[i]
+      for k, v in row do
+	 sum += v * vector1[k]
+      end
+      output[i] = sum
+   end
+   return output
+end
+
+--[=[
+   Computes the vector sum cAx + y.
+
+   @param scalar  --- The scalar c in the sum cAx + y
+   @param matrix  --- The matrix A in the sum cAx + y
+   @param vector1 --- The vector x in the sum cAx + y
+   @param vector2 --- The vector y in the sum cAx + y
+   @param unsage  --- If true, no checks will be done on the dimensions
+
+   @return --- The sum cAx + y
+--]=]
+function Matrix.smvpv(scalar, matrix, vector1, vector2, unsafe)
+   if not unsafe and matrix.width ~= #vector1 then
+      error("Matrix and vector are of incompatible size!")
+   elseif not unasfe and matrix.length ~= #vector2 then
+      error("Attempting to add vectors of incompatible size!")
+   end
+   local output = {}
+   for i = 1, matrix.length do
+      local row = matrix[i]
+      local sum = 0
+      for k, v in row do
+	 sum += v * vector1[k]
+      end
+      output[i] = vector2[i] + scalar * sum
+   end
+   return output
+end
+
+--[=[
+   Computes the vector sum cAx + dy.
+
+   @param scalar1 --- The scalar c in the sum cAx + dy
+   @param matrix  --- The matrix A in the sum cAx + dy
+   @param vector1 --- The vector x in the sum cAx + dy
+   @param scalar2 --- The scalar d in the sum cAx + dy
+   @param vector2 --- The vector y in the sum cAx + dy
+   @param unsage  --- If true, no checks will be done on the dimensions
+
+   @return --- The sum cAx + dy
+--]=]
+function Matrix.smvpsv(scalar1, matrix, vector1, scalar2, vector2, unsafe)
+   if not unsafe and matrix.width ~= #vector1 then
+      error("Matrix and vector are of incompatible size!")
+   elseif not unsafe and matrix.length ~= #vector2 then
+      error("Attempting to add vectors of incompatible size!")
+   end
+   local output = {}
+   for i = 1, matrix.length do
+      local row = matrix[i]
+      local sum = 0
+      for k, v in row do
+	 sum += v * vector1[k]
+      end
+      output[i] = scalar2 * vector2[i] + scalar1 * sum
+   end
+   return output
+end
+
+--[=[
+   Computes the vector sum cAx + dBy.
+
+   @param scalar1 --- The scalar c in the sum cAx + dBy
+   @param matrix1 --- The matrix A in the sum cAx + dBy
+   @param vector1 --- The vector x in the sum cAx + dBy
+   @param scalar2 --- The scalar d in the sum cAx + dBy
+   @param matrix2 --- The matrix B in the sum cAx + dBy
+   @param vector2 --- The vector y in the sum cAx + dBy
+   @param unsage  --- If true, no checks will be done on the dimensions
+
+   @return --- The sum cAx + dBy
+--]=]
+function Matrix:smvpsmv(scalar1, matrix1, vector1, scalar2, matrix2, vector2, unsafe)
+   if not unsafe and matrix1.width ~= #vector1 then
+      error("Matrix and vector are of incompatible size!")
+   elseif not unsafe and matrix2.width ~= #vector2 then
+      error("Matrix and vector are of incompatible size!")
+   elseif not unsafe and matrix1.length ~= matrix2.length then
+      error("Attempting to add vectors of incompatible size!")
+   end
+   local output = {}
+   for i = 1, #vector1 do
+      local sum1 = 0
+      local sum2 = 0
+      local row1 = matrix1[i]
+      local row2 = martix2[i]
+      for k, v in row1 do
+	 sum1 += v * vector1[k]
+      end
+      for k, v in row2 do
+	 sum2 += v * vector2[k]
+      end
+      output[i] = scalar1 * sum1 + scalar2 * sum2
+   end
+   return output
+end
+
+--[=[
+   Performs the rank one update A + cxy^T. Overwrites the matrix A.
+
+   @param self   --- The matrix A in the rank one update A + cxy^T
+   @param scalar --- The scalar c in the rank one update A + cxy^T
+   @param column --- The vector x in the rank one update A + cxy^T
+   @param row    --- The vector y in the rank one update A + cxy^T
+   @param unsafe --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update A + cxy^T
+--]=]
+function Matrix.r1u(self, scalar, column, row, unsafe)
+   if not unsafe and (matrix.length ~= #column or matrix.width ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar * column[i]
+   end
+   for i = 1, self.length do
+      local row2 = self[i]
+      for j = 1, self.width do
+	 row2[j] += col[i] * row[j]
+      end
+   end
+   return self
+end
+
+--[=[
+   Performs the rank one update dA + cxy^T. Overwrites the matrix A.
+
+   @param self    --- The matrix A in the rank one update dA + cxy^T
+   @param scalar1 --- The scalar d in the rank one update dA + cxy^T
+   @param scalar2 --- The scalar c in the rank one update dA + cxy^T
+   @param column  --- The vector x in the rank one update dA + cxy^T
+   @param row     --- The vector y in the rank one update dA + cxy^T
+   @param unsafe  --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update dA + cxy^T
+--]=]
+function Matrix.sr1u(self, scalar1, scalar2, column, row, unsafe)
+   if not unsafe and (matrix.length ~= #column or matrix.width ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar2 * column[i]
+   end
+   for i = 1, self.length do
+      local row2 = self[i]
+      for j = 1, self.width do
+	 row2[j] = scalar1 * row2[j] + col[i] * row[j]
+      end
+   end
+   return self
+end
+
+--[=[
+   Performs the rank one update A + cxy^T.
+
+   @param matrix --- The matrix A in the rank one update A + cxy^T
+   @param scalar --- The scalar c in the rank one update A + cxy^T
+   @param column --- The vector x in the rank one update A + cxy^T
+   @param row    --- The vector y in the rank one update A + cxy^T
+   @param unsafe --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update A + cxy^T
+--]=]
+function Matrix.mpr1u(matrix, scalar, column, row, unsafe)
+   if not unsafe and (matrix.length ~= #column or matrix.width ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local output = matrix:copy()
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar * column[i]
+   end
+   for i = 1, output.length do
+      local row2 = output[i]
+      for j = 1, output.width do
+	 row2[j] += col[i] * row[j]
+      end
+   end
+   return output
+end
+
+--[=[
+   Performs the rank one update dA + cxy^T.
+
+   @param scalar1 --- The scalar d in the rank one update dA + cxy^T
+   @param matrix  --- The matrix A in the rank one update dA + cxy^T
+   @param scalar2 --- The scalar c in the rank one update dA + cxy^T
+   @param column  --- The vector x in the rank one update dA + cxy^T
+   @param row     --- The vector y in the rank one update dA + cxy^T
+   @param unsafe  --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update dA + cxy^T
+--]=]
+function Matrix.smpr1u(scalar1, matrix, scalar2, column, row, unsafe)
+   if not unsafe and (matrix.length ~= #column or matrix.width ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local output = matrix:copy()
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar2 * column[i]
+   end
+   for i = 1, output.length do
+      local row2 = output[i]
+      for j = 1, output.width do
+	 row2[j] = scalar1 * row2[j] + col[i] * row[j]
+      end
+   end
+   return output
+end
+
+--[=[
+   Performs the rank one update B + cxy^T on a submatrix of the matrix A.
+
+   @param self     --- The matrix A above
+   @param rowStart --- The start row for the submatrix
+   @param rowEnd   --- The end row for the submatrix
+   @param colStart --- The start column for the submatrix
+   @param colEnd   --- The end column for the submatrix
+   @param scalar   --- The scalar c in the rank one update B + cxy^T
+   @param column   --- The vector x in the rank one update B + cxy^T
+   @param row      --- The vector y in the rank one update B + cxy^T
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update dA + cxy^T
+--]=]
+function Matrix.br1u(self, rowStart, rowEnd, colStart, colEnd, scalar, column, row, unsafe)
+   if not unsafe and (rowEnd - rowStart + 1 ~= #column or colEnd - colStart + 1 ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar * column[i]
+   end
+   local rowIndex = 1
+   local colIndex = 1
+   for i = rowStart, rowEnd do
+      local matRow = self[i]
+      local rowConstant = row[rowIndex]
+      for j = colStart, colEnd do
+	 matRow[j] += col[colIndex] * rowConstant
+	 colIndex += 1
+      end
+      colIndex = 1
+      rowConstant += 1
+   end
+   return self
+end
+
+--[=[
+   Performs the rank one update B + cxy^T on a submatrix of the matrix A.
+
+   @param matrix   --- The matrix A above
+   @param rowStart --- The start row for the submatrix
+   @param rowEnd   --- The end row for the submatrix
+   @param colStart --- The start column for the submatrix
+   @param colEnd   --- The end column for the submatrix
+   @param scalar   --- The scalar c in the rank one update B + cxy^T
+   @param column   --- The vector x in the rank one update B + cxy^T
+   @param row      --- The vector y in the rank one update B + cxy^T
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update dA + cxy^T
+--]=]
+function Matrix.bpr1u(matrix, rowStart, rowEnd, colStart, colEnd, scalar, column, row, unsafe)
+   if not unsafe and (rowEnd - rowStart + 1 ~= #column or colEnd - colStart + 1 ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local output = self:copy()
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar * column[i]
+   end
+   local rowIndex = 1
+   local colIndex = 1
+   for i = rowStart, rowEnd do
+      local matRow = output[i]
+      local rowConstant = row[rowIndex]
+      for j = colStart, colEnd do
+	 matRow[j] += col[colIndex] * rowConstant
+	 colIndex += 1
+      end
+      colIndex = 1
+      rowConstant += 1
+   end
+   return output
+end
+
+--[=[
+   Performs the rank one update dB + cxy^T on a submatrix of the matrix A.
+
+   @param self     --- The matrix A above
+   @param scalar1  --- The scalar d in the rank one update dB + cxy^T
+   @param rowStart --- The start row for the submatrix
+   @param rowEnd   --- The end row for the submatrix
+   @param colStart --- The start column for the submatrix
+   @param colEnd   --- The end column for the submatrix
+   @param scalar2  --- The scalar c in the rank one update dB + cxy^T
+   @param column   --- The vector x in the rank one update dB + cxy^T
+   @param row      --- The vector y in the rank one update dB + cxy^T
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update dA + cxy^T
+--]=]
+function Matrix.sbr1u(self, scalar1, rowStart, rowEnd, colStart, colEnd, scalar2, column, row, unsafe)
+   if not unsafe and (rowEnd - rowStart + 1 ~= #column or colEnd - colStart + 1 ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar2 * column[i]
+   end
+   local rowIndex = 1
+   local colIndex = 1
+   for i = rowStart, rowEnd do
+      local matRow = self[i]
+      local rowConstant = row[rowIndex]
+      for j = colStart, colEnd do
+	 matRow[j] = scalar1 * matRow[j] + col[colIndex] * rowConstant
+	 colIndex += 1
+      end
+      colIndex = 1
+      rowConstant += 1
+   end
+   return self
+end
+
+--[=[
+   Performs the rank one update dB + cxy^T on a submatrix of the matrix A.
+
+   @param scalar1  --- The scalar d in the rank one update dB + cxy^T
+   @param matrix   --- The matrix A above
+   @param rowStart --- The start row for the submatrix
+   @param rowEnd   --- The end row for the submatrix
+   @param colStart --- The start column for the submatrix
+   @param colEnd   --- The end column for the submatrix
+   @param scalar2  --- The scalar c in the rank one update dB + cxy^T
+   @param column   --- The vector x in the rank one update dB + cxy^T
+   @param row      --- The vector y in the rank one update dB + cxy^T
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update dA + cxy^T
+--]=]
+function Matrix.sbpr1u(scalar1, matrix, rowStart, rowEnd, colStart, colEnd, scalar2, column, row, unsafe)
+   if not unsafe and (rowEnd - rowStart + 1 ~= #column or colEnd - colStart + 1 ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local output = self:copy()
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar2 * column[i]
+   end
+   local rowIndex = 1
+   local colIndex = 1
+   for i = rowStart, rowEnd do
+      local matRow = output[i]
+      local rowConstant = row[rowIndex]
+      for j = colStart, colEnd do
+	 matRow[j] = scalar1 * matRow[j] + col[colIndex] * rowConstant
+	 colIndex += 1
+      end
+      colIndex = 1
+      rowConstant += 1
+   end
+   return output
+end
+
+--[=[
+   Performs the rank one update A + cxy^T B.
+
+   @param matrix1  --- The matrix A in the rank one update A + cxy^T B
+   @param scalar   --- The scalar c in the rank one update A + cxy^T B
+   @param column   --- The vector x in the rank one update A + cxy^T B
+   @param row      --- The vector y in the rank one update A + cxy^T B
+   @param matrix2  --- The matrix B in the rank one update A + cxy^T B
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update A + cxy^T B.
+--]=]
+function Matrix.mpr1um(matrix1, scalar, column, row, matrix2, unsafe)
+   if not unsafe and (matrix1.length ~= #column or
+		      matrix1.width ~= matrix2.width or
+		      matrix2.length ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local output = matrix1:copy()
+   local rol = {}
+   for k, v in ipairs(row) do
+      local sum = 0
+      for i = 1, matrix2.length do
+	 sum += v * matrix2[k][i]
+      end
+      rol[k] = sum
+   end
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar * column[i]
+   end
+   for i = 1, output.length do
+      local row2 = output[i]
+      for j = 1, output.width do
+	 row2[j] += col[i] * rol[j]
+      end
+   end
+   return output
+end
+
+--[=[
+   Performs the rank one update dA + cxy^T B.
+
+   @param scalar1  --- The scalar d in the rank one update dA + cxy^T B
+   @param matrix1  --- The matrix A in the rank one update dA + cxy^T B
+   @param scalar2  --- The scalar c in the rank one update dA + cxy^T B
+   @param column   --- The vector x in the rank one update dA + cxy^T B
+   @param row      --- The vector y in the rank one update dA + cxy^T B
+   @param matrix2  --- The matrix B in the rank one update dA + cxy^T B
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update dA + cxy^T B.
+--]=]
+function Matrix.smpr1um(scalar1, matrix1, scalar2, column, row, matrix2, unsafe)
+   if not unsafe and (matrix1.length ~= #column or
+		      matrix1.width ~= matrix2.width or
+		      matrix2.length ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local output = matrix1:copy()
+   local rol = {}
+   for k, v in ipairs(row) do
+      local sum = 0
+      for i = 1, matrix2.length do
+	 sum += v * matrix2[k][i]
+      end
+      rol[k] = sum
+   end
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar2 * column[i]
+   end
+   for i = 1, output.length do
+      local row2 = output[i]
+      for j = 1, output.width do
+	 row2[j] = scalar1 * row2[j] + col[i] * row[j]
+      end
+   end
+   return output
+end
+
+--[=[
+   Performs the rank one update A + cxy^T B.
+
+   @param self     --- The matrix A in the rank one update A + cxy^T B
+   @param scalar   --- The scalar c in the rank one update A + cxy^T B
+   @param column   --- The vector x in the rank one update A + cxy^T B
+   @param row      --- The vector y in the rank one update A + cxy^T B
+   @param matrix   --- The matrix B in the rank one update A + cxy^T B
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update A + cxy^T B.
+--]=]
+function Matrix.r1um(self, scalar, column, row, matrix, unsafe)
+   if not unsafe and (self.length ~= #column or
+		      self.width ~= matrix.width or
+		      matrix.length ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local rol = {}
+   for k, v in ipairs(row) do
+      local sum = 0
+      for i = 1, matrix.length do
+	 sum += v * matrix[k][i]
+      end
+      rol[k] = sum
+   end
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar * column[i]
+   end
+   for i = 1, self.length do
+      local row2 = self[i]
+      for j = 1, self.width do
+	 row2[j] += col[i] * rol[j]
+      end
+   end
+   return self
+end
+
+--[=[
+   Performs the rank one update dA + cxy^T B.
+
+   @param self     --- The matrix A in the rank one update dA + cxy^T B
+   @param scalar1  --- The scalar d in the rank one update dA + cxy^T B
+   @param scalar2  --- The scalar c in the rank one update dA + cxy^T B
+   @param column   --- The vector x in the rank one update dA + cxy^T B
+   @param row      --- The vector y in the rank one update dA + cxy^T B
+   @param matrix   --- The matrix B in the rank one update dA + cxy^T B
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update dA + cxy^T B.
+--]=]
+function Matrix.sr1um(self, scalar1, scalar2, column, row, matrix, unsafe)
+   if not unsafe and (self.length ~= #column or
+		      self.width ~= matrix.width or
+		      matrix.length ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local rol = {}
+   for k, v in ipairs(row) do
+      local sum = 0
+      for i = 1, matrix.length do
+	 sum += v * matrix[k][i]
+      end
+      rol[k] = sum
+   end
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar2 * column[i]
+   end
+   for i = 1, self.length do
+      local row2 = self[i]
+      for j = 1, self.width do
+	 row2[j] = scalar1 * row2[j] + col[i] * row[j]
+      end
+   end
+   return self
+end
+
+--[=[
+   Performs the block rank one update A + cxy^T B.
+
+   @param matrix1  --- The matrix A in the rank one update A + cxy^T B
+   @param rowStart --- The start row for the submatrix
+   @param rowEnd   --- The end row for the submatrix
+   @param colStart --- The start column for the submatrix
+   @param colEnd   --- The end column for the submatrix
+   @param scalar   --- The scalar c in the rank one update A + cxy^T B
+   @param column   --- The vector x in the rank one update A + cxy^T B
+   @param row      --- The vector y in the rank one update A + cxy^T B
+   @param matrix2  --- The matrix B in the rank one update A + cxy^T B
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update A + cxy^T B.
+--]=]
+function Matrix.bpr1um(matrix1, rowStart, rowEnd, colStart, colEnd, scalar, column, row, matrix2, unsafe)
+   if not unsafe and (rowEnd - rowStart + 1 ~= #column or
+		      colEnd - colStart + 1 ~= matrix2.width or
+		      matrix2.length ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local output = matrix1:copy()
+   local rol = {}
+   for k, v in ipairs(row) do
+      local sum = 0
+      for i = 1, matrix2.length do
+	 sum += v * matrix2[k][i]
+      end
+      rol[k] = sum
+   end
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar * column[i]
+   end
+   for i = rowStart, rowEnd do
+      local row2 = output[i]
+      for j = colStart, colEnd do
+	 row2[j] += col[i] * rol[j]
+      end
+   end
+   return output
+end
+
+--[=[
+   Performs the rank one update dA + cxy^T B.
+
+   @param scalar1  --- The scalar d in the rank one update dA + cxy^T B
+   @param matrix1  --- The matrix A in the rank one update dA + cxy^T B
+   @param rowStart --- The start row for the submatrix
+   @param rowEnd   --- The end row for the submatrix
+   @param colStart --- The start column for the submatrix
+   @param colEnd   --- The end column for the submatrix
+   @param scalar2  --- The scalar c in the rank one update dA + cxy^T B
+   @param column   --- The vector x in the rank one update dA + cxy^T B
+   @param row      --- The vector y in the rank one update dA + cxy^T B
+   @param matrix2  --- The matrix B in the rank one update dA + cxy^T B
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update dA + cxy^T B.
+--]=]
+function Matrix.sbpr1um(scalar1, matrix1, rowStart, rowEnd, colStart, colEnd, scalar2, column, row, matrix2, unsafe)
+   if not unsafe and (rowEnd - rowStart + 1 ~= #column or
+		      colEnd - colStart + 1 ~= matrix2.width or
+		      matrix2.length ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local output = matrix1:copy()
+   local rol = {}
+   for k, v in ipairs(row) do
+      local sum = 0
+      for i = 1, matrix2.length do
+	 sum += v * matrix2[k][i]
+      end
+      rol[k] = sum
+   end
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar2 * column[i]
+   end
+   for i = rowStart, rowEnd do
+      local row2 = output[i]
+      for j = colStart, colEnd do
+	 row2[j] = scalar1 * row2[j] + col[i] * row[j]
+      end
+   end
+   return output
+end
+
+--[=[
+   Performs the rank one update A + cxy^T B.
+
+   @param self     --- The matrix A in the rank one update A + cxy^T B
+   @param rowStart --- The start row for the submatrix
+   @param rowEnd   --- The end row for the submatrix
+   @param colStart --- The start column for the submatrix
+   @param colEnd   --- The end column for the submatrix
+   @param scalar   --- The scalar c in the rank one update A + cxy^T B
+   @param column   --- The vector x in the rank one update A + cxy^T B
+   @param row      --- The vector y in the rank one update A + cxy^T B
+   @param matrix   --- The matrix B in the rank one update A + cxy^T B
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update A + cxy^T B.
+--]=]
+function Matrix.br1um(self, rowStart, rowEnd, colStart, colEnd, scalar, column, row, matrix, unsafe)
+   if not unsafe and (rowEnd - rowStart + 1 ~= #column or
+		      colEnd - colStart + 1 ~= matrix.width or
+		      matrix.length ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local rol = {}
+   for k, v in ipairs(row) do
+      local sum = 0
+      for i = 1, matrix.length do
+	 sum += v * matrix[k][i]
+      end
+      rol[k] = sum
+   end
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar * column[i]
+   end
+   for i = rowStart, rowEnd do
+      local row2 = self[i]
+      for j = colStart, colEnd do
+	 row2[j] += col[i] * rol[j]
+      end
+   end
+   return self
+end
+
+--[=[
+   Performs the rank one update dA + cxy^T B.
+
+   @param self     --- The matrix A in the rank one update dA + cxy^T B
+   @param rowStart --- The start row for the submatrix
+   @param rowEnd   --- The end row for the submatrix
+   @param colStart --- The start column for the submatrix
+   @param colEnd   --- The end column for the submatrix
+   @param scalar1  --- The scalar d in the rank one update dA + cxy^T B
+   @param scalar2  --- The scalar c in the rank one update dA + cxy^T B
+   @param column   --- The vector x in the rank one update dA + cxy^T B
+   @param row      --- The vector y in the rank one update dA + cxy^T B
+   @param matrix   --- The matrix B in the rank one update dA + cxy^T B
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update dA + cxy^T B.
+--]=]
+function Matrix.sbr1um(self, rowStart, rowEnd, colStart, colEnd, scalar1, scalar2, column, row, matrix, unsafe)
+   if not unsafe and (rowEnd - rowStart + 1 ~= #column or
+		      colEnd - colStart + 1 ~= matrix.width or
+		      matrix.length ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local rol = {}
+   for k, v in ipairs(row) do
+      local sum = 0
+      for i = 1, matrix.length do
+	 sum += v * matrix[k][i]
+      end
+      rol[k] = sum
+   end
+   local col = {}
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for i = 1, #column do
+      col[i] = scalar2 * column[i]
+   end
+   for i = rowStart, rowEnd do
+      local row2 = self[i]
+      for j = colStart, colEnd do
+	 row2[j] = scalar1 * row2[j] + col[i] * row[j]
+      end
+   end
+   return self
+end
+
+function Matrix.lr(self, r1, r2, c, s)
+   for i = 1, self.width do
+      local a, b = self[r1][i], self[r2][i]
+      if a == 0 and b == 0 then
+	 continue
+      end
+      self[r1][i], self[r2][i] = c * a - s * b, s * a + c * b
+   end
+   return self
+end
+
+function Matrix.tsol(self, vec, tol, unsafe)
+   if not unsafe and self.length ~= #vec then
+      error("Incompatible dimensions in triangular system vec!")
+   end
+   tol = tol or 10^-13
+   for i = #self, 1, -1 do
+      for j = i + 1, #self do
+	 vec[i] -= vec[j] * self[i][j]
+      end
+      local diag = self[i][i]
+      if math.abs(diag) <= tol then
+	 if math.abs(vec[i]) <= tol then
+	    continue
+	 else
+	    error("Triangular system is not solvable!")
+	 end
+      end
+      vec[i] /= diag
+   end
+   return vec
+end
+
+function Matrix.tinv(self, tol, unsafe)
+   if not unsafe and self.length ~= self.width then
+      error("Cannot invert nonsquare triangular matrix!")
+   end
+   tol = tol or 10^-13
+   for i = 1, self.length do
+      if math.abs(self[i][i]) <= tol then
+	 error("Upper triangular matrix is not invertible!")
+      end
+      self[i][i] = 1 / self[i][i]
+   end
+   for i = 1, self.length - 1 do
+      for j = 2, self.width do
+	 self[i][j] *= -self[i][i] * self[j][j]
+      end
+   end
+   return self
+end
+
+function Matrix.stpstTinv(self, scalar1, scalar2, tol, unsafe)
+   if not unsafe and self.lenght ~= self.width then
+      error("Cannot invert nonsquare triangular matrix!")
+   end
+   local n = self.length
+   tol = tol or 10^-13
+   local diag = table.create(n, 0)
+   for i = 1, n do
+      diag[i] = self[i][i]
+   end
+   print(self)
+   for i = 1, self.length do
+      if math.abs(self[i][i]) <= tol then
+	 error("Upper triangular matrix is not invertible!")
+      end
+      self[i][i] = 1 / self[i][i]
+      print(i)
+      print(self)
+   end
+   for i = 1, self.length - 1 do
+      for j = 2, self.width do
+	 self[j][i] = -scalar2 * self[i][i] * self[j][j] * self[i][j]
+	 print(self)
+      end
+   end
+   print("Done with inverse")
+   for i = 1, self.length - 1 do
+      for j = 2, self.width do
+	 self[i][j] *= scalar1
+	 print(self)
+      end
+   end
+   for i = 1, n do
+      self[i][i] = scalar1 * diag[i] + scalar2 * self[i][i]
+      print(self)
+   end
+   return self
+end
+
+--[[
+   +--------------------------------------------------+
    |                 Common Matrices                  |
    +--------------------------------------------------+
    |This section contains methods for constructing    |
@@ -497,14 +1478,6 @@ function Matrix:toPermuted(permutation: Vector): Tensor
       self[key] = matrix[value]
    end
    return self
-end
-
-function Matrix:getColumnVector(i: number): Vector
-   local data = {}
-   for j = 1, self.length do
-      data[j] = self[j][i]
-   end
-   return data
 end
 
 --[[
@@ -668,6 +1641,32 @@ end
 
 --[[
    +--------------------------------------------------+
+   |                  Boolean Functions               |
+   +--------------------------------------------------+
+   |Functions that return boolean values about        |
+   |matrices
+   +--------------------------------------------------+
+]]
+
+function Matrix:qrIsOrthogonal(tol)
+   for i = 1, self.length do
+      for j = i, self.width do
+	 if i == j then
+	    if math.abs(math.abs(self[i][j]) - 1) >= tol then
+	       return false
+	    end
+	 else
+	    if math.abs(self[i][j]) >= tol then
+	       return false
+	    end
+	 end
+      end
+   end
+   return true
+end
+
+--[[
+   +--------------------------------------------------+
    |                  Linear Systems                  |
    +--------------------------------------------------+
    |This section contains methods pertaining to       |
@@ -801,7 +1800,168 @@ function Matrix:LUDecomposition()
    return l, matrix, permutation
 end
 
-function Matrix:CholeskyDecomposition()
+--[=[
+   Computes an LU factorization of the matrix. Partial pivoting will be used to guarantee the factorization works.
+   The matrix will be returned in the condensed LU form, namely the entire LU will be stored in a single matrix.
+   This will overwrite the initial matrix.
+--]=]
+function Matrix:LU(tol)
+   if self.length ~= self.width then
+      error("Cannot compute LU factorization of rectangular matrix!")
+   end
+
+   tol = tol or 10^-13
+
+   local n = self.length
+
+   local permutation = {}
+   for i = 1, n do
+      permutation[i] = i
+   end
+
+   for i = 1, n - 1 do
+      -- We now must find the largest element in the ith column
+      local max = 0
+      local ind = 0
+      for j = i, n do
+	 local val = math.abs(self[j][i])
+	 if val > max then
+	    max = val
+	    ind = j
+	 end
+      end
+
+      if math.abs(max) <= tol then
+	 for j = i, n do
+	    self[j][i] = 0
+	 end
+	 continue
+      end
+
+      self[i], self[ind] = self[ind], self[i]
+      permutation[i], permutation[ind] = permutation[ind], permutation[i]
+
+      local pivot = self[i][i]
+      local pivml = 1 / pivot
+
+      -- We will now eliminate everything below the pivot!
+      for j = i + 1, n do
+	 local target = self[j][i]
+	 if target ~= 0 then
+	    local l = target * pivml
+	    self[j][i] = l
+	    for k = i + 1, n do
+	       self[j][k] -= l * self[i][k]
+	    end
+	 end
+      end
+   end
+   return self, permutation
+end
+
+--[=[
+   Solves the linear system Ax = b assuming that the matrix is already in the condensed LU form of A.
+
+   @param b    --- The vector b in the linear system Ax = b
+   @param perm --- The permutation vector returned in the computation of the LU
+   @param tol  --- The tolerance value for determining if something is zero
+--]=]
+function Matrix:LUSolve(b, perm, tol)
+   tol = tol or 10^-13
+   local bPerm = {}
+   for k, v in ipairs(perm) do
+      bPerm[v] = b[k]
+   end
+   local bInvs = {bPerm[1]}
+   for i = 2, #bPerm do
+      local sum = bPerm[i]
+      for j = 1, i - 1 do
+	 sum -= self[i][j] * bPerm[j]
+      end
+      bInvs[i] = sum
+   end
+   for i = #self, 1, -1 do
+      bPerm[i] = bInvs[i]
+      for j = i + 1, #self do
+	 bPerm[i] -= bPerm[j] * self[i][j]
+      end
+      local diag = self[i][i]
+      if math.abs(diag) <= tol then
+	 if math.abs(bPerm[i]) <= tol then
+	    continue
+	 else
+	    error("System is not solvable!")
+	 end
+      end
+      bPerm[i] /= diag
+   end
+   return bPerm
+end
+
+--[=[
+   Computes an LDU factorization of the matrix. Partial pivoting will be used to guarantee the factorization works.
+   The matrix will be returned in the condensed LDU form, namely the entire LDU will be stored in a single matrix.
+   This will overwrite the initial matrix.
+--]=]
+function Matrix:LDU()
+   if self.length ~= self.width then
+      error("Cannot compute LU factorization of rectangular matrix!")
+   end
+
+   local n = self.length
+
+   local permutation = {}
+   for i = 1, n do
+      permutation[i] = i
+   end
+
+   for i = 1, n - 1 do
+      -- We now must find the largest element in the ith column
+      local max = 0
+      local ind = 0
+      for j = i, n do
+	 local val = math.abs(self[j][i])
+	 if val > max then
+	    max = val
+	    ind = j
+	 end
+      end
+
+      if max == 0 then
+	 error("Matrix is not invertible!")
+      end
+
+      self[i], self[ind] = self[ind], self[i]
+      permutation[i], permutation[ind] = permutation[ind], permutation[i]
+
+      local pivot = self[i][i]
+      local pivml = 1 / pivot
+
+      -- We will now eliminate everything below the pivot!
+      for j = i + 1, n do
+	 local target = self[j][i]
+	 if target ~= 0 then
+	    local l = target * pivml
+	    self[j][i] = l
+	    for k = i + 1, n do
+	       self[j][k] -= l * self[i][k]
+	    end
+	 end
+      end
+   end
+
+   for i = 1, n - 1 do
+      for j = i + 1, n do
+	 self[i][j] /= self[i][i]
+      end
+   end
+   
+   return self, permutation
+end
+
+function Matrix:CholeskyDecomposition(tol)
+   tol = tol or 10^-13
+   local rtt = math.sqrt(tol)
    local matrix = self:copy()
    local numberOfRows = #matrix
    local numberOfColumns = #matrix[1]
@@ -812,12 +1972,15 @@ function Matrix:CholeskyDecomposition()
 
    for i = 1, numberOfColumns do
       for j = 1, i - 1 do
-         matrix[i][i] -= matrix[j][i] ^ 2
+	 local entry = matrix[j][i]
+	 if math.abs(entry) >= rtt then
+	    matrix[i][i] -= entry ^ 2
+	 end
       end
-      if matrix[i][i] <= 0 then
+      if matrix[i][i] < -tol then
          error("Matrix is not positive definite.")
       end
-      matrix[i][i] = math.sqrt(matrix[i][i])
+      matrix[i][i] = math.sqrt(math.max(matrix[i][i], tol))
       for j = i + 1, numberOfColumns do
          for k = 1, i - 1 do
             matrix[i][j] -= matrix[k][i] * matrix[k][j]
@@ -878,11 +2041,9 @@ function Matrix:HouseholderQR(tolerance: number)
       tau *= beta
       
       local everythingButIthCol = a:submatrix(i, a.length, i + 1, a.width)
-      local ithCol = a:submatrix(i, a.length, i, i)
-      
-      a:setSubmatrix(i, a.length, i + 1, a.width,
-                     everythingButIthCol -
-                     ithCol:scaled(gamma) * ithCol:transpose() * everythingButIthCol)
+      local ithCol = a:column(i, i)
+
+      a:br1um(i, a.length, i + 1, a.width, -gamma, ithCol, ithCol, everythingButIthCol)
 
       a[i][i] = -tau
    end
@@ -904,23 +2065,85 @@ function Matrix.ExpandHouseholderQR(householderQR, gammaVector)
       for i = 1, #uPartial do
          u[i + 1] = uPartial[i]
       end
-      u = Matrix:new(u)
       qSub = Q:submatrix(i, #R, i, #R)
-      Q:setSubmatrix(i, #R, i, #R, qSub -
-                     u:scaled(gammaVector[i]) * u:transpose() * qSub)
+      Q:br1um(i, #R, i, #R, -gammaVector[i], u, u, qSub)
    end
    return Q, R
 end
 
-function Matrix:FullHouseholderQR()
-   local a, g = self:HouseholderQR()
+function Matrix:FullHouseholderQR(tol)
+   local a, g = self:HouseholderQR(tol)
    return Matrix.ExpandHouseholderQR(a, g)
 end
 
+function Matrix:getGivens()
+   -- Output will be of the form {length, width, theta1, theta2, ...}
+   -- column indexed and then row
+   local givensList = {self.length}
+   for i = 2, self.length do
+      for j = 1, i - 1 do
+	 givensList[#givensList + 1] = self[i][j]
+      end
+   end
+   return givensList
+end
+
+function Matrix.applyGivensTransposeToVector(givens, vector)
+   local length = givens[1]
+   local iter = 2
+   -- i is the current column
+   for i = 1, length - 1 do
+      -- j is the current row
+      for j = i + 1, length do
+	 local theta = givens[iter]
+	 iter += 1
+	 local c = math.cos(theta)
+	 local s = math.sin(theta)
+	 vector[i], vector[j] = c * vector[i] - s * vector[j],
+	    s * vector[i] + c * vector[j]
+      end
+   end
+   return vector
+end
+
+function Matrix.applyGivensTransposeToMatrix(givens, matrix)
+   local length = givens[1]
+   local iter = 2
+   -- i is the current column
+   for i = 1, length - 1 do
+      -- j is the current row
+      for j = i + 1, length do
+	 local theta = givens[iter]
+	 iter += 1
+	 local c = math.cos(theta)
+	 local s = math.sin(theta)
+	 matrix:lr(i, j, c, s)
+      end
+   end
+   return matrix
+end
+
+function Matrix.applyGivensToMatrix(givens, matrix)
+   local length = givens[1]
+   local iter = #givens
+   -- i is the current column
+   for i = length - 1, 1 do
+      -- j is the current row
+      for j = length, i + 1 do
+	 local theta = givens[iter]
+	 iter -= 1
+	 local c = math.cos(theta)
+	 local s = -math.sin(theta)
+	 matrix:lr(i, j, c, s)
+      end
+   end
+   return matrix
+end
+
 function Matrix:GivensQR(tol)
+   -- Overwrites self
    tol = tol or 10 ^ -13
-   local QT = Matrix:identity(#self)
-   local R = self:copy()
+   local R = self
    for i = 1, self.width do
       for j = self.length, i + 1, -1 do
          local a = R[i][i]
@@ -929,25 +2152,106 @@ function Matrix:GivensQR(tol)
             continue
          end
          local r = Numerics.hypot(a, b)
-         R[i][i], R[j][i] = r, 0
          local c = a / r
          local s = -b / r
+         R[i][i], R[j][i] = r, math.atan2(s, c)
          for k = i + 1, self.width do
             local x = R[i][k]
             local y = R[j][k]
             R[i][k] = c * x - s * y
             R[j][k] = s * x + c * y
          end
-         for k = 1, self.width do
-            local x = QT[i][k]
-            local y = QT[j][k]
-            QT[i][k] = c * x - s * y
-            QT[j][k] = s * x + c * y
-         end
       end
    end
-   return QT:transpose(), R
-end      
+   return R
+end
+
+function Matrix:ExpandGivensQR()
+   local n = math.min(self.length, self.width)
+   local Q = Matrix.identity(n)
+   for col = n - 1, 1, -1 do
+      for row = n, col - 1, -1 do
+	 local c = math.cos(self[row][col])
+	 self[row][col] = 0
+	 local s = -math.sin(self[row][col])
+	 Q:lr(col, row, c, s)
+      end
+   end
+   return Q, R
+end
+
+function Matrix:FullGivensQR(tol)
+   -- Overwrites self
+   local R = self:GivensQR(tol)
+   return R:ExpandGivensQR()
+end
+
+function Matrix:GivensQRSolve(vec, tol)
+   -- Doesn't overwrite self
+   local n = math.min(self.length, self.width)
+   for col = n - 1, 1, -1 do
+      for row = n, col + 1, -1 do
+	 local c = math.cos(self[row][col])
+	 local s = math.sin(self[row][col])
+	 vec[col], vec[row] = c * vec[col] - s * vec[row],
+	    s * vec[col] + c * vec[row]
+      end
+   end
+   return self:tsol(vec)
+end
+
+-- Not working yet, need to to right multiplication by Q
+function Matrix:GivensQRInvert(tol)
+   local n = self.length
+   self:tinv(tol)
+   for col = n - 1, 1, -1 do
+      for row = n, col + 1, -1 do
+	 local c = math.cos(self[row][col])
+	 local s = math.sin(self[row][col])
+	 self[row][col] = 0
+	 for i = col, n do
+	    self[col][i], self[row][i] = c * self[col][i] - s * self[row][i], s * self[col][i] + c * self[row][i]
+	 end
+      end
+   end
+   return self
+end
+
+function Matrix.GivensQ(givens)
+   local length = givens[1]
+   local matrix = Matrix:identity(length)
+   return Matrix.applyGivensToMatrix(givens, matrix)
+end
+
+function Matrix:polarTerm(tol)
+   -- Doesn't overwrite self
+   if self.length ~= self.width then
+      error("Nonsquare matrices currently unsupported for polar decomposition!")
+   end
+   tol = tol or 10^-13
+   local matrix = self:copy()
+   matrix:GivensQR(tol)
+   local givens = Matrix.getGivens(matrix)
+   while not matrix:qrIsOrthogonal(tol) do
+      local max, min = math.abs(matrix[1][1]), math.abs(matrix[1][1])
+      for i = 2, self.length do
+	 local val = math.abs(matrix[i][i])
+	 if val > max then
+	    max = val
+	 elseif val < min then
+	    min = val
+	 end
+      end
+      local gamma = math.sqrt(1 / (max * min))
+      gamma = 1
+      matrix:stpstTinv(0.5 * gamma, 0.5 / gamma, tol, true)
+      Matrix.applyGivensToMatrix(givens, matrix)
+      matrix:GivensQR(tol)
+      givens = Matrix.getGivens(matrix)
+      break
+   end
+   return Matrix.applyGivensToMatrix(givens, matrix)
+end
 
 function Matrix:newReflector(u: Vector)
    local data = {}
@@ -3614,7 +4918,7 @@ function SparseMatrix:toDense()
    
    return Matrix:new(data)
 end
-      
+
 function SparseMatrix.__tostring(matrix: Object): string
    local result = "{"
 
@@ -4093,7 +5397,7 @@ function SparseMatrix:rayleighIteration(vector, mu, tolerance)
 end
 
 function SparseMatrix:arnoldiProcess(n: number, x: Vector, tolerance: number): Array<Vector>
-   tolerance = tolerance or 10 ^ -13
+      tolerance = tolerance or 10 ^ -13
    n = n or math.min(self.length, self.width) + 1
    local t = 0
    local q = {}
@@ -4429,7 +5733,7 @@ function SparseMatrix:inverse(tol)
    end
    return SparseMatrix:new(data, self.length, self.length)
 end
-         
+
 Matrices.SparseMatrix = SparseMatrix
 
 --- WARNING EXPERIMENTAL!
