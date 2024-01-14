@@ -2236,7 +2236,6 @@ function Matrix:polarTerm(tol)
 	 end
       end
       local gamma = math.sqrt(1 / (max * min))
-      gamma = 1
       matrix:stpstTinv(0.5 * gamma, 0.5 / gamma, tol, true)
       Matrix.applyGivensToMatrix(givens, matrix)
       matrix:GivensQR(tol)
