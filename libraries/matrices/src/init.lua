@@ -2241,6 +2241,7 @@ function Matrix:polarTerm(tol)
       matrix:GivensQR(tol)
       givens = Matrix.getGivens(matrix)
    end
+   matrix = Matrix:identity(self.length)
    return Matrix.applyGivensToMatrix(givens, matrix)
 end
 
