@@ -1360,7 +1360,7 @@ function Matrix.tinv(self, tol, unsafe)
       self[i][i] = 1 / self[i][i]
    end
    for i = 1, self.length - 1 do
-      for j = 2, self.width do
+      for j = i + 1, self.width do
 	 self[i][j] *= -self[i][i] * self[j][j]
       end
    end
@@ -1368,7 +1368,7 @@ function Matrix.tinv(self, tol, unsafe)
 end
 
 function Matrix.stpstTinv(self, scalar1, scalar2, tol, unsafe)
-   if not unsafe and self.lenght ~= self.width then
+   if not unsafe and self.length ~= self.width then
       error("Cannot invert nonsquare triangular matrix!")
    end
    local n = self.length
@@ -1377,31 +1377,24 @@ function Matrix.stpstTinv(self, scalar1, scalar2, tol, unsafe)
    for i = 1, n do
       diag[i] = self[i][i]
    end
-   print(self)
    for i = 1, self.length do
       if math.abs(self[i][i]) <= tol then
 	 error("Upper triangular matrix is not invertible!")
       end
       self[i][i] = 1 / self[i][i]
-      print(i)
-      print(self)
    end
    for i = 1, self.length - 1 do
-      for j = 2, self.width do
+      for j = i + 1, self.width do
 	 self[j][i] = -scalar2 * self[i][i] * self[j][j] * self[i][j]
-	 print(self)
       end
    end
-   print("Done with inverse")
    for i = 1, self.length - 1 do
-      for j = 2, self.width do
+      for j = i + 1, self.width do
 	 self[i][j] *= scalar1
-	 print(self)
       end
    end
    for i = 1, n do
       self[i][i] = scalar1 * diag[i] + scalar2 * self[i][i]
-      print(self)
    end
    return self
 end
@@ -2248,7 +2241,6 @@ function Matrix:polarTerm(tol)
       Matrix.applyGivensToMatrix(givens, matrix)
       matrix:GivensQR(tol)
       givens = Matrix.getGivens(matrix)
-      break
    end
    return Matrix.applyGivensToMatrix(givens, matrix)
 end
