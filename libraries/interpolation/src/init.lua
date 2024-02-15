@@ -323,6 +323,18 @@ local function _inverseLinearRescalingFunction(a: number, b: number): ScalarMap
 	end
 end
 
+function _sparseClenshaw(sparseArray, x)
+   local length = sparseArray[0]
+   local temp1 = 0
+   local temp2 = 0
+   for i = length, 2, -1 do
+      local temp3 = sparseArray[i] or 0
+      temp1, temp2 = temp3 + 2 * x * temp1 - temp2, temp1
+   end
+   local temp3 = sparseArray[1] or 0
+   return temp3 + x * temp1 - temp2
+end
+
 local ChebyshevInterpolant = {
 	grid = {},
 	gridValues = {},
@@ -335,6 +347,7 @@ local ChebyshevInterpolant = {
 	evaluationFunction = nil,
 }
 
+-- Creates a Chebyshev interpolant, p(x), of a function/list of values f
 function ChebyshevInterpolant:new(
 	f: Vector | ScalarMap,
 	a: number,
@@ -371,11 +384,47 @@ function ChebyshevInterpolant:new(
 	result.evaluationFunction = function(x)
 		return result:evaluate(x)
 	end
-	result.coefficientList = FFT:FCT(Tools.list.reverse(fList))
+	result.coefficientList = Tools.list.scale(FFT:FCT1(Tools.list.reverse(fList)), 2)
 
 	return result
 end
 
+function ChebyshevInterpolant:adaptive(f: ScalarMap, a: number, b: number, tol: number): Object
+	tol = tol or 10 ^ -10
+	local n = 8
+	local currentGrid = {}
+	local currentGridValues = {}
+	local norm = tol + 1
+	local currentInterpolant = {}
+	local rescalingFunction = _linearRescalingFunction(a, b)
+	while norm >= tol do
+		n *= 2
+		currentGrid = _chebyshevGrid(n)
+		for i = n + 1, 1, -1 do
+			if i % 2 == 1 then
+				currentGridValues[i] = currentGridValues[(i - 1) / 2 + 1] or f(rescalingFunction(currentGrid[i]))
+			else
+				currentGridValues[i] = f(rescalingFunction(currentGrid[i]))
+			end
+		end
+		currentInterpolant = FFT:FCT1(Tools.list.reverse(currentGridValues))
+		norm = 0
+		for i = n / 2 + 1, n + 1, 1 do
+			norm = math.max(norm, math.abs(currentInterpolant[i]))
+		end
+	end
+	local index = n + 1
+	while index >= 1 do
+		if math.abs(currentInterpolant[index]) > tol then
+			break
+		else
+			index -= 1
+		end
+	end
+	return self:new(f, a, b, index - 1)
+end
+
+-- Computes p(x)
 function ChebyshevInterpolant:evaluate(x: number): number
 	local fList = self.gridValues
 	local n = self.degree + 1
@@ -407,6 +456,7 @@ function ChebyshevInterpolant:evaluate(x: number): number
 	return numerator / denominator
 end
 
+-- Solves the problem p(x) = t for x given t
 function ChebyshevInterpolant:solve(t: number, tol: number, method: string, gapTol: number): number
 	method = method or self.solveMethod
 
@@ -654,5 +704,53 @@ Interpolation.Chebyshev.derivativeMatrix = _chebyshevSpectralDifferentionMatrix
 Interpolation.Chebyshev.linearRescalingFunction = _linearRescalingFunction
 
 Interpolation.ChebyshevInterpolant = ChebyshevInterpolant
+
+Interpolation.Compression = {}
+
+-- Thanks to JMK for the name.
+Comprebyshev = {}
+
+function Comprebyshev.compress(fList : Vector, length : number, tolerance : number)
+   tolerance = tolerance or 10^-13
+   length = length or #fList
+   local array = Tools.list.scale(FFT:FCT1(Tools.list.reverse(fList)), 2)
+   local sparseArray = {}
+   for i, v in ipairs(array) do
+      if i > length then
+	 break
+      end
+      if v > tolerance then
+	 sparseArray[i] = v
+      end
+   end
+   sparseArray[0] = length
+   return sparseArray
+end
+
+function Comprebyshev.sparsity(sparseArray)
+   local length = sparseArray[0]
+   local density = 0
+   
+   for _, _ in pairs(sparseArray) do
+      density += 1
+   end
+
+   density -= 1
+   
+   return density / length
+end
+
+function Comprebyshev.decompress(sparseArray)
+   local length = sparseArray[0]
+   local grid = _chebyshevGrid(length - 1)
+   local rtrn = {}
+   for i, v in ipairs(grid) do
+      rtrn[i] = _sparseClenshaw(sparseArray, v)
+   end
+   return rtrn
+end
+
+Interpolation.Compression.Comprebyshev = Comprebyshev
+
 
 return Interpolation
