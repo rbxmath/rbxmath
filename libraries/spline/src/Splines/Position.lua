@@ -200,16 +200,20 @@ function Position.Spline:ToUnitSpeed()
 	end
 end
 
-function Position.Spline:SolveLength(a: number?, b: number?): number
-	a = a or 0
-	b = b or 1
+function Position.Spline:SolveLength(from: number?, to: number?): number
+	from = from or 0
+	to = to or 1
 
-	if a > b then
-		a, b = b, a
+	if from > to then
+		from, to = to, from
 	end
 
-	local interp0Index, interp0Time = self:_getInterpolantFromPercentArcLength(a)
-	local interp1Index, interp1Time = self:_getInterpolantFromPercentArcLength(b)
+	local interp0Index, interp0Time = self:_getInterpolantFromPercentArcLength(from)
+	local interp1Index, interp1Time = self:_getInterpolantFromPercentArcLength(to)
+
+	if interp0Index == interp1Index then
+		return self.Interpolants[interp0Index]:SolveLength(spline0Time, spline1Time)
+	end
 
 	local length0 = self.Interpolants[interp0Index]:SolveLength(interp0Time, 1)
 	local length1 = self.Interpolants[interp1Index]:SolveLength(0, interp1Time)
@@ -238,15 +242,13 @@ function Position.Spline:_getInterpolantFromPercentArcLength(s: number): (number
 		return 1, s
 	end
 
-	-- Special cases for when s is on the boundary or outside of [0, 1]
-	if s < 0 then
-		return 1, s
+	-- Boundary cases
+	if s < 0 or s > 1 then
+		error("Arc length parameter is outside of [0, 1]")
 	elseif s == 0 then
 		return 1, 0
 	elseif s == 1 then
 		return numInterpolants, 1
-	elseif s > 1 then
-		return numInterpolants, (s - domains[numInterpolants]) / (1 - domains[numInterpolants])
 	end
 
 	-- Binary search for the interpolant containing s
