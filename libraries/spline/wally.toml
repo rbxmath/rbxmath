@@ -1,13 +1,11 @@
 [package]
 name = "rbxmath/spline"
-version = "0.1.1"
+version = "0.1.2"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 license = "MPL-2.0"
-authors = ["Ethan Curtiss"]
+authors = ["AstroCode"]
 exclude = ["test"]
 
 [dependencies]
-FastFourierTransform = "rbxmath/fast-fourier-transform@0.1.0"
 Interpolation = "rbxmath/interpolation@0.1.1"
-Matrices = "rbxmath/matrices@0.1.0"
