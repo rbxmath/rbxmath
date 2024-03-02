@@ -4,8 +4,6 @@
    file, You can obtain one at https://mozilla.org/MPL/2.0/.
 ]]
 
-local Scalars = require(script.Parent.Scalars)
-local Complex = Scalars.Complex
 local Tools = require(script.Parent.Tools)
 type Vector = Tools.Vector
 type Array<T> = Tools.Array<T>
@@ -41,7 +39,7 @@ function Numerics.kahanHypot(...)
 	 list2[#list2 + 1] = (list[i] * oneOverMax)^2
       end
    end
-   return math.sqrt(Numerics.kahan(table.unpack(list2)))
+   return math.sqrt(Numerics.kahan(unpack(list2)))
 end
 
 function Numerics.quadratic(a, b, c, disc)
@@ -69,8 +67,11 @@ function Numerics.quadratic(a, b, c, disc)
       local overTwoA = 1 / (2 * a)
       local bOverTwoA = b * overTwoA
       local discOverTwoA = disc * overTwoA
-      return Complex:new(bOverTwoA, discOverTwoA),
-	 Complex:new(bOverTwoA, -discOverTwoA)
+      -- The only dependency for this package is Tools, so
+      -- we cannot return a complex number. We must return
+      -- arrays of length 2 instead.
+      return {bOverTwoA, discOverTwoA},
+	 {bOverTwoA, -discOverTwoA}
    end
 end
 
