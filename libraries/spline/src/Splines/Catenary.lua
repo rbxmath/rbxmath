@@ -1,5 +1,5 @@
 local Position = require(script.Parent.Position)
-local Linear = require(script.Parent.Linear)
+local Line = require(script.Parent.Line)
 local SplineUtils = require(script.Parent.Parent.SplineUtils)
 local Types = require(script.Parent.Parent.Types)
 
@@ -19,6 +19,7 @@ local function solveRootUpperBound(hDist: number, c: number): number
 	return 2 * math.pow(-362880 * (hDist - c) / hDist, 1 / 8)
 end
 
+-- TODO: Returns 0 when length == hDist, which causes issues downstream
 local function solveRoot(hDist: number, vDist: number, length: number): number
 	local c = math.sqrt(length ^ 2 - vDist ^ 2)
 	local function f(z)
@@ -49,10 +50,10 @@ local function solveRoot(hDist: number, vDist: number, length: number): number
 	return (lower + upper) / 2
 end
 
-function Catenary.Interpolant.new(p0: Point, p1: Point, length: number, upVector: Vector?)
+function Catenary.Interpolant.new(p0: Vector3, p1: Vector3, length: number, upVector: Vector3?)
 	if length < (p1 - p0).Magnitude then
 		-- Length of rope is too short; degenerate to a line
-		return Linear.Interpolant.new(p0, p1)
+		return Line.Interpolant.new(p0, p1)
 	end
 
 	local yAxis = if upVector then upVector.Unit else Vector3.yAxis
@@ -69,6 +70,8 @@ function Catenary.Interpolant.new(p0: Point, p1: Point, length: number, upVector
 	local self = setmetatable(Position.Interpolant.new(), Catenary.Interpolant)
 
 	self.p0 = p0
+	self.p1 = p1
+	self.upVector = upVector.Unit
 	self.ground = ground
 	self.xAxis = xAxis
 	self.yAxis = yAxis
@@ -96,10 +99,21 @@ function Catenary.Interpolant:SolvePosition(t: number): Point
 
 	local x = if self.IsUnitSpeed
 		then scale * asinh(arcLength / scale + math.sinh(-hShift / scale)) + hShift
-		else ground * t
+		else ground.Magnitude * t
 	local y = scale * math.cosh((x - hShift) / scale) + vShift
 
 	return p0 + self.xAxis * x + self.yAxis * y
+end
+
+-- TODO: Bounding box is not tight when upVector is not (0, 1, 0)
+function Catenary.Interpolant:SolveBoundingBox(): (Point, Point)
+	local p0 = self.p0
+	local p1 = self.p1
+	local vertex = self:SolvePosition(0.5)
+	local p2 = p0 + (vertex - p0):Dot(self.upVector) * self.upVector
+	local p3 = p1 + (vertex - p1):Dot(self.upVector) * self.upVector
+
+	return p0:Min(p1):Min(p2):Min(p3), p0:Max(p1):Max(p2):Max(p3)
 end
 
 function Catenary.Spline.new(points: { Point }, lengths: { number })
