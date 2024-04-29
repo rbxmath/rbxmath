@@ -149,4 +149,41 @@ function SplineUtils.GaussLegendre(f: (number) -> number, from: number, to: numb
 		)
 end
 
+--[=[
+	Solves for the real roots of the quadratic polynomial at^2 + bt + c. Returns
+	nil if there are no real roots. Returns only one real root if they are
+	equal.
+--]=]
+function SplineUtils.SolveQuadratic(a: number, b: number, c: number): (number?, number?)
+	if a == 0 then
+		return SplineUtils.SolveLine(b, c)
+	end
+
+	local discriminant = b ^ 2 - 4 * a * c
+
+	if discriminant == 0 then
+		return -b / (2 * a), nil
+	elseif discriminant > 0 then
+		local negativeB = -b
+		local sqrt = math.sqrt(discriminant)
+		local doubleA = 2 * a
+
+		return (negativeB - sqrt) / doubleA, (negativeB + sqrt) / doubleA
+	end
+
+	return nil, nil
+end
+
+--[=[
+	Solves for the real root of the linear polynomial at + b. Returns nil if
+	there is no real root.
+--]=]
+function SplineUtils.SolveLine(a: number, b: number): number?
+	if a == 0 then
+		return nil
+	end
+
+	return -b / a
+end
+
 return SplineUtils

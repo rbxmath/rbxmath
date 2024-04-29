@@ -173,6 +173,10 @@ function Position.Interpolant:SolveTorsion(t: number): number
 	return cross:Dot(jerk) / cross.Magnitude ^ 2
 end
 
+function Position.Interpolant:SolveBoundingBox(): (Vector, Vector)
+	error("Must implement SolveBoundingBox()")
+end
+
 function Position.Spline.new()
 	local self = setmetatable({}, Position.Spline)
 
