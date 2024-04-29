@@ -51,7 +51,7 @@ function CubicPolynomial.Interpolant:SolveJerk(): Vector
 end
 
 -- TODO: This is bad and does not work when the spline has unit speed.
-function CubicPolynomial.Interpolant:SolveBoundingBox(): (Vector, Vector)
+function CubicPolynomial.Interpolant:SolveBoundingBox(): (Point, Point)
 	local pointType = typeof(self.a)
 	local boundCandidates = {}
 

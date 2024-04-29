@@ -12,7 +12,7 @@ local SplineUtils = {}
 
 	@param a --- A point
 	@param b --- A point
-	@return
+	@return Whether the points are fuzzy-equal.
 --]=]
 function SplineUtils.FuzzyEq(a: Point, b: Point): boolean
 	local aType = typeof(a)
@@ -44,7 +44,7 @@ end
 	@param to -- To
 	@param t -- Time in [0, 1]
 --]=]
-function SplineUtils.Lerp(from, to, t: number): number
+function SplineUtils.Lerp(from: Point, to: Point, t: number): Point
 	return from + t * (to - from)
 end
 
