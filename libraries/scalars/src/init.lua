@@ -65,11 +65,15 @@ function Complex:scale(lambda)
 end
 
 function Complex:inverse()
-    return self:conjugate():scale(1 / self:norm() ^ 2)
+   return self:conjugate():scale(1 / (self[1]^2 + self[2]^2))
 end
 
 function Complex:exp(theta)
-    return self:new(math.cos(theta), math.sin(theta))
+   return self:new(math.cos(theta), math.sin(theta))
+end
+
+function Complex:polar(r, theta)
+   return self:new(r * math.cos(theta), r * math.sin(theta))
 end
 
 function Complex.__div(left, right)
