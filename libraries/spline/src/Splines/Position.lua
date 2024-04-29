@@ -327,4 +327,23 @@ function Position.Spline:SolveTorsion(t: number): Vector
 	return self.Interpolants[interpIndex]:SolveTorsion(interpTime)
 end
 
+function Position.Spline:SolveBoundingBox(): (Point, Point)
+	local interpolants = self.Interpolants
+
+	if interpolants == 0 then
+		error("No interpolants")
+	end
+
+	local min, max = interpolants[1]:SolveBoundingBox()
+
+	for i = 2, #interpolants do
+		local interpolantMin, interpolantMax = interpolants[i]:SolveBoundingBox()
+
+		min = min:Min(interpolantMin)
+		max = max:Max(interpolantMax)
+	end
+
+	return min, max
+end
+
 return Position
