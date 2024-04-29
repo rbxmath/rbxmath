@@ -16,33 +16,34 @@ Line.Spline.__index = Line.Spline
 function Line.Interpolant.new(p0: Point, p1: Point)
 	local self = setmetatable(Position.Interpolant.new(), Line.Interpolant)
 
-	self.a = p0
-	self.b = p1 - p0
+	self.p0 = p0
+	self.p1 = p1
+	self.p0ToP1 = p1 - p0
 
 	self.Codimension = SplineUtils.GetCodimensionFromPoint(p0)
-	self.Length = self.b.Magnitude
+	self.Length = self.p0ToP1.Magnitude
 
 	return self
 end
 
 function Line.Interpolant:SolvePosition(t: number): Point
-	return self.a + self.b * t
+	return self.p0 + self.p0ToP1 * t
 end
 
 function Line.Interpolant:SolveVelocity(): Vector
-	return self.b
+	return self.p1
 end
 
 function Line.Interpolant:SolveAcceleration(): Vector
-	return self.a * 0
+	return self.p0 * 0
 end
 
 function Line.Interpolant:SolveJerk(): Vector
-	return self.a * 0
+	return self.p0 * 0
 end
 
 function Line.Interpolant:SolveTangent(): Vector
-	return self.b.Unit
+	return self.p0ToP1.Unit
 end
 
 function Line.Interpolant:SolveNormal(): Vector
@@ -56,13 +57,13 @@ function Line.Interpolant:SolveNormal(): Vector
 			return Vector.new({ -tangent[2], tangent[1] })
 		end
 	else
-		return self.a * 0
+		return self.p0 * 0
 	end
 end
 
 function Line.Interpolant:SolveBinormal(): Vector
 	if self.Codimension == 2 then
-		return self.a * 0
+		return self.p0 * 0
 	else
 		error("SolveBinormal is restricted to splines in 3 dimensions")
 	end
@@ -74,6 +75,10 @@ end
 
 function Line.Interpolant:SolveTorsion(): number
 	return 0
+end
+
+function Line.Interpolant:SolveBoundingBox(): (Point?, Point?)
+	return self.p0:Min(self.p1), self.p0:Max(self.p1)
 end
 
 function Line.Spline.new(points: { Point })
