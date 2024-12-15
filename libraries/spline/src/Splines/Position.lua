@@ -65,7 +65,7 @@ function Position.Interpolant:ToUnitSpeed()
 	for i = 1, numGridPoints - 1 do
 		gridValues[i + 1] = gridValues[i]
 			+ SplineUtils.GaussLegendre(function(t)
-				return self:SolveVelocity(t).Magnitude
+				return vector.magnitude(self:SolveVelocity(t))
 			end, shiftedGrid[i], shiftedGrid[i + 1])
 	end
 
@@ -87,7 +87,7 @@ function Position.Interpolant:SolveLength(from: number?, to: number?): number
 	end
 
 	return SplineUtils.GaussLegendre(function(t)
-		return self:SolveVelocity(t).Magnitude
+		return vector.magnitude(self:SolveVelocity(t))
 	end, from, to)
 end
 
@@ -107,7 +107,7 @@ function Position.Interpolant:SolveTangent(t: number): Vector
 	t = self:_accountForUnitSpeed(t)
 
 	-- T(t) = r'(t) / |r'(t)|
-	return self:SolveVelocity(t).Unit
+	return vector.normalize(self:SolveVelocity(t))
 end
 
 function Position.Interpolant:SolveNormal(t: number): Vector
@@ -131,9 +131,9 @@ function Position.Interpolant:SolveNormal(t: number): Vector
 			-- anyway. This scaled version is faster to compute.
 			local vel = self:SolveVelocity(t)
 			local accel = self:SolveAcceleration(t)
-			local speed = vel.Magnitude
+			local speed = vector.magnitude(vel)
 
-			return (accel * speed ^ 2 - vel * accel:Dot(vel)).Unit
+			return vector.normalize(accel * speed ^ 2 - vel * vector.dot(accel, vel))
 		end
 	end
 end
@@ -143,7 +143,7 @@ function Position.Interpolant:SolveBinormal(t: number): Vector
 		t = self:_accountForUnitSpeed(t)
 
 		-- T(t) x N(t)
-		return self:SolveTangent(t):Cross(self:SolveNormal(t))
+		return vector.cross(self:SolveTangent(t), (self:SolveNormal(t)))
 	else
 		error("SolveBinormal is restricted to splines in 3 dimensions")
 	end
@@ -154,11 +154,11 @@ function Position.Interpolant:SolveCurvature(t: number): number
 
 	local vel = self:SolveVelocity(t)
 	local accel = self:SolveAcceleration(t)
-	local speed = vel.Magnitude
-	local dTangent = accel / speed - vel * vel:Dot(accel) / speed ^ 3
+	local speed = vector.magnitude(vel)
+	local dTangent = accel / speed - vel * vector.dot(vel, accel) / speed ^ 3
 
 	-- κ(t) = |T'(t)| / |r'(t)|
-	return dTangent.Magnitude / speed
+	return vector.magnitude(dTangent) / speed
 end
 
 function Position.Interpolant:SolveTorsion(t: number): number
@@ -167,10 +167,10 @@ function Position.Interpolant:SolveTorsion(t: number): number
 	local vel = self:SolveVelocity(t)
 	local accel = self:SolveAcceleration(t)
 	local jerk = self:SolveJerk(t)
-	local cross = vel:Cross(accel)
+	local cross = vector.cross(vel, accel)
 
 	-- τ(t) = ((r'(t) x r''(t)) • r'''(t)) / |r'(t) x r''(t)|^2
-	return cross:Dot(jerk) / cross.Magnitude ^ 2
+	return vector.dot(cross, jerk) / vector.magnitude(cross) ^ 2
 end
 
 function Position.Interpolant:SolveBoundingBox(): (Vector, Vector)
