@@ -21,7 +21,7 @@ function Line.Interpolant.new(p0: Point, p1: Point)
 	self.p0ToP1 = p1 - p0
 
 	self.Codimension = SplineUtils.GetCodimensionFromPoint(p0)
-	self.Length = self.p0ToP1.Magnitude
+	self.Length = vector.magnitude(self.p0ToP1)
 
 	return self
 end
@@ -43,7 +43,7 @@ function Line.Interpolant:SolveJerk(): Vector
 end
 
 function Line.Interpolant:SolveTangent(): Vector
-	return self.p0ToP1.Unit
+	return vector.normalize(self.p0ToP1)
 end
 
 function Line.Interpolant:SolveNormal(): Vector

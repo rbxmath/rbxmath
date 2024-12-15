@@ -29,9 +29,9 @@ function CatmullRom.Interpolant.new(p0: Point, p1: Point, p2: Point, p3: Point, 
 	local p3_p2 = p3 - p2
 
 	local t0 = 0
-	local t1 = p1_p0.Magnitude ^ alpha + t0
-	local t2 = p2_p1.Magnitude ^ alpha + t1
-	local t3 = p3_p2.Magnitude ^ alpha + t2
+	local t1 = vector.magnitude(p1_p0) ^ alpha + t0
+	local t2 = vector.magnitude(p2_p1) ^ alpha + t1
+	local t3 = vector.magnitude(p3_p2) ^ alpha + t2
 
 	local scalar = (1 - tension) * (t2 - t1)
 	local m1 = scalar * (p1_p0 / (t1 - t0) - (p2 - p0) / (t2 - t0) + p2_p1 / (t2 - t1))
@@ -79,7 +79,7 @@ function CatmullRom.Spline.new(points: { Point }, alpha: number?, tension: numbe
 		local self = setmetatable(Position.Spline.new(), CatmullRom.Spline)
 
 		self.Codimension = SplineUtils.GetCodimensionFromPoint(points[1])
-		self.Length = (points[2] - points[1]).Magnitude
+		self.Length = vector.magnitude(points[2] - points[1])
 		self.Interpolants = { CatmullRom.Interpolant.fromLine(points[1], points[2]) }
 		self.InterpolantDomains = { 0 }
 

@@ -17,7 +17,7 @@ return {
 		local points = table.create(POINTS)
 
 		for i = 1, POINTS do
-			points[i] = Vector3.new(Rand:NextNumber(-100, 100), Rand:NextNumber(-100, 100), Rand:NextNumber(-100, 100))
+			points[i] = vector.create(Rand:NextNumber(-100, 100), Rand:NextNumber(-100, 100), Rand:NextNumber(-100, 100))
 		end
 
 		return Spline.CubicBezier.new(points)

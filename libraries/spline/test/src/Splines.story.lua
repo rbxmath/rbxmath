@@ -12,7 +12,7 @@ return function(target)
 		local part = Instance.new("Part", workspace)
 		part.Anchored = true
 		part.CanCollide = false
-		part.Size = Vector3.one * 0.5
+		part.Size = vector.one * 0.5
 		part.Transparency = 0.5
 		part.BrickColor = BrickColor.new("Persimmon")
 		part.CFrame = CFrame.new(0, 10, i)
