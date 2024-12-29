@@ -18,90 +18,12 @@ local _linearRescalingFunction = function (a, b)
     end
 end
 
-local _chebyshevSpectralDifferentionMatrix = function (n, p, chebyshevGridPoints)
-    local chebyshevGrid = chebyshevGridPoints or cheb.grid(n)
-    local d = {}
-
-    for i = 1, p + 1, 1 do
-        d[i] = {}
-    end
-
-    for i = 1, n+1, 1 do
-        d[1][i] = 1
-        for j = 2, p + 1, 1 do
-            d[j][i] = 0
-        end
-    end
-
-    for i = 1, n+1, 1 do
-        for j = 1, n+1, 1 do
-            if i ~= j then
-                for k = p + 1, 2, -1 do
-                    d[k][i] = d[k][i] + (k - 1) * d[k - 1][i] / (chebyshevGrid[i] - chebyshevGrid[j])
-                end
-            end
-        end
-    end
-
-    local D = {}
-
-    for i = 1, p+1, 1 do
-        D[i] = {}
-        for j = 1, n+1, 1 do
-            D[i][j] = {}
-            for k = 1, n+1, 1 do
-                if j == k then
-                    D[i][j][k] = d[i][j]
-                elseif i == 1 then
-                    D[i][j][k] = 0
-                end
-            end
-        end
-    end
-
-    local c = {}
-    for i = 1, n+1, 1 do
-        c[i] = 1
-        for j = 1, n+1, 1 do
-            if i ~= j then
-                c[i] = c[i] * (chebyshevGrid[i] - chebyshevGrid[j])
-            end
-        end
-    end
-
-    for i = 1, n+1, 1 do
-        for j = 1, n+1, 1 do
-            for k = 2, p+1, 1 do
-                if i ~= j then
-                    D[k][i][j] = (k - 1) * (d[k - 1][i] - D[k - 1][i][j]) / (chebyshevGrid[i] - chebyshevGrid[j])
-                end
-            end
-        end
-    end
-
-    for i = 1, n+1, 1 do
-        for j = 1, n+1, 1 do
-            for k = 1, p+1, 1 do
-                if i ~= j then
-                    D[k][i][j] = D[k][i][j] * c[i] / c[j]
-                end
-            end
-        end
-    end
-
-    local result = {}
-    for i = 1, p+1, 1 do
-        result[i] = Matrix:new(D[i])
-    end
-
-    return result
-end
-
 local _chebyshevFirstOrderSpectralMethod = function (fList, a, chebyshevGridPoints)
     local n = #fList
     local chebyshevGrid = chebyshevGridPoints or cheb.grid(n - 1)
 
     local D = cheb.derivativeMatrix(n - 1, chebyshevGrid)
+    
     for i = 1, n, 1 do
         if i == 1 then
             D[1][i] = 1
@@ -109,12 +31,12 @@ local _chebyshevFirstOrderSpectralMethod = function (fList, a, chebyshevGridPoin
             D[1][i] = 0
         end
     end
-
     local vector = Tools.list.copy(fList)
 
     vector[1] = a
+    vector = D:solve(vector)
 
-    return D:solve(vector)
+    return vector
 end
 
 local _chebyshevSecondtOrderBoundaryValueProblemSpectralMethod = function (coeffList, fList, a, b, chebyshevGridPoints)
