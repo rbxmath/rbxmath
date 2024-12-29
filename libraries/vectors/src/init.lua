@@ -16,7 +16,7 @@ local Complex = Scalars.Complex
 local Vectors = {}
 
 function Vectors.copy(vector: Vector): Vector
-   local data = {}
+   local data = table.create(#vector, 0)
    for k, v in ipairs(vector) do
       data[k] = v
    end
@@ -24,11 +24,7 @@ function Vectors.copy(vector: Vector): Vector
 end
 
 function Vectors.zeros(n)
-   local data = {}
-   for i = 1, n do
-      data[i] = 0
-   end
-   return data
+   return table.create(n, 0)
 end
 
 function Vectors.dot(left: Vector, right: Vector): number
@@ -36,16 +32,16 @@ function Vectors.dot(left: Vector, right: Vector): number
       error("Attempting to compute the dot product of incompatible vectors!", 1)
    end
    local sum = 0
-   for i = 1, #left do
-      sum += left[i] * right[i]
+   for k, v in ipairs(left) do
+      sum += v * right[k]
    end
    return sum
 end
 
 function Vectors.scale(scalar: number, vector: Vector): Vector
-   local data = {}
-   for i = 1, #vector do
-      data[i] = scalar * vector[i]
+   local data = table.create(#vector, 0)
+   for k, v in ipairs(vector) do
+      data[k] = scalar * v
    end
    return data
 end
@@ -54,8 +50,8 @@ function Vectors.norm(vector: Vector, norm: number | string)
    if not norm or norm == 2 then
       local sumLarge = 0
       local sumSmall = 0
-      for i = 1, #vector do
-	 local temp = vector[i] * vector[i]
+      for _, v in ipairs(vector) do
+	 local temp = v * v
 	 if temp < sumSmall or (sumSmall == 0 and temp < 1) then
 	    sumSmall += temp
 	 else
@@ -65,8 +61,8 @@ function Vectors.norm(vector: Vector, norm: number | string)
       return math.sqrt(sumLarge + sumSmall)
    elseif norm == "infinity" then
       local max = 0
-      for i = 1, #vector do
-	 local maxCandidate = math.abs(vector[i])
+      for _, v in ipairs(vector) do
+	 local maxCandidate = math.abs(v)
 	 if maxCandidate > max then
 	    max = maxCandidate
 	 end
@@ -75,8 +71,8 @@ function Vectors.norm(vector: Vector, norm: number | string)
    elseif type(norm) == "number" then
       local sumLarge = 0
       local sumSmall = 0
-      for i = 1, #vector do
-	 temp = math.abs(vertor[i]) ^ norm
+      for _, v in ipairs(vector) do
+	 temp = math.abs(v) ^ norm
 	 if temp < sumSmall or (sumSmall == 0 and temp < 1) then
 	    sumSmall += temp
 	 else
@@ -94,7 +90,7 @@ function Vectors.project(v, u, tol)
    local denominator = Vectors.dot(u, u)
    local numerator = Vectors.dot(u, v)
    if math.abs(denominator) < tol then
-      return Vectors.scale(0, u)
+      return table.create(#u, 0)
    else
       return Vectors.scale(numerator / denominator, u)
    end
@@ -122,7 +118,7 @@ function Vectors.gramSchmidt(listOfVectors, tol)
 end
 
 function Vectors.randomVector(n: number, normalize: boolean | number | string): Vector
-   local vector = {}
+   local vector = table.create(n, 0)
    for i = 1, n do
       local rand = math.random()
       vector[i] = rand
@@ -153,9 +149,9 @@ function Vectors.add(left: Vector, right: Vector)
       error("Attempting to subtract incompatible vectors!", 1)
    end
 
-   local data = {}
-   for i = 1, #left do
-      data[i] = left[i] + right[i]
+   local data = table.create(#left, 0)
+   for k, v in ipairs(left) do
+      data[k] = v + right[k]
    end
    return data
 end
@@ -165,22 +161,16 @@ function Vectors.sub(left: Vector, right: Vector)
       error("Attempting to subtract incompatible vectors!", 1)
    end
 
-   local data = {}
-   for i = 1, #left do
-      data[i] = left[i] - right[i]
+   local data = table.create(#left, 0)
+   for k, v in ipairs(left) do
+      data[k] = v - right[k]
    end
    return data
 end
 
 function Vectors.standardBasis(n: number, i: number)
-   local data = {}
-   for j = 1, n do
-      if i == j then
-	 data[j] = 1
-      else
-	 data[j] = 0
-      end
-   end
+   local data = table.create(n, 0)
+   data[i] = 1
    return data
 end
 

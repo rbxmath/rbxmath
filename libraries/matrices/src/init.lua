@@ -201,33 +201,33 @@ function Matrix:strassenSubdivide(): Array<Tensor>
    for i = 1, size, 1 do
       local iPlus = i + size
       data1[i], data2[i], data3[i], data4[i] = table.create(size, 0),
-	 table.create(size, 0), table.create(size, 0), table.create(size, 0)
+         table.create(size, 0), table.create(size, 0), table.create(size, 0)
       for j = 1, size, 1 do
          local jPlus = j + size
-	 if i <= self.length then
-	    if j <= self.width then
-	       data1[i][j] = self[i][j]
-	    else
-	       data1[i][j] = 0
-	    end
-	    if jPlus <= self.width then
-	       data2[i][j] = self[i][jPlus]
-	    else
-	       data2[i][j] = 0
-	    end
-	 end
-	 if iPlus <= self.length then
-	    if j <= self.width then
-	       data3[i][j] = self[iPlus][j]
-	    else
-	       data3[i][j] = 0
-	    end
-	    if jPlus <= self.width then
-	       data4[i][j] = self[iPlus][jPlus]
-	    else
-	       data4[i][j] = 0
-	    end
-	 end
+         if i <= self.length then
+            if j <= self.width then
+               data1[i][j] = self[i][j]
+            else
+               data1[i][j] = 0
+            end
+            if jPlus <= self.width then
+               data2[i][j] = self[i][jPlus]
+            else
+               data2[i][j] = 0
+            end
+         end
+         if iPlus <= self.length then
+            if j <= self.width then
+               data3[i][j] = self[iPlus][j]
+            else
+               data3[i][j] = 0
+            end
+            if jPlus <= self.width then
+               data4[i][j] = self[iPlus][jPlus]
+            else
+               data4[i][j] = 0
+            end
+         end
       end
    end
    return {
@@ -413,7 +413,7 @@ function Matrix.__mul(left: Tensor, right: Tensor): Tensor
       data = {}
       for i = 1, left.length do
          local row = table.create(right.width, 0)
-	 local leftRow = left[i]
+         local leftRow = left[i]
          for j = 1, right.width do
             local val = 0
             for k = 1, left.width do
@@ -428,21 +428,7 @@ function Matrix.__mul(left: Tensor, right: Tensor): Tensor
 end
 
 function Matrix.__tostring(matrix: Tensor): string
-   local result = "{"
-
-   local length = matrix.length
-
-   for i = 1, length - 1 do
-      local val = matrix[i]
-      result = result .. Tools.list.tostring(val) .. ","
-   end
-   
-   local val = matrix[length]
-   result = result .. Tools.list.tostring(val)
-
-   result = result .. "}"
-
-   return result
+   return Tools.list.deeptostring(matrix)
 end
 
 function Matrix.__eq(left: Tensor, right: Tensor): boolean
@@ -450,8 +436,8 @@ function Matrix.__eq(left: Tensor, right: Tensor): boolean
       return false
    else
       for i = 1, left.length do
-	 local leftRow = left[i]
-	 local rightRow = right[i]
+         local leftRow = left[i]
+         local rightRow = right[i]
          for j = 1, left.width do
             if leftRow[j] ~= rightRow[j] then
                return false
@@ -509,7 +495,7 @@ function Matrix.mv(matrix, vector, unsafe)
       local row = matrix[i]
       local sum = 0
       for k, v in row do
-	 sum += v * vector[k]
+         sum += v * vector[k]
       end
       output[i] = sum
    end
@@ -533,7 +519,7 @@ function Matrix.vm(vector, matrix, unsafe)
    for k, v in ipairs(vector) do
       local sum = 0
       for i = 1, matrix.length do
-	 sum += v * matrix[k][i]
+         sum += v * matrix[k][i]
       end
       output[k] = sum
    end
@@ -559,7 +545,7 @@ function Matrix.vmv(vector1, matrix, vector2, unsafe)
       local colVal = vector1[i]
       local row = matrix[i]
       for j = 1, #vector2 do
-	 sum += row[j] * colVal * vector2[j]
+         sum += row[j] * colVal * vector2[j]
       end
    end
    return sum
@@ -616,7 +602,7 @@ function Matrix.smv(scalar, matrix, vector, unsafe)
       local row = matrix[i]
       local sum = 0
       for k, v in row do
-	 sum += v * vector[k]
+         sum += v * vector[k]
       end
       output[i] = scalar * sum
    end
@@ -644,7 +630,7 @@ function Matrix.mvpv(matrix, vector1, vector2, unsafe)
       local row = matrix[i]
       local sum = vector2[i]
       for k, v in row do
-	 sum += v * vector1[k]
+         sum += v * vector1[k]
       end
       output[i] = sum
    end
@@ -673,7 +659,7 @@ function Matrix.smvpv(scalar, matrix, vector1, vector2, unsafe)
       local row = matrix[i]
       local sum = 0
       for k, v in row do
-	 sum += v * vector1[k]
+         sum += v * vector1[k]
       end
       output[i] = vector2[i] + scalar * sum
    end
@@ -703,7 +689,7 @@ function Matrix.smvpsv(scalar1, matrix, vector1, scalar2, vector2, unsafe)
       local row = matrix[i]
       local sum = 0
       for k, v in row do
-	 sum += v * vector1[k]
+         sum += v * vector1[k]
       end
       output[i] = scalar2 * vector2[i] + scalar1 * sum
    end
@@ -738,10 +724,10 @@ function Matrix:smvpsmv(scalar1, matrix1, vector1, scalar2, matrix2, vector2, un
       local row1 = matrix1[i]
       local row2 = martix2[i]
       for k, v in row1 do
-	 sum1 += v * vector1[k]
+         sum1 += v * vector1[k]
       end
       for k, v in row2 do
-	 sum2 += v * vector2[k]
+         sum2 += v * vector2[k]
       end
       output[i] = scalar1 * sum1 + scalar2 * sum2
    end
@@ -771,7 +757,7 @@ function Matrix.r1u(self, scalar, column, row, unsafe)
    for i = 1, self.length do
       local row2 = self[i]
       for j = 1, self.width do
-	 row2[j] += col[i] * row[j]
+         row2[j] += col[i] * row[j]
       end
    end
    return self
@@ -801,7 +787,7 @@ function Matrix.sr1u(self, scalar1, scalar2, column, row, unsafe)
    for i = 1, self.length do
       local row2 = self[i]
       for j = 1, self.width do
-	 row2[j] = scalar1 * row2[j] + col[i] * row[j]
+         row2[j] = scalar1 * row2[j] + col[i] * row[j]
       end
    end
    return self
@@ -831,7 +817,7 @@ function Matrix.mpr1u(matrix, scalar, column, row, unsafe)
    for i = 1, output.length do
       local row2 = output[i]
       for j = 1, output.width do
-	 row2[j] += col[i] * row[j]
+         row2[j] += col[i] * row[j]
       end
    end
    return output
@@ -862,7 +848,7 @@ function Matrix.smpr1u(scalar1, matrix, scalar2, column, row, unsafe)
    for i = 1, output.length do
       local row2 = output[i]
       for j = 1, output.width do
-	 row2[j] = scalar1 * row2[j] + col[i] * row[j]
+         row2[j] = scalar1 * row2[j] + col[i] * row[j]
       end
    end
    return output
@@ -898,8 +884,8 @@ function Matrix.br1u(self, rowStart, rowEnd, colStart, colEnd, scalar, column, r
       local matRow = self[i]
       local rowConstant = row[rowIndex]
       for j = colStart, colEnd do
-	 matRow[j] += col[colIndex] * rowConstant
-	 colIndex += 1
+         matRow[j] += col[colIndex] * rowConstant
+         colIndex += 1
       end
       colIndex = 1
       rowConstant += 1
@@ -938,8 +924,8 @@ function Matrix.bpr1u(matrix, rowStart, rowEnd, colStart, colEnd, scalar, column
       local matRow = output[i]
       local rowConstant = row[rowIndex]
       for j = colStart, colEnd do
-	 matRow[j] += col[colIndex] * rowConstant
-	 colIndex += 1
+         matRow[j] += col[colIndex] * rowConstant
+         colIndex += 1
       end
       colIndex = 1
       rowConstant += 1
@@ -978,8 +964,8 @@ function Matrix.sbr1u(self, scalar1, rowStart, rowEnd, colStart, colEnd, scalar2
       local matRow = self[i]
       local rowConstant = row[rowIndex]
       for j = colStart, colEnd do
-	 matRow[j] = scalar1 * matRow[j] + col[colIndex] * rowConstant
-	 colIndex += 1
+         matRow[j] = scalar1 * matRow[j] + col[colIndex] * rowConstant
+         colIndex += 1
       end
       colIndex = 1
       rowConstant += 1
@@ -1019,8 +1005,8 @@ function Matrix.sbpr1u(scalar1, matrix, rowStart, rowEnd, colStart, colEnd, scal
       local matRow = output[i]
       local rowConstant = row[rowIndex]
       for j = colStart, colEnd do
-	 matRow[j] = scalar1 * matRow[j] + col[colIndex] * rowConstant
-	 colIndex += 1
+         matRow[j] = scalar1 * matRow[j] + col[colIndex] * rowConstant
+         colIndex += 1
       end
       colIndex = 1
       rowConstant += 1
@@ -1042,8 +1028,8 @@ end
 --]=]
 function Matrix.mpr1um(matrix1, scalar, column, row, matrix2, unsafe)
    if not unsafe and (matrix1.length ~= #column or
-		      matrix1.width ~= matrix2.width or
-		      matrix2.length ~= #row) then
+                      matrix1.width ~= matrix2.width or
+                      matrix2.length ~= #row) then
       error("Incompatible dimensions for rank one update!")
    end
    local output = matrix1:copy()
@@ -1051,7 +1037,7 @@ function Matrix.mpr1um(matrix1, scalar, column, row, matrix2, unsafe)
    for k, v in ipairs(row) do
       local sum = 0
       for i = 1, matrix2.length do
-	 sum += v * matrix2[k][i]
+         sum += v * matrix2[k][i]
       end
       rol[k] = sum
    end
@@ -1063,7 +1049,7 @@ function Matrix.mpr1um(matrix1, scalar, column, row, matrix2, unsafe)
    for i = 1, output.length do
       local row2 = output[i]
       for j = 1, output.width do
-	 row2[j] += col[i] * rol[j]
+         row2[j] += col[i] * rol[j]
       end
    end
    return output
@@ -1084,8 +1070,8 @@ end
 --]=]
 function Matrix.smpr1um(scalar1, matrix1, scalar2, column, row, matrix2, unsafe)
    if not unsafe and (matrix1.length ~= #column or
-		      matrix1.width ~= matrix2.width or
-		      matrix2.length ~= #row) then
+                      matrix1.width ~= matrix2.width or
+                      matrix2.length ~= #row) then
       error("Incompatible dimensions for rank one update!")
    end
    local output = matrix1:copy()
@@ -1093,7 +1079,7 @@ function Matrix.smpr1um(scalar1, matrix1, scalar2, column, row, matrix2, unsafe)
    for k, v in ipairs(row) do
       local sum = 0
       for i = 1, matrix2.length do
-	 sum += v * matrix2[k][i]
+         sum += v * matrix2[k][i]
       end
       rol[k] = sum
    end
@@ -1105,7 +1091,7 @@ function Matrix.smpr1um(scalar1, matrix1, scalar2, column, row, matrix2, unsafe)
    for i = 1, output.length do
       local row2 = output[i]
       for j = 1, output.width do
-	 row2[j] = scalar1 * row2[j] + col[i] * row[j]
+         row2[j] = scalar1 * row2[j] + col[i] * row[j]
       end
    end
    return output
@@ -1125,15 +1111,15 @@ end
 --]=]
 function Matrix.r1um(self, scalar, column, row, matrix, unsafe)
    if not unsafe and (self.length ~= #column or
-		      self.width ~= matrix.width or
-		      matrix.length ~= #row) then
+                      self.width ~= matrix.width or
+                      matrix.length ~= #row) then
       error("Incompatible dimensions for rank one update!")
    end
    local rol = table.create(#row, 0)
    for k, v in ipairs(row) do
       local sum = 0
       for i = 1, matrix.length do
-	 sum += v * matrix[k][i]
+         sum += v * matrix[k][i]
       end
       rol[k] = sum
    end
@@ -1145,7 +1131,7 @@ function Matrix.r1um(self, scalar, column, row, matrix, unsafe)
    for i = 1, self.length do
       local row2 = self[i]
       for j = 1, self.width do
-	 row2[j] += col[i] * rol[j]
+         row2[j] += col[i] * rol[j]
       end
    end
    return self
@@ -1166,15 +1152,15 @@ end
 --]=]
 function Matrix.sr1um(self, scalar1, scalar2, column, row, matrix, unsafe)
    if not unsafe and (self.length ~= #column or
-		      self.width ~= matrix.width or
-		      matrix.length ~= #row) then
+                      self.width ~= matrix.width or
+                      matrix.length ~= #row) then
       error("Incompatible dimensions for rank one update!")
    end
    local rol = table.create(#row, 0)
    for k, v in ipairs(row) do
       local sum = 0
       for i = 1, matrix.length do
-	 sum += v * matrix[k][i]
+         sum += v * matrix[k][i]
       end
       rol[k] = sum
    end
@@ -1186,7 +1172,7 @@ function Matrix.sr1um(self, scalar1, scalar2, column, row, matrix, unsafe)
    for i = 1, self.length do
       local row2 = self[i]
       for j = 1, self.width do
-	 row2[j] = scalar1 * row2[j] + col[i] * row[j]
+         row2[j] = scalar1 * row2[j] + col[i] * row[j]
       end
    end
    return self
@@ -1210,8 +1196,8 @@ end
 --]=]
 function Matrix.bpr1um(matrix1, rowStart, rowEnd, colStart, colEnd, scalar, column, row, matrix2, unsafe)
    if not unsafe and (rowEnd - rowStart + 1 ~= #column or
-		      colEnd - colStart + 1 ~= matrix2.width or
-		      matrix2.length ~= #row) then
+                      colEnd - colStart + 1 ~= matrix2.width or
+                      matrix2.length ~= #row) then
       error("Incompatible dimensions for rank one update!")
    end
    local output = matrix1:copy()
@@ -1219,7 +1205,7 @@ function Matrix.bpr1um(matrix1, rowStart, rowEnd, colStart, colEnd, scalar, colu
    for k, v in ipairs(row) do
       local sum = 0
       for i = 1, matrix2.length do
-	 sum += v * matrix2[k][i]
+         sum += v * matrix2[k][i]
       end
       rol[k] = sum
    end
@@ -1231,7 +1217,7 @@ function Matrix.bpr1um(matrix1, rowStart, rowEnd, colStart, colEnd, scalar, colu
    for i = rowStart, rowEnd do
       local row2 = output[i]
       for j = colStart, colEnd do
-	 row2[j] += col[i] * rol[j]
+         row2[j] += col[i] * rol[j]
       end
    end
    return output
@@ -1256,8 +1242,8 @@ end
 --]=]
 function Matrix.sbpr1um(scalar1, matrix1, rowStart, rowEnd, colStart, colEnd, scalar2, column, row, matrix2, unsafe)
    if not unsafe and (rowEnd - rowStart + 1 ~= #column or
-		      colEnd - colStart + 1 ~= matrix2.width or
-		      matrix2.length ~= #row) then
+                      colEnd - colStart + 1 ~= matrix2.width or
+                      matrix2.length ~= #row) then
       error("Incompatible dimensions for rank one update!")
    end
    local output = matrix1:copy()
@@ -1265,7 +1251,7 @@ function Matrix.sbpr1um(scalar1, matrix1, rowStart, rowEnd, colStart, colEnd, sc
    for k, v in ipairs(row) do
       local sum = 0
       for i = 1, matrix2.length do
-	 sum += v * matrix2[k][i]
+         sum += v * matrix2[k][i]
       end
       rol[k] = sum
    end
@@ -1277,7 +1263,7 @@ function Matrix.sbpr1um(scalar1, matrix1, rowStart, rowEnd, colStart, colEnd, sc
    for i = rowStart, rowEnd do
       local row2 = output[i]
       for j = colStart, colEnd do
-	 row2[j] = scalar1 * row2[j] + col[i] * row[j]
+         row2[j] = scalar1 * row2[j] + col[i] * row[j]
       end
    end
    return output
@@ -1301,15 +1287,15 @@ end
 --]=]
 function Matrix.br1um(self, rowStart, rowEnd, colStart, colEnd, scalar, column, row, matrix, unsafe)
    if not unsafe and (rowEnd - rowStart + 1 ~= #column or
-		      colEnd - colStart + 1 ~= matrix.width or
-		      matrix.length ~= #row) then
+                      colEnd - colStart + 1 ~= matrix.width or
+                      matrix.length ~= #row) then
       error("Incompatible dimensions for rank one update!")
    end
    local rol = table.create(#row, 0)
    for k, v in ipairs(row) do
       local sum = 0
       for i = 1, matrix.length do
-	 sum += v * matrix[k][i]
+         sum += v * matrix[k][i]
       end
       rol[k] = sum
    end
@@ -1321,7 +1307,7 @@ function Matrix.br1um(self, rowStart, rowEnd, colStart, colEnd, scalar, column, 
    for i = rowStart, rowEnd do
       local row2 = self[i]
       for j = colStart, colEnd do
-	 row2[j] += col[i] * rol[j]
+         row2[j] += col[i] * rol[j]
       end
    end
    return self
@@ -1346,15 +1332,15 @@ end
 --]=]
 function Matrix.sbr1um(self, rowStart, rowEnd, colStart, colEnd, scalar1, scalar2, column, row, matrix, unsafe)
    if not unsafe and (rowEnd - rowStart + 1 ~= #column or
-		      colEnd - colStart + 1 ~= matrix.width or
-		      matrix.length ~= #row) then
+                      colEnd - colStart + 1 ~= matrix.width or
+                      matrix.length ~= #row) then
       error("Incompatible dimensions for rank one update!")
    end
    local rol = table.create(#row, 0)
    for k, v in ipairs(row) do
       local sum = 0
       for i = 1, matrix.length do
-	 sum += v * matrix[k][i]
+         sum += v * matrix[k][i]
       end
       rol[k] = sum
    end
@@ -1366,7 +1352,7 @@ function Matrix.sbr1um(self, rowStart, rowEnd, colStart, colEnd, scalar1, scalar
    for i = rowStart, rowEnd do
       local row2 = self[i]
       for j = colStart, colEnd do
-	 row2[j] = scalar1 * row2[j] + col[i] * row[j]
+         row2[j] = scalar1 * row2[j] + col[i] * row[j]
       end
    end
    return self
@@ -1389,7 +1375,7 @@ function Matrix.lr(self, r1, r2, c, s)
    for i = 1, self.width do
       local a, b = self[r1][i], self[r2][i]
       if a == 0 and b == 0 then
-	 continue
+         continue
       end
       self[r1][i], self[r2][i] = c * a - s * b, s * a + c * b
    end
@@ -1413,7 +1399,7 @@ function Matrix.rr(self, c1, c2, c, s)
    for i = 1, self.length do
       local a, b = self[i][c1], self[i][c2]
       if a == 0 and b == 0 then
-	 continue
+         continue
       end
       self[i][c1], self[i][c2] = c * a - s * b, s * a + c * b
    end
@@ -1423,31 +1409,53 @@ end
 --[=[
    Solves the upper triangular system Tx = b by back substitution.
 
-   @param self   --- The upper triangular matrix T in the linear system
+   @param matrix --- The upper triangular matrix T in the linear system
    @param vec    --- The vector b in the linear system
    @param tol    --- The tolerance to use for zero calling
    @param unsafe --- If true no dimension checks will be done
 
    @return       --- Solution vector x to the linear system
 --]=]
-function Matrix.usol(self, vec, tol, unsafe)
-   if not unsafe and self.length ~= #vec then
+function Matrix.usol(matrix, vec, tol, unsafe)
+   if not unsafe and matrix.length ~= #vec then
       error("Incompatible dimensions in triangular system vec!")
    end
    tol = tol or 10^-13
-   for i = #self, 1, -1 do
-      for j = i + 1, #self do
-	 vec[i] -= vec[j] * self[i][j]
+   for i = #matrix, 1, -1 do
+      for j = i + 1, #matrix do
+         vec[i] -= vec[j] * matrix[i][j]
       end
-      local diag = self[i][i]
+      local diag = matrix[i][i]
       if math.abs(diag) <= tol then
-	 if math.abs(vec[i]) <= tol then
-	    continue
-	 else
-	    error("Triangular system is not solvable!")
-	 end
+         if math.abs(vec[i]) <= tol then
+            continue
+         else
+            error("Triangular system is not solvable!")
+         end
       end
       vec[i] /= diag
+   end
+   return vec
+end
+
+--[=[
+   Solves the lower unitriangular system Lx = b by forward substitution.
+
+   @param matrix --- The lower triangular matrix L with assumed 1 on the diagonal
+   @param vec    --- The vector b in the linear system
+   @param unsafe --- If true, no dimension checks will be done
+--]=]
+function Matrix.lsol(matrix, vec, unsafe)
+   if not unsafe and matrix.length ~= #vec then
+      error("Incompatible dimensions in triangular system vec!")
+   end
+   tol = tol or 10^-13
+   for i = 2, #vec do
+      local sum = vec[i]
+      for j = 1, i - 1 do
+	 sum -= matrix[i][j] * vec[j]
+      end
+      vec[i] = sum
    end
    return vec
 end
@@ -1471,7 +1479,7 @@ function Matrix.uinv(self, tol, unsafe)
    tol = tol or 10^-13
    for i = 1, self.length do
       if math.abs(self[i][i]) <= tol then
-	 error("Upper triangular matrix is not invertible!")
+         error("Upper triangular matrix is not invertible!")
       end
       diag[i] = self[i][i]
       self[i][i] = 1
@@ -1479,20 +1487,20 @@ function Matrix.uinv(self, tol, unsafe)
    for r = n - 1, 1, -1 do
       local activeRow = self[r]
       for c = r + 1, n do
-	 activeRow[c] /= -diag[r]
+         activeRow[c] /= -diag[r]
       end
       for rr = n - 1, r + 1, -1 do
-	 local pivot = activeRow[rr]
-	 local passiveRow = self[rr]
-	 for c = rr + 1, n do
-	    activeRow[c] += pivot * passiveRow[c]
-	 end
+         local pivot = activeRow[rr]
+         local passiveRow = self[rr]
+         for c = rr + 1, n do
+            activeRow[c] += pivot * passiveRow[c]
+         end
       end
    end
    for r = 1, n do
       local activeRow = self[r]
       for c = r, n do
-	 activeRow[c] /= diag[c]
+         activeRow[c] /= diag[c]
       end
    end
    return self
@@ -1517,7 +1525,7 @@ function Matrix.linv(self, tol, unsafe)
    tol = tol or 10^-13
    for i = 1, self.length do
       if math.abs(self[i][i]) <= tol then
-	 error("Upper triangular matrix is not invertible!")
+         error("Upper triangular matrix is not invertible!")
       end
       diag[i] = self[i][i]
       self[i][i] = 1
@@ -1525,20 +1533,20 @@ function Matrix.linv(self, tol, unsafe)
    for r = 2, n do
       local activeRow = self[r]
       for c = 1, r - 1 do
-	 activeRow[c] /= -diag[c]
+         activeRow[c] /= -diag[c]
       end
       for rr = 2, r - 1 do
-	 local pivot = activeRow[rr]
-	 local passiveRow = self[rr]
-	 for c = 1, rr - 1 do
-	    activeRow[c] += pivot * passiveRow[c]
-	 end
+         local pivot = activeRow[rr]
+         local passiveRow = self[rr]
+         for c = 1, rr - 1 do
+            activeRow[c] += pivot * passiveRow[c]
+         end
       end
    end
    for r = 1, n do
       local activeRow = self[r]
       for c = 1, r do
-	 activeRow[c] /= diag[r]
+         activeRow[c] /= diag[r]
       end
    end
    return self
@@ -1568,26 +1576,26 @@ function Matrix.supsuTinv(self, scalar1, scalar2, tol, unsafe)
    for r = 2, n do
       local activeRow = self[r]
       for c = 1, r - 1 do
-	 activeRow[c] = -self[c][r] / diag[c]
+         activeRow[c] = -self[c][r] / diag[c]
       end
       for rr = 2, r - 1 do
-	 local pivot = activeRow[rr]
-	 local passiveRow = self[rr]
-	 for c = 1, rr - 1 do
-	    activeRow[c] += pivot * passiveRow[c]
-	 end
+         local pivot = activeRow[rr]
+         local passiveRow = self[rr]
+         for c = 1, rr - 1 do
+            activeRow[c] += pivot * passiveRow[c]
+         end
       end
    end
    for r = 1, n do
       local activeRow = self[r]
       for c = 1, n do
-	 if r > c then
-	    activeRow[c] *= scalar2 / diag[r]
-	 elseif r < c then
-	    activeRow[c] *= scalar1
-	 else
-	    activeRow[c] = scalar1 * diag[c] + scalar2 / diag[c]
-	 end
+         if r > c then
+            activeRow[c] *= scalar2 / diag[r]
+         elseif r < c then
+            activeRow[c] *= scalar1
+         else
+            activeRow[c] = scalar1 * diag[c] + scalar2 / diag[c]
+         end
       end
    end
    return self
@@ -1611,12 +1619,12 @@ function Matrix.ul(upper, lower, unsafe)
       local row = upper[i]
       local writeRow = matrix[i]
       for j = 1, lower.width do
-	 local column = lower[j]
-	 local sum = 0
-	 for k = i, j do
-	    sum += row[k] * column[k]
-	 end
-	 writeRow[j] = sum
+         local column = lower[j]
+         local sum = 0
+         for k = i, j do
+            sum += row[k] * column[k]
+         end
+         writeRow[j] = sum
       end
    end
    return matrix
@@ -1640,12 +1648,43 @@ function Matrix.lu(lower, upper, unsafe)
       local row = lower[i]
       local writeRow = matrix[i]
       for j = 1, upper.width do
-	 local column = lower[j]
-	 local sum = 0
-	 for k = j, i do
-	    sum += row[k] * column[k]
-	 end
-	 writeRow[j] = sum
+         local sum = 0
+         for k = math.min(i, j), 1, -1 do
+	    sum += row[k] * upper[k][j]
+         end
+         writeRow[j] = sum
+      end
+   end
+   return matrix
+end
+
+--[=[
+   Computes the lower-triangular-upper-triangular product LU.
+
+   @param lower  --- The lower unitriangular matrix L
+   @param upper  --- The upper triangular matrix U
+   @param unsafe --- If true no dimension checks will be done
+
+   @return       --- The product LU
+--]=]
+function Matrix.unilu(lower, upper, unsafe)
+   if not unsafe and lower.width ~= upper.length then
+      error("Attempting to multiply matrices of incompatible size!")
+   end
+   local matrix = Matrix:zero(lower.length, upper.width)
+   for i = 1, lower.length do
+      local row = lower[i]
+      local writeRow = matrix[i]
+      for j = 1, upper.width do
+         local sum = 0
+         for k = math.min(i, j), 1, -1 do
+	    if k == i then
+	       sum += upper[i][j]
+	    else
+	       sum += row[k] * upper[k][j]
+	    end
+         end
+         writeRow[j] = sum
       end
    end
    return matrix
@@ -1661,7 +1700,7 @@ end
 function Matrix.uclr(upper)
    for i = 2, upper.length do
       for j = 1, math.min(i - 1, upper.width) do
-	 upper[i][j] = 0
+         upper[i][j] = 0
       end
    end
    return upper
@@ -1910,15 +1949,15 @@ function Matrix:qrIsOrthogonal(tol)
    for i = 1, self.length do
       local row = self[i]
       for j = i, self.width do
-	 if i == j then
-	    if math.abs(math.abs(row[j]) - 1) >= tol then
-	       return false
-	    end
-	 else
-	    if math.abs(row[j]) >= tol then
-	       return false
-	    end
-	 end
+         if i == j then
+            if math.abs(math.abs(row[j]) - 1) >= tol then
+               return false
+            end
+         else
+            if math.abs(row[j]) >= tol then
+               return false
+            end
+         end
       end
    end
    return true
@@ -1964,19 +2003,19 @@ function Matrix:LU(tol)
       local max = 0
       local ind = 0
       for j = i, n do
-	 local val = math.abs(self[j][i])
-	 if val > max then
-	    max = val
-	    ind = j
-	 end
+         local val = math.abs(self[j][i])
+         if val > max then
+            max = val
+            ind = j
+         end
       end
 
       -- Clear the column!
       if math.abs(max) <= tol then
-	 for j = i, n do
-	    self[j][i] = 0
-	 end
-	 continue
+         for j = i, n do
+            self[j][i] = 0
+         end
+         continue
       end
 
       -- Permute the rows!
@@ -1989,15 +2028,15 @@ function Matrix:LU(tol)
 
       -- We will now eliminate everything below the pivot!
       for j = i + 1, n do
-	 local row = self[j]
-	 local target = row[i]
-	 if target ~= 0 then
-	    local l = target * pivml
-	    row[i] = l
-	    for k = i + 1, n do
-	       row[k] -= l * iRow[k]
-	    end
-	 end
+         local row = self[j]
+         local target = row[i]
+         if target ~= 0 then
+            local l = target * pivml
+            row[i] = l
+            for k = i + 1, n do
+               row[k] -= l * iRow[k]
+            end
+         end
       end
    end
    return self, permutation
@@ -2032,15 +2071,15 @@ function Matrix:LDU(tol)
       local max = 0
       local ind = 0
       for j = i, n do
-	 local val = math.abs(self[j][i])
-	 if val > max then
-	    max = val
-	    ind = j
-	 end
+         local val = math.abs(self[j][i])
+         if val > max then
+            max = val
+            ind = j
+         end
       end
 
       if max == 0 then
-	 error("Matrix is not invertible!")
+         error("Matrix is not invertible!")
       end
 
       self[i], self[ind] = self[ind], self[i]
@@ -2051,20 +2090,20 @@ function Matrix:LDU(tol)
 
       -- We will now eliminate everything below the pivot!
       for j = i + 1, n do
-	 local target = self[j][i]
-	 if target ~= 0 then
-	    local l = target * pivml
-	    self[j][i] = l
-	    for k = i + 1, n do
-	       self[j][k] -= l * self[i][k]
-	    end
-	 end
+         local target = self[j][i]
+         if target ~= 0 then
+            local l = target * pivml
+            self[j][i] = l
+            for k = i + 1, n do
+               self[j][k] -= l * self[i][k]
+            end
+         end
       end
    end
 
    for i = 1, n - 1 do
       for j = i + 1, n do
-	 self[i][j] /= self[i][i]
+         self[i][j] /= self[i][i]
       end
    end
    
@@ -2091,10 +2130,10 @@ function Matrix:CholeskyDecomposition(tol)
 
    for i = 1, numberOfColumns do
       for j = 1, i - 1 do
-	 local entry = matrix[j][i]
-	 if math.abs(entry) >= rtt then
-	    matrix[i][i] -= entry ^ 2
-	 end
+         local entry = matrix[j][i]
+         if math.abs(entry) >= rtt then
+            matrix[i][i] -= entry ^ 2
+         end
       end
       if matrix[i][i] < -tol then
          error("Matrix is not positive definite.")
@@ -2181,7 +2220,7 @@ function Matrix:HouseholderQR(tolerance: number)
       local ithCol = a:column(i, i)
 
       a:br1um(i, a.length, i + 1, a.width,
-	      -gamma, ithCol, ithCol, everythingButIthCol)
+              -gamma, ithCol, ithCol, everythingButIthCol)
 
       a[i][i] = -tau
    end
@@ -2341,33 +2380,12 @@ end
 --]=]
 function Matrix:LUSolve(b, perm, tol)
    tol = tol or 10^-13
-   local bPerm = {}
+   local bPerm = table.create(#b, 0)
    for k, v in ipairs(perm) do
-      bPerm[v] = b[k]
+      bPerm[k] = b[v]
    end
-   local bInvs = {bPerm[1]}
-   for i = 2, #bPerm do
-      local sum = bPerm[i]
-      for j = 1, i - 1 do
-	 sum -= self[i][j] * bPerm[j]
-      end
-      bInvs[i] = sum
-   end
-   for i = #self, 1, -1 do
-      bPerm[i] = bInvs[i]
-      for j = i + 1, #self do
-	 bPerm[i] -= bPerm[j] * self[i][j]
-      end
-      local diag = self[i][i]
-      if math.abs(diag) <= tol then
-	 if math.abs(bPerm[i]) <= tol then
-	    continue
-	 else
-	    error("System is not solvable!")
-	 end
-      end
-      bPerm[i] /= diag
-   end
+   bPerm = Matrix.lsol(self, bPerm)
+   bPerm = Matrix.usol(self, bPerm, tol, true)
    return bPerm
 end
 
@@ -2377,7 +2395,7 @@ function Matrix:getGivens()
    local givensList = {self.length}
    for i = 1, self.length - 1 do
       for j = self.length, i + 1, -1 do
-	 givensList[#givensList + 1] = self[j][i]
+         givensList[#givensList + 1] = self[j][i]
       end
    end
    return givensList
@@ -2390,12 +2408,12 @@ function Matrix.applyGivensTransposeToVector(givens, vector)
    for i = 1, length - 1 do
       -- j is the current row
       for j = length, i + 1, -1 do
-	 local theta = givens[iter]
-	 iter += 1
-	 local c = math.cos(theta)
-	 local s = math.sin(theta)
-	 vector[i], vector[j] = c * vector[i] - s * vector[j],
-	    s * vector[i] + c * vector[j]
+         local theta = givens[iter]
+         iter += 1
+         local c = math.cos(theta)
+         local s = math.sin(theta)
+         vector[i], vector[j] = c * vector[i] - s * vector[j],
+            s * vector[i] + c * vector[j]
       end
    end
    return vector
@@ -2408,11 +2426,11 @@ function Matrix.applyGivensTransposeToMatrix(givens, matrix)
    for i = 1, length - 1 do
       -- j is the current row
       for j = length, i + 1, -1 do
-	 local theta = givens[iter]
-	 iter += 1
-	 local c = math.cos(theta)
-	 local s = math.sin(theta)
-	 matrix:lr(i, j, c, s)
+         local theta = givens[iter]
+         iter += 1
+         local c = math.cos(theta)
+         local s = math.sin(theta)
+         matrix:lr(i, j, c, s)
       end
    end
    return matrix
@@ -2425,11 +2443,11 @@ function Matrix.applyGivensToMatrix(givens, matrix)
    for i = length - 1, 1, -1 do
       -- j is the current row
       for j = i + 1, length do
-	 local theta = givens[iter]
-	 iter -= 1
-	 local c = math.cos(theta)
-	 local s = -math.sin(theta)
-	 matrix:lr(i, j, c, s)
+         local theta = givens[iter]
+         iter -= 1
+         local c = math.cos(theta)
+         local s = -math.sin(theta)
+         matrix:lr(i, j, c, s)
       end
    end
    
@@ -2443,11 +2461,11 @@ function Matrix.applyMatrixToGivensTranspose(matrix, givens)
    for i = length - 1, 1, -1 do
       -- j is the current row
       for j = i + 1, length do
-	 local theta = givens[iter]
-	 iter -= 1
-	 local c = math.cos(theta)
-	 local s = -math.sin(theta)
-	 matrix:rr(i, j, c, s)
+         local theta = givens[iter]
+         iter -= 1
+         local c = math.cos(theta)
+         local s = -math.sin(theta)
+         matrix:rr(i, j, c, s)
       end
    end
    return matrix
@@ -2458,10 +2476,10 @@ function Matrix:GivensQRSolve(vec, tol)
    local n = math.min(self.length, self.width)
    for col = n - 1, 1, -1 do
       for row = n, col + 1, -1 do
-	 local c = math.cos(self[row][col])
-	 local s = math.sin(self[row][col])
-	 vec[col], vec[row] = c * vec[col] - s * vec[row],
-	    s * vec[col] + c * vec[row]
+         local c = math.cos(self[row][col])
+         local s = math.sin(self[row][col])
+         vec[col], vec[row] = c * vec[col] - s * vec[row],
+            s * vec[col] + c * vec[row]
       end
    end
    return self:usol(vec)
@@ -2474,7 +2492,7 @@ function Matrix:GivensQRInvert(tol)
    self:uinv(tol)
    for col = n - 1, 1, -1 do
       for row = n, col + 1, -1 do
-	 self[row][col] = 0
+         self[row][col] = 0
       end
    end
    Matrix.applyMatrixToGivensTranspose(self, givens)
@@ -2499,23 +2517,20 @@ function Matrix:polarTerm(tol)
    while not matrix:qrIsOrthogonal(tol) do
       local max, min = math.abs(matrix[1][1]), math.abs(matrix[1][1])
       for i = 2, self.length do
-	 local val = math.abs(matrix[i][i])
-	 if val > max then
-	    max = val
-	 elseif val < min then
-	    min = val
-	 end
+         local val = math.abs(matrix[i][i])
+         if val > max then
+            max = val
+         elseif val < min then
+            min = val
+         end
       end
       local gamma = math.sqrt(1 / (max * min))
       matrix:supsuTinv(0.5 * gamma, 0.5 / gamma, tol, true)
       Matrix.applyGivensToMatrix(givens, matrix)
       matrix:GivensQR(tol)
       givens = Matrix.getGivens(matrix)
-      print("", matrix:copy():uclr())
    end
    matrix = Matrix:identity(self.length)
-   print(Tools.list.tostring(givens))
-   print(matrix)
    return Matrix.applyGivensToMatrix(givens, matrix)
 end
 
@@ -2643,7 +2658,7 @@ function Matrix:entrywiseMax()
    local max = 0
    for i = 1, self.length do
       for j = 1, self.width do
-	 max = math.max(max, math.abs(self[i][j]))
+         max = math.max(max, math.abs(self[i][j]))
       end
    end
    return max
@@ -2790,58 +2805,58 @@ function Matrix:bidiagonalize(u, v, tol)
    for i = 1, math.max(self.length - 1, self.width - 1) do
       -- We will roll up the ith column, if there is one!
       if i < self.length then
-	 for j = i + 1, self.length do
-	    local a = matrix[i][i]
-	    local b = matrix[j][i]
-	    if math.abs(b) <= tol then
-	       continue
-	    end
-	    local r = Numerics.hypot(a, b)
-	    if r <= tol then
-	       matrix[i][i], matrix[j][i] = 0, 0
-	    end
-	    -- I want my diagonal to be positive because
-	    -- I want positive singular values
-	    if a < 0 then
-	       r = -r
-	    end
-	    local c = a / r
-	    local s = -b / r
-	    matrix[i][i], matrix[j][i] = r, 0
-	    for k = 1, self.length do
-	       u[i][k], u[j][k] = c * u[i][k] - s * u[j][k], s * u[i][k] + c * u[j][k]
-	    end
-	    for k = i + 1, self.width do
-	       matrix[i][k], matrix[j][k] = c * matrix[i][k] - s * matrix[j][k],
-		  s * matrix[i][k] + c * matrix[j][k]
-	    end
-	 end
+         for j = i + 1, self.length do
+            local a = matrix[i][i]
+            local b = matrix[j][i]
+            if math.abs(b) <= tol then
+               continue
+            end
+            local r = Numerics.hypot(a, b)
+            if r <= tol then
+               matrix[i][i], matrix[j][i] = 0, 0
+            end
+            -- I want my diagonal to be positive because
+            -- I want positive singular values
+            if a < 0 then
+               r = -r
+            end
+            local c = a / r
+            local s = -b / r
+            matrix[i][i], matrix[j][i] = r, 0
+            for k = 1, self.length do
+               u[i][k], u[j][k] = c * u[i][k] - s * u[j][k], s * u[i][k] + c * u[j][k]
+            end
+            for k = i + 1, self.width do
+               matrix[i][k], matrix[j][k] = c * matrix[i][k] - s * matrix[j][k],
+                  s * matrix[i][k] + c * matrix[j][k]
+            end
+         end
       end
       -- We will roll up the ith row, if there is one!
       if i < self.width then
-	 local col = i + 1
-	 for j = col + 1, self.width do
-	    local a = matrix[i][col]
-	    local b = matrix[i][j]
-	    if math.abs(b) <= tol then
-	       continue
-	    end
-	    local r = Numerics.hypot(a, b)
-	    if r <= tol then
-	       matrix[i][col], matrix[i][j] = 0, 0
-	    end
-	    local c = a / r
-	    local s = -b / r
-	    matrix[i][col], matrix[i][j] = r, 0
-	    for k = 1, self.width do
-	       v[col][k], v[j][k]
-		  = c * v[col][k] - s * v[j][k], s * v[col][k] + c * v[j][k]
-	    end
-	    for k = i + 1, self.length do
-	       matrix[k][col], matrix[k][j] = c * matrix[k][col] - s * matrix[k][j],
-		  s * matrix[k][col] + c * matrix[k][j]
-	    end
-	 end
+         local col = i + 1
+         for j = col + 1, self.width do
+            local a = matrix[i][col]
+            local b = matrix[i][j]
+            if math.abs(b) <= tol then
+               continue
+            end
+            local r = Numerics.hypot(a, b)
+            if r <= tol then
+               matrix[i][col], matrix[i][j] = 0, 0
+            end
+            local c = a / r
+            local s = -b / r
+            matrix[i][col], matrix[i][j] = r, 0
+            for k = 1, self.width do
+               v[col][k], v[j][k]
+                  = c * v[col][k] - s * v[j][k], s * v[col][k] + c * v[j][k]
+            end
+            for k = i + 1, self.length do
+               matrix[k][col], matrix[k][j] = c * matrix[k][col] - s * matrix[k][j],
+                  s * matrix[k][col] + c * matrix[k][j]
+            end
+         end
       end
    end
    return matrix, u, v
@@ -2856,63 +2871,63 @@ function Matrix:gkSVDOne(u, v, tol, maxIters)
    local matrix = self:submatrix(1, n, 1, n)
    for i = 1, maxIters do
       for i = 1, n - 1 do
-	 if math.abs(matrix[i][i + 1]) < tol then
-	    local sig1, u1, v1
-	       = matrix:submatrix(1, i, 1, i):gkSVDOne(nil,
-						       nil,
-						       tol,
-						       maxIters - i)
-	    local sig2, u2, v2
-	       = matrix:submatrix(i + 1, n, i + 1, n):gkSVDOne(nil,
-							       nil,
-							       tol,
-							       maxIters - i)
-	    u:setSubmatrix(1, i, 1, n, u1 * u:submatrix(1, i, 1, n))
-	    u:setSubmatrix(i + 1, n, 1, n, u2 * u:submatrix(i + 1, n, 1, n))
-	    v:setSubmatrix(1, i, 1, n, v1 * v:submatrix(1, i, 1, n))
-	    v:setSubmatrix(i + 1, n, 1, n, v2 * v:submatrix(i + 1, n, 1, n))
-	    return Tools.list.join(sig1, sig2), u, v
-	 end
+         if math.abs(matrix[i][i + 1]) < tol then
+            local sig1, u1, v1
+               = matrix:submatrix(1, i, 1, i):gkSVDOne(nil,
+                                                       nil,
+                                                       tol,
+                                                       maxIters - i)
+            local sig2, u2, v2
+               = matrix:submatrix(i + 1, n, i + 1, n):gkSVDOne(nil,
+                                                               nil,
+                                                               tol,
+                                                               maxIters - i)
+            u:setSubmatrix(1, i, 1, n, u1 * u:submatrix(1, i, 1, n))
+            u:setSubmatrix(i + 1, n, 1, n, u2 * u:submatrix(i + 1, n, 1, n))
+            v:setSubmatrix(1, i, 1, n, v1 * v:submatrix(1, i, 1, n))
+            v:setSubmatrix(i + 1, n, 1, n, v2 * v:submatrix(i + 1, n, 1, n))
+            return Tools.list.join(sig1, sig2), u, v
+         end
       end
       local lambda1, lambda2, lambda
       if n == 1 then
-	 return {matrix[1][1]}, Matrix:new({{1}}), Matrix:new({{1}})
+         return {matrix[1][1]}, Matrix:new({{1}}), Matrix:new({{1}})
       elseif n == 2 then
-	 local a = matrix[1][1]^2
-	 local b = matrix[1][2]^2
-	 local c = matrix[2][2]^2
-	 lambda1 = 0.5 * (a + b + c - math.sqrt(-4 * a * c + (a + b + c)^2))
-	 lambda2 = 0.5 * (a + b + c + math.sqrt(-4 * a * c + (a + b + c)^2))
-	 if math.abs(lambda1 - b - c) < math.abs(lambda2 - b - c) then
-	    lambda = lambda1
-	 else
-	    lambda = lambda2
-	 end
+         local a = matrix[1][1]^2
+         local b = matrix[1][2]^2
+         local c = matrix[2][2]^2
+         lambda1 = 0.5 * (a + b + c - math.sqrt(-4 * a * c + (a + b + c)^2))
+         lambda2 = 0.5 * (a + b + c + math.sqrt(-4 * a * c + (a + b + c)^2))
+         if math.abs(lambda1 - b - c) < math.abs(lambda2 - b - c) then
+            lambda = lambda1
+         else
+            lambda = lambda2
+         end
       else
-	 local a = matrix[n - 2][n - 1]^2
-	 local b = matrix[n - 1][n - 1]^2
-	 local c = matrix[n - 1][n]^2
-	 local d = matrix[n][n]^2
-	 lambda1 = 0.5 * (a + b + c + d +
-			  math.sqrt((a + b + c + d)^2 - 4 * (a * c + a * d + b * d)))
-	 lambda2 = 0.5 * (a + b + c + d -
-			  math.sqrt((a + b + c + d)^2 - 4 * (a * c + a * d + b * d)))
-	 if math.abs(lambda1 - c - d) < math.abs(lambda2 - c - d) then
-	    lambda = lambda1
-	 else
-	    lambda = lambda2
-	 end
+         local a = matrix[n - 2][n - 1]^2
+         local b = matrix[n - 1][n - 1]^2
+         local c = matrix[n - 1][n]^2
+         local d = matrix[n][n]^2
+         lambda1 = 0.5 * (a + b + c + d +
+                          math.sqrt((a + b + c + d)^2 - 4 * (a * c + a * d + b * d)))
+         lambda2 = 0.5 * (a + b + c + d -
+                          math.sqrt((a + b + c + d)^2 - 4 * (a * c + a * d + b * d)))
+         if math.abs(lambda1 - c - d) < math.abs(lambda2 - c - d) then
+            lambda = lambda1
+         else
+            lambda = lambda2
+         end
       end
       local y, z = matrix[1][1]^2 - lambda, matrix[1][1] * matrix[1][2]
       local r = Numerics.hypot(y, z)
       
       local c, s = y / r, -z / r
       for k = 1, n do
-	 matrix[k][1], matrix[k][2] = c * matrix[k][1] - s * matrix[k][2],
-	    s * matrix[k][1] + c * matrix[k][2]
+         matrix[k][1], matrix[k][2] = c * matrix[k][1] - s * matrix[k][2],
+            s * matrix[k][1] + c * matrix[k][2]
       end
       for k = 1, v.width do
-	 v[1][k], v[2][k] = c * v[1][k] - s * v[2][k], s * v[1][k] + c * v[2][k]
+         v[1][k], v[2][k] = c * v[1][k] - s * v[2][k], s * v[1][k] + c * v[2][k]
       end
       matrix, u, v = matrix:bidiagonalize(u, v, tol)
    end
@@ -2930,26 +2945,26 @@ function Matrix:tridiagonalize(que, tol)
       for j = i + 1, self.length do
          local a = matrix[i][column]
          local b = matrix[j][column]
-	 if(math.abs(b) <= tol) then
-	    continue
-	 end
+         if(math.abs(b) <= tol) then
+            continue
+         end
          local r = Numerics.hypot(a, b)
          -- Anything less than tolerance is assumed to be zero,
-	 -- so just set things to zero!
+         -- so just set things to zero!
          if r <= tol then
             matrix[i][column], matrix[j][column], matrix[column][i], matrix[column][j]
-	       = 0, 0, 0, 0
+               = 0, 0, 0, 0
             continue
          end
          local c = a / r
          local s = -b / r
          matrix[i][column], matrix[j][column], matrix[column][i], matrix[column][j]
-	    = r, 0, r, 0
-	 for k = 1, self.width do
-	    que[i][k], que[j][k]
-	       = c * que[i][k] - s * que[j][k], s * que[i][k] + c * que[j][k]
-	 end
-	 -- This is the active column
+            = r, 0, r, 0
+         for k = 1, self.width do
+            que[i][k], que[j][k]
+               = c * que[i][k] - s * que[j][k], s * que[i][k] + c * que[j][k]
+         end
+         -- This is the active column
          for k = column + 1, self.width do
             if i == k then
                local a1 = matrix[i][i]
@@ -2963,8 +2978,8 @@ function Matrix:tridiagonalize(que, tol)
                continue
             else
                matrix[i][k], matrix[j][k]
-		  = c * matrix[i][k] - s * matrix[j][k],
-		  s * matrix[i][k] + c * matrix[j][k]
+                  = c * matrix[i][k] - s * matrix[j][k],
+                  s * matrix[i][k] + c * matrix[j][k]
                matrix[k][i], matrix[k][j] = matrix[i][k], matrix[j][k]
             end
          end
@@ -3566,16 +3581,16 @@ function Matrix:symmetricFrancisOne(que, tol, maxIters)
    local n = matrix.length
    if n == 2 then
       local temp1 = 4 * matrix[1][2] * matrix[2][1] +
-	 math.pow((matrix[1][1] - matrix[2][2]), 2)
+         math.pow((matrix[1][1] - matrix[2][2]), 2)
       if matrix[1][2] < tol then
-	 return {matrix[1][1], matrix[2][2]}, Matrix:identity(2)
+         return {matrix[1][1], matrix[2][2]}, Matrix:identity(2)
       else
-	 local lambda1 = (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2
-	 local lambda2 = (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2
-	 local vect = {matrix[2][2] - lambda1, matrix[1][2]}
-	 local norm = Numerics.hypot(vect[1], vect[2])
-	 local c, d = vect[1] / norm, vect[2] / norm
-	 return {lambda1, lambda2}, Matrix:new({{c, -d}, {d, c}})
+         local lambda1 = (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2
+         local lambda2 = (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2
+         local vect = {matrix[2][2] - lambda1, matrix[1][2]}
+         local norm = Numerics.hypot(vect[1], vect[2])
+         local c, d = vect[1] / norm, vect[2] / norm
+         return {lambda1, lambda2}, Matrix:new({{c, -d}, {d, c}})
       end
    end
    local iterations = 0
@@ -3598,9 +3613,9 @@ function Matrix:symmetricFrancisOne(que, tol, maxIters)
                                                                 maxIters)
             local eig2, que2 =
                matrix:submatrix(i + 1, n,
-				i + 1, n):symmetricFrancisOne(Matrix:identity(n - i),
-							      tol,
-							      maxIters)
+                                i + 1, n):symmetricFrancisOne(Matrix:identity(n - i),
+                                                              tol,
+                                                              maxIters)
             que:setSubmatrix(1, i, 1, n, que1 * que:submatrix(1, i, 1, n))
             que:setSubmatrix(i + 1, n, 1, n, que2 * que:submatrix(i + 1, n, 1, n))
             return Tools.list.join(eig1, eig2), que
@@ -3609,7 +3624,7 @@ function Matrix:symmetricFrancisOne(que, tol, maxIters)
       local shift = matrix[n][n]
       local u = {
          matrix[1][1] - shift + math.sqrt(math.pow(matrix[1][1] - shift, 2)
-					  + math.pow(matrix[2][1], 2)),
+                                          + math.pow(matrix[2][1], 2)),
          matrix[2][1],
       }
       local gamma = 2 / (math.pow(u[1], 2) + math.pow(u[2], 2))
@@ -3620,7 +3635,7 @@ function Matrix:symmetricFrancisOne(que, tol, maxIters)
       end
       for i = 1, n do
          matrix:setSubmatrix(i, i, 1, p + 1,
-			     matrix:submatrix(i, i, 1, p + 1) * Q:transpose())
+                             matrix:submatrix(i, i, 1, p + 1) * Q:transpose())
       end
       que:setSubmatrix(1, p + 1, 1, n, Q * que:submatrix(1, p + 1, 1, n))
       matrix, que = matrix:tridiagonalize(que, tol)
@@ -3630,23 +3645,23 @@ function Matrix:symmetricFrancisOne(que, tol, maxIters)
       if iterations == maxIters then
          local eig1, que1 =
             matrix:submatrix(1, minimizer, 1, minimizer)
-	    :symmetricFrancisOne(Matrix:identity(minimizer),
-				 tol,
-				 maxIters)
+            :symmetricFrancisOne(Matrix:identity(minimizer),
+                                 tol,
+                                 maxIters)
          local eig2, que2 =
             matrix:submatrix(minimizer + 1, n, minimizer + 1, n):symmetricFrancisOne(Matrix:identity(n - minimizer),
                                                                                      tol,
                                                                                      maxIters)
          que:setSubmatrix(1,
-			  minimizer,
-			  1,
-			  n,
-			  que1 * que:submatrix(1, minimizer, 1, n))
+                          minimizer,
+                          1,
+                          n,
+                          que1 * que:submatrix(1, minimizer, 1, n))
          que:setSubmatrix(minimizer + 1,
-			  n,
-			  1,
-			  n,
-			  que2 * que:submatrix(minimizer + 1, n, 1, n))
+                          n,
+                          1,
+                          n,
+                          que2 * que:submatrix(minimizer + 1, n, 1, n))
          return Tools.list.join(eig1, eig2), que
       end
    end
@@ -3670,14 +3685,14 @@ function Matrix:symmetricFrancisTwo(que, tol, maxIters)
    if n == 2 then
       local temp1 = 4 * matrix[1][2] * matrix[2][1] + math.pow((matrix[1][1] - matrix[2][2]), 2)
       if matrix[1][2] < tol then
-	 return {matrix[1][1], matrix[2][2]}, Matrix:identity(2)
+         return {matrix[1][1], matrix[2][2]}, Matrix:identity(2)
       else
-	 local lambda1 = (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2
-	 local lambda2 = (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2
-	 local vect = {matrix[2][2] - lambda1, matrix[1][2]}
-	 local norm = Numerics.hypot(vect[1], vect[2])
-	 local c, d = vect[1] / norm, vect[2] / norm
-	 return {lambda1, lambda2}, Matrix:new({{c, -d}, {d, c}})
+         local lambda1 = (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2
+         local lambda2 = (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2
+         local vect = {matrix[2][2] - lambda1, matrix[1][2]}
+         local norm = Numerics.hypot(vect[1], vect[2])
+         local c, d = vect[1] / norm, vect[2] / norm
+         return {lambda1, lambda2}, Matrix:new({{c, -d}, {d, c}})
       end
    elseif n == 3 then
       return self:symmetricFrancisOne(que, tol, maxIters)
@@ -3771,15 +3786,15 @@ function Matrix:symmetricFrancisTwo(que, tol, maxIters)
                                                                                      tol,
                                                                                      maxIters)
          que:setSubmatrix(1,
-			  minimizer,
-			  1,
-			  n,
-			  que1 * que:submatrix(1, minimizer, 1, n))
+                          minimizer,
+                          1,
+                          n,
+                          que1 * que:submatrix(1, minimizer, 1, n))
          que:setSubmatrix(minimizer + 1,
-			  n,
-			  1,
-			  n,
-			  que2 * que:submatrix(minimizer + 1, n, 1, n))
+                          n,
+                          1,
+                          n,
+                          que2 * que:submatrix(minimizer + 1, n, 1, n))
          return Tools.list.join(eig1, eig2), que
       end
    end
@@ -3807,14 +3822,14 @@ function Matrix:symmetricFrancisSix(que, tol, maxIters)
    if n == 2 then
       local temp1 = 4 * matrix[1][2] * matrix[2][1] + math.pow((matrix[1][1] - matrix[2][2]), 2)
       if matrix[1][2] < tol then
-	 return {matrix[1][1], matrix[2][2]}, Matrix:identity(2)
+         return {matrix[1][1], matrix[2][2]}, Matrix:identity(2)
       else
-	 local lambda1 = (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2
-	 local lambda2 = (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2
-	 local vect = {matrix[2][2] - lambda1, matrix[1][2]}
-	 local norm = Numerics.hypot(vect[1], vect[2])
-	 local c, d = vect[1] / norm, vect[2] / norm
-	 return {lambda1, lambda2}, Matrix:new({{c, -d}, {d, c}})
+         local lambda1 = (matrix[1][1] + matrix[2][2] + math.sqrt(temp1)) / 2
+         local lambda2 = (matrix[1][1] + matrix[2][2] - math.sqrt(temp1)) / 2
+         local vect = {matrix[2][2] - lambda1, matrix[1][2]}
+         local norm = Numerics.hypot(vect[1], vect[2])
+         local c, d = vect[1] / norm, vect[2] / norm
+         return {lambda1, lambda2}, Matrix:new({{c, -d}, {d, c}})
       end
    elseif n < 7 then
       return self:symmetricFrancisTwo(que, tol, maxIters)
@@ -4856,8 +4871,6 @@ function ComplexMatrix:hessenbergForm()
       end
       gamma = 2 / sum
 
-      print(tau)
-
       local temp = a:submatrix(k + 1, n, k + 1, n)
       local temp2 = a:submatrix(k + 1, n, k, k)
       a:setSubmatrix(k + 1, n, k + 1, n, temp + temp2 * (temp2:conjugateTranspose() * temp):toScaled(-gamma))
@@ -5376,6 +5389,561 @@ function SparseMatrix.__eq(left: Object, right: Object): boolean
    return true
 end
 
+--[[
+   +--------------------------------------------------+
+   |             Linear Algebra Subroutines           |
+   +--------------------------------------------------+
+   |Some common matrix operations can be dramatically |
+   |improved if they are implemented all at once.     |
+   |These are implemented here for use by "power      |
+   |users" and for internal efficiency.               |
+   +--------------------------------------------------+
+   |As a guide to the reader the following symbols are|
+   |used in function names:                           |
+   |                                                  |
+   | s   --- Scalar value                             |
+   | m   --- Matrix                                   |
+   | u   --- Upper triangular matrix                  |
+   | l   --- Lower triangular matrix                  |
+   | p   --- Plus                                     |
+   | v   --- Vector                                   |
+   | r1u --- Rank One Update                          |
+   | b   --- Block                                    |
+   +--------------------------------------------------+
+--]]
+
+--[=[
+   Computes the matrix vector product Ax.
+
+   @param matrix --- The matrix A in the matrix vector product Ax
+   @param vector --- The vector x in the matrix vector product Ax
+   @param unsafe --- If true, no checks will be done on the dimensions
+
+   @return --- The matrix vector product Ax.
+--]=]
+function SparseMatrix.mv(matrix, vector, unsafe)
+   if not unsafe and matrix.width ~= #vector then
+      error("Matrix and vector are of incompatible size!")
+   end
+   local output = table.create(matrix.length, 0)
+   for k, v in pairs(matrix.data) do
+      local c = k % matrix.width
+      if c == 0 then
+         c = matrix.width
+      end
+      local r = (k - c) / matrix.width + 1
+      if vector[c] then
+         output[r] += v * vector[c]
+      end
+   end
+   return output
+end
+
+--[=[
+   Computes the vector matrix product y^T A.
+
+   @param vector --- The vector y in the vector matrix product y^T A
+   @param matrix --- The matrix A in the vector matrix product y^T A
+   @param unsafe --- If true, no checks will be done on the dimensions
+
+   @return --- The vector matrix product y^T A.
+--]=]
+function SparseMatrix.vm(vector, matrix, unsafe)
+   if not unsafe and matrix.length ~= #vector then
+      error("Matrix and vector are of incompatible size!")
+   end
+   local output = table.create(matrix.length, 0)
+   for k, v in pairs(matrix.data) do
+      local c = k % matrix.width
+      if c == 0 then
+         c = matrix.width
+      end
+      local r = (k - c) / matrix.width + 1
+      if vector[r] then
+         output[c] += v * vector[r]
+      end
+   end
+   return output
+end
+
+--[=[
+   Computes the vector matrix product y^T Ax.
+
+   @param vector1 --- The vector y in the vector matrix vector product y^T Ax
+   @param matrix  --- The matrix A in the vector matrix vector product y^T Ax
+   @param vector2 --- The vector x in the vector matrix vector product y^T Ax
+   @param unsafe  --- If true, no checks will be done on the dimensions
+
+   @return --- The vector matrix product y^T Ax.
+--]=]
+function SparseMatrix.vmv(vector1, matrix, vector2, unsafe)
+   if not unsafe and matrix.length ~= #vector1 and matrix.width ~= #vector2 then
+      error("Matrix and vector are of incompatible size!")
+   end
+   local sum = 0
+   for k, v in pairs(matrix.data) do
+      local c = k % matrix.width
+      if c == 0 then
+         c = matrix.width
+      end
+      local r = (k - c) / matrix.width + 1
+      sum += vector1[r] * v * vector2[c]
+   end
+   return sum
+end
+
+--[=[
+   Computes the iterative matrix product ABx.
+
+   @param matrix1 --- The matrix A in the matrix product ABx
+   @param matrix2 --- The matrix B in the matrix product ABx
+   @param vector  --- The vector x in the matrix product ABx
+   @param unsafe  --- If true, no check will be done on the dimensions 
+
+   @return --- The iterative matrix product ABx
+--]=]
+function SparseMatrix.mmv(matrix1, matrix2, vector, unsafe)
+   return SparseMatrix.mv(matrix1, SparseMatrix.mv(matrix2, vector, unsafe), unsafe)
+end
+
+--[=[
+   Computes the iterative matrix product A^n x.
+
+   @param matrix --- The matrix A in the matrix product A^n x
+   @param power  --- The integer n in the matrix product A^n x
+   @param vector --- The vector x in the matrix product A^n x
+   @param unsafe --- If true, no checks will be done on the dimensions
+
+   @return --- The iterative matrix product A^n x
+--]=]
+function SparseMatrix.imv(matrix, power, vector, unsafe)
+   local output = Matrix.mv(matrix, vector, unsafe)
+   for i = 2, power do
+      output = SparseMatrix.mv(matrix, output, unsafe)
+   end
+   return output
+end
+
+--[=[
+   Computes the vector sum Ax + y.
+
+   @param matrix  --- The matrix A in the sum Ax + y
+   @param vector1 --- The vector x in the sum Ax + y
+   @param vector2 --- The vector y in the sum Ax + y
+   @param unsage  --- If true, no checks will be done on the dimensions
+
+   @return --- The sum Ax + y
+--]=]
+function SparseMatrix.mvpv(matrix, vector1, vector2, unsafe)
+   if not unsafe and matrix.width ~= #vector1 then
+      error("Matrix and vector are of incompatible size!")
+   elseif not unsafe and matrix.length ~= #vector2 then
+      error("Attempting to add vectors of incompatible size!")
+   end
+   local output = Vectors.copy(vector2)
+   for k, v in pairs(matrix.data) do
+      local c = k % matrix.width
+      if c == 0 then
+         c = matrix.width
+      end
+      local r = (k - c) / matrix.width + 1
+      if vector[c] then
+         output[r] += v * vector[c]
+      end
+   end
+   return output
+end
+
+--[=[
+   Performs the rank one update A + cxy^T. Overwrites the matrix A.
+
+   @param self   --- The matrix A in the rank one update A + cxy^T
+   @param scalar --- The scalar c in the rank one update A + cxy^T
+   @param column --- The vector x in the rank one update A + cxy^T
+   @param row    --- The vector y in the rank one update A + cxy^T
+   @param unsafe --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update A + cxy^T
+--]=]
+function SparseMatrix.r1u(self, scalar, column, row, unsafe)
+   if not unsafe and (self.length ~= #column or self.width ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local col = {}
+   local width = self.width
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for k, v in pairs(column) do
+      col[k] = scalar * v
+   end
+   for k, v in pairs(col) do
+      for kk, vv in pairs(row) do
+	 self.data[width * (k - 1) + kk] += v * vv
+      end
+   end
+   return self
+end
+
+--[=[
+   Performs the rank one update A + cxy^T.
+
+   @param matrix --- The matrix A in the rank one update A + cxy^T
+   @param scalar --- The scalar c in the rank one update A + cxy^T
+   @param column --- The vector x in the rank one update A + cxy^T
+   @param row    --- The vector y in the rank one update A + cxy^T
+   @param unsafe --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update A + cxy^T
+--]=]
+function SparseMatrix.mpr1u(matrix, scalar, column, row, unsafe)
+   if not unsafe and (matrix.length ~= #column or matrix.width ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local output = matrix:copy()
+   local col = {}
+   local width = matrix.width
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for k, v in pairs(column) do
+      col[k] = scalar * v
+   end
+   for k, v in pairs(col) do
+      for kk, vv in pairs(row) do
+	 matrix.data[width * (k - 1) + kk] += v * vv
+      end
+   end
+   return matrix
+end
+
+--[=[
+   Performs the rank one update B + cxy^T on a submatrix of the matrix A.
+
+   @param self     --- The matrix A above
+   @param rowStart --- The start row for the submatrix
+   @param rowEnd   --- The end row for the submatrix
+   @param colStart --- The start column for the submatrix
+   @param colEnd   --- The end column for the submatrix
+   @param scalar   --- The scalar c in the rank one update B + cxy^T
+   @param column   --- The vector x in the rank one update B + cxy^T
+   @param row      --- The vector y in the rank one update B + cxy^T
+   @param unsafe   --- If true, no checks will be done on the dimensions
+
+   @return --- The rank one update dA + cxy^T
+--]=]
+function SparseMatrix.br1u(self, rowStart, rowEnd, colStart, colEnd, scalar, column, row, unsafe)
+   if not unsafe and (rowEnd - rowStart + 1 ~= #column or colEnd - colStart + 1 ~= #row) then
+      error("Incompatible dimensions for rank one update!")
+   end
+   local col = {}
+   local width = self.width
+   -- Cheaper to do O(n) multiplies than n^2 multiplies
+   for k, v in pairs(column) do
+      col[k] = scalar * v
+   end
+   for k, v in pairs(col) do
+      for kk, vv in pairs(row) do
+	 self.data[width * (k + rowStart - 2) + kk + colStart - 1] += v * vv
+      end
+   end
+   return self
+end
+
+--[[
+TODO: Convert below to sparse.
+--[=[
+   Applies the Givens rotation given by cosine c and sine s to rows
+   r1 and r2. This overwrites self! Note that we use the rotational
+   convention { { c, -s }, { s, c } }.
+
+   @param self --- The matrix to be rotated
+   @param r1   --- The top row in the rotation
+   @param r2   --- The bottom row in the rotation
+   @param c    --- The cosine of the angle to be rotated
+   @param s    --- The sine of the angle to be rotated
+
+   @return     --- The rotated matrix
+--]=]
+function Matrix.lr(self, r1, r2, c, s)
+   for i = 1, self.width do
+      local a, b = self[r1][i], self[r2][i]
+      if a == 0 and b == 0 then
+         continue
+      end
+      self[r1][i], self[r2][i] = c * a - s * b, s * a + c * b
+   end
+   return self
+end
+
+--[=[
+   Applies the Givens rotation given by cosine c and sine s to columns
+   c1 and c2. This overwrites self! Note that we use the rotational
+   convention { { c, -s }, { s, c } }.
+
+   @param self --- The matrix to be rotated
+   @param c1   --- The left column in the rotation
+   @param c2   --- The right column in the rotation
+   @param c    --- The cosine of the angle to be rotated
+   @param s    --- The sine of the angle to be rotated
+
+   @return     --- The rotated matrix
+--]=]
+function Matrix.rr(self, c1, c2, c, s)
+   for i = 1, self.length do
+      local a, b = self[i][c1], self[i][c2]
+      if a == 0 and b == 0 then
+         continue
+      end
+      self[i][c1], self[i][c2] = c * a - s * b, s * a + c * b
+   end
+   return self
+end
+
+--[=[
+   Solves the upper triangular system Tx = b by back substitution.
+
+   @param self   --- The upper triangular matrix T in the linear system
+   @param vec    --- The vector b in the linear system
+   @param tol    --- The tolerance to use for zero calling
+   @param unsafe --- If true no dimension checks will be done
+
+   @return       --- Solution vector x to the linear system
+--]=]
+function Matrix.usol(self, vec, tol, unsafe)
+   if not unsafe and self.length ~= #vec then
+      error("Incompatible dimensions in triangular system vec!")
+   end
+   tol = tol or 10^-13
+   for i = #self, 1, -1 do
+      for j = i + 1, #self do
+         vec[i] -= vec[j] * self[i][j]
+      end
+      local diag = self[i][i]
+      if math.abs(diag) <= tol then
+         if math.abs(vec[i]) <= tol then
+            continue
+         else
+            error("Triangular system is not solvable!")
+         end
+      end
+      vec[i] /= diag
+   end
+   return vec
+end
+
+--[=[
+   Computes the inverse of the upper triangular matrix T. The matrix
+   self is overwritten!
+
+   @param self   --- The upper triangular matrix T
+   @param tol    --- The tolerance to use for zero calling
+   @param unsafe --- If true no dimension checks will be done
+
+   @return       --- Inverse of the matrix T
+--]=]
+function Matrix.uinv(self, tol, unsafe)
+   if not unsafe and self.length ~= self.width then
+      error("Cannot invert nonsquare triangular matrix!")
+   end
+   local n = self.length
+   local diag = table.create(n, 0)
+   tol = tol or 10^-13
+   for i = 1, self.length do
+      if math.abs(self[i][i]) <= tol then
+         error("Upper triangular matrix is not invertible!")
+      end
+      diag[i] = self[i][i]
+      self[i][i] = 1
+   end
+   for r = n - 1, 1, -1 do
+      local activeRow = self[r]
+      for c = r + 1, n do
+         activeRow[c] /= -diag[r]
+      end
+      for rr = n - 1, r + 1, -1 do
+         local pivot = activeRow[rr]
+         local passiveRow = self[rr]
+         for c = rr + 1, n do
+            activeRow[c] += pivot * passiveRow[c]
+         end
+      end
+   end
+   for r = 1, n do
+      local activeRow = self[r]
+      for c = r, n do
+         activeRow[c] /= diag[c]
+      end
+   end
+   return self
+end
+
+--[=[
+   Computes the inverse of the lower triangular matrix T. The matrix
+   self is overwritten!
+
+   @param self   --- The lower triangular matrix T
+   @param tol    --- The tolerance to use for zero calling
+   @param unsafe --- If true no dimension checks will be done
+
+   @return       --- Inverse of the matrix T
+--]=]
+function Matrix.linv(self, tol, unsafe)
+   if not unsafe and self.length ~= self.width then
+      error("Cannot invert nonsquare triangular matrix!")
+   end
+   local n = self.length
+   local diag = table.create(n, 0)
+   tol = tol or 10^-13
+   for i = 1, self.length do
+      if math.abs(self[i][i]) <= tol then
+         error("Upper triangular matrix is not invertible!")
+      end
+      diag[i] = self[i][i]
+      self[i][i] = 1
+   end
+   for r = 2, n do
+      local activeRow = self[r]
+      for c = 1, r - 1 do
+         activeRow[c] /= -diag[c]
+      end
+      for rr = 2, r - 1 do
+         local pivot = activeRow[rr]
+         local passiveRow = self[rr]
+         for c = 1, rr - 1 do
+            activeRow[c] += pivot * passiveRow[c]
+         end
+      end
+   end
+   for r = 1, n do
+      local activeRow = self[r]
+      for c = 1, r do
+         activeRow[c] /= diag[r]
+      end
+   end
+   return self
+end
+
+--[=[
+   Computes the sum aR + bR^-T. The matrix self is overwritten
+
+   @param self    --- The upper triangular matrix R
+   @param scalar1 --- The scalar a
+   @param scalar2 --- The scalar b
+   @param tol     --- The tolerance to use for zero calling
+   @param unsafe  --- If true no dimension checks will be done
+
+   @return        --- The sum aR + bR^-T
+--]=]
+function Matrix.supsuTinv(self, scalar1, scalar2, tol, unsafe)
+   if not unsafe and self.length ~= self.width then
+      error("Cannot invert nonsquare triangular matrix!")
+   end
+   local n = self.length
+   tol = tol or 10^-13
+   local diag = table.create(n, 0)
+   for i = 1, n do
+      diag[i] = self[i][i]
+   end
+   for r = 2, n do
+      local activeRow = self[r]
+      for c = 1, r - 1 do
+         activeRow[c] = -self[c][r] / diag[c]
+      end
+      for rr = 2, r - 1 do
+         local pivot = activeRow[rr]
+         local passiveRow = self[rr]
+         for c = 1, rr - 1 do
+            activeRow[c] += pivot * passiveRow[c]
+         end
+      end
+   end
+   for r = 1, n do
+      local activeRow = self[r]
+      for c = 1, n do
+         if r > c then
+            activeRow[c] *= scalar2 / diag[r]
+         elseif r < c then
+            activeRow[c] *= scalar1
+         else
+            activeRow[c] = scalar1 * diag[c] + scalar2 / diag[c]
+         end
+      end
+   end
+   return self
+end
+
+--[=[
+   Computes the upper-triangular-lower-triangular product UL.
+
+   @param upper  --- The upper triangular matrix U
+   @param lower  --- The lower triangular matrix L
+   @param unsafe --- If true no dimension checks will be done
+
+   @return       --- The product UL
+--]=]
+function Matrix.ul(upper, lower, unsafe)
+   if not unsafe and upper.width ~= lower.length then
+      error("Attempting to multiply matrices of incompatible size!")
+   end
+   local matrix = Matrix:zero(upper.length, lower.width)
+   for i = 1, upper.length do
+      local row = upper[i]
+      local writeRow = matrix[i]
+      for j = 1, lower.width do
+         local column = lower[j]
+         local sum = 0
+         for k = i, j do
+            sum += row[k] * column[k]
+         end
+         writeRow[j] = sum
+      end
+   end
+   return matrix
+end
+
+--[=[
+   Computes the lower-triangular-upper-triangular product LU.
+
+   @param lower  --- The lower triangular matrix L
+   @param upper  --- The upper triangular matrix U
+   @param unsafe --- If true no dimension checks will be done
+
+   @return       --- The product LU
+--]=]
+function Matrix.lu(lower, upper, unsafe)
+   if not unsafe and lower.width ~= upper.length then
+      error("Attempting to multiply matrices of incompatible size!")
+   end
+   local matrix = Matrix:zero(lower.length, upper.width)
+   for i = 1, lower.length do
+      local row = lower[i]
+      local writeRow = matrix[i]
+      for j = 1, upper.width do
+         local column = lower[j]
+         local sum = 0
+         for k = j, i do
+            sum += row[k] * column[k]
+         end
+         writeRow[j] = sum
+      end
+   end
+   return matrix
+end
+
+--[=[
+   Clears the bottom lower triangular portion of a matrix
+   
+   @param upper --- An implicitly upper triangular matrix
+
+   @return      --- A properly upper triangular matrix
+--]=]
+function Matrix.uclr(upper)
+   for i = 2, upper.length do
+      for j = 1, math.min(i - 1, upper.width) do
+         upper[i][j] = 0
+      end
+   end
+   return upper
+end
+--]]
+
 function SparseMatrix:zero(n: number, m: number): Object
    return SparseMatrix:new({}, n, m)
 end
@@ -5421,10 +5989,10 @@ function SparseMatrix:kroneckerProduct(matrix)
    local result = SparseMatrix:new({}, self.length * matrix.length, self.width * matrix.width)
    for i = 1, self.length do
       for j = 1, self.width do
-	 local scalar = self:get(i, j)
-	 if scalar ~= 0 then
-	    result:setSubmatrix((i - 1) * matrix.width + 1, (j - 1) * matrix.length + 1, matrix:scaled(scalar))
-	 end
+         local scalar = self:get(i, j)
+         if scalar ~= 0 then
+            result:setSubmatrix((i - 1) * matrix.width + 1, (j - 1) * matrix.length + 1, matrix:scaled(scalar))
+         end
       end
    end
    return result
@@ -5439,7 +6007,7 @@ end
 
 function SparseMatrix:frobenius()
    local sum = 0
-   for k, v in self.data do
+   for _, v in self.data do
       sum += v ^ 2
    end
    return math.sqrt(sum)
@@ -5480,29 +6048,14 @@ function SparseMatrix:setSubmatrix(rowStart: number, columnStart: number, matrix
 end
 
 function SparseMatrix:apply(vector: Vector): Vector
-   local data = {}
-   for i = 1, self.length do
-      data[i] = 0
-   end
-   for k, v in pairs(self.data) do
-      local c = k % self.width
-      if c == 0 then
-         c = self.width
-      end
-      local r = (k - c) / self.width + 1
-      if vector[c] then
-         data[r] = data[r] + v * vector[c]
-      end
-   end
-
-   return data
+   return SparseMatrix.mv(self, vector)
 end
 
 function SparseMatrix:cascadeApply(matrixList: Array<Object>, vector: Vector): Vector
    local data = vector
 
    for i = #matrixList, 1, -1 do
-      data = matrixList[i]:apply(data)
+      data = SparseMatrix.mv(matrixList[i], data)
    end
 
    return data
@@ -5539,16 +6092,16 @@ function SparseMatrix:powerMethod(vector: Vector, tolerance: number): (number, V
       end
    end
    -- Repeatedly apply the matrix to the vector normalizing at each step until the change is minimal
-   local newVector = Vectors.scale(1 / Vectors.norm(vector), self:apply(vector))
+   local newVector = Vectors.scale(1 / Vectors.norm(vector), SparseMatrix.mv(self, vector))
    local displacement = Vectors.sub(vector, newVector)
    while Vectors.norm(displacement) > tolerance do
       vector = newVector
-      newVector = Vectors.scale(1 / Vectors.norm(vector), self:apply(vector))
+      newVector = Vectors.scale(1 / Vectors.norm(vector), SparseMatrix.mv(self, vector))
       displacement = Vectors.sub(vector, newVector)
    end
    -- Right now, we have a vector that solves Ax = lx, but we don't know what l is!
    vector = newVector
-   newVector = self:apply(vector)
+   newVector = SparseMatrix.mv(self, newVector)
    local sum = 0
    for i = 1, #vector do
       if(vector[i] ~= 0) then
@@ -5559,9 +6112,14 @@ function SparseMatrix:powerMethod(vector: Vector, tolerance: number): (number, V
    return (sum / #vector), vector
 end
 
+--[[
+   Uses the fact that the eigenvalues of the inverse are the inverse of the eigenvalues to get
+   much faster convergenc of iteration at the cost of having to solve a linear system.
+--]]
 function SparseMatrix:inverseIteration(vector, mu, tolerance)
    tolerance = tolerance or 10 ^ -13
    mu = mu or 0
+   -- Creates a deterministic start vector that is somewhat random
    if not vector then
       vector = {}
       local iter = 1
@@ -5596,7 +6154,7 @@ function SparseMatrix:inverseIteration(vector, mu, tolerance)
    end
    -- Right now, we have a vector that solves Ax = lx, but we don't know what l is!
    vector = newVector
-   newVector = self:apply(vector)
+   newVector = SparseMatrix.mv(self, vector)
    local sum = 0
    for i = 1, #vector do
       if(vector[i] ~= 0) then
@@ -5651,7 +6209,7 @@ function SparseMatrix:rayleighIteration(vector, mu, tolerance)
    end
    -- Right now, we have a vector that solves Ax = lx, but we don't know what l is!
    vector = newVector
-   newVector = self:apply(vector)
+   newVector = SparseMatrix.mv(self, vector)
    local sum = 0
    for i = 1, #vector do
       if(vector[i] ~= 0) then
@@ -5671,7 +6229,7 @@ function SparseMatrix:arnoldiProcess(n: number, x: Vector, tolerance: number): A
    q[1] = Vectors.scale(1 / Vectors.norm(x), x) or Vectors.randomVector(self.width, 2)
    for i = 2, n do
       t += 1
-      q[i] = self:apply(q[i - 1])
+      q[i] = SparseMatrix.mv(self, q[i - 1])
       for j = 1, i - 1 do
          if not h[j] then
             h[j] = {}
@@ -5719,7 +6277,7 @@ function SparseMatrix:eigenvalues(n: number, x: Vector, tolerance: number)
       t=0
       for i = 2, m do
          t += 1
-         q[i] = self:apply(q[i - 1])
+         q[i] = SparseMatrix.mv(self, q[i - 1])
          for j = 1, i - 1 do
             local dot = Vectors.dot(q[j], q[i])
             q[i] = Vectors.sub(q[i], Vectors.scale(dot, q[j]))
@@ -5732,8 +6290,6 @@ function SparseMatrix:eigenvalues(n: number, x: Vector, tolerance: number)
          q[i] = Vectors.scale(1 / norm, q[i])
       end
       Q = SparseMatrix:new(q)
-      -- print(Q)
-      -- print(self)
       H = Q * self * Q:transpose()
       oldEigenvalues = Tools.list.copy(eigenvalues)
       eigenvalues = Tools.list.sublist(H:numericalClean(tolerance):toDense():eigenvalues(tolerance), n)
