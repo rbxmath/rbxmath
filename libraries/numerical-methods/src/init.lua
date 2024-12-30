@@ -445,6 +445,41 @@ end
 	@param tolerance --- An optional parameter to set a numerical tolerance
 	@param guess --- An optional parameter to guess the integral. Mostly for internal use.
 --]=]
+function NumericalMethods.integration.randomAdaptiveQuadrature(
+	f: (number) -> number,
+	a: number,
+	b: number,
+	tolerance: number,
+	guess: number
+): number
+	tolerance = tolerance or EPSILON
+	guess = guess or NumericalMethods.integration.fivePointGaussianQuadrature(f, a, b)
+	if math.abs(b - a) < tolerance then
+		return guess
+	end
+	local midPoint = a + (b - a) * math.random()
+	local left = NumericalMethods.integration.fivePointGaussianQuadrature(f, a, midPoint)
+	local right = NumericalMethods.integration.fivePointGaussianQuadrature(f, midPoint, b)
+	local splitGuess = left + right
+	if math.abs(guess - splitGuess) < tolerance then
+		return splitGuess
+	else
+		return NumericalMethods.integration.adaptiveQuadrature(f, a, midPoint, tolerance, left)
+			+ NumericalMethods.integration.adaptiveQuadrature(f, midPoint, b, tolerance, right)
+	end
+end
+
+--[=[
+	Integrates a function, f, from point a to point b using adaptive quadrature.
+	Computes the integral by recursively subdividing the interval until guess is
+	within tolerance of the subdivided guess.
+
+	@param f --- An integrable function
+	@param a --- The lower integral bound
+	@param b --- The upper integral bound
+	@param tolerance --- An optional parameter to set a numerical tolerance
+	@param guess --- An optional parameter to guess the integral. Mostly for internal use.
+--]=]
 NumericalMethods.integration.integrate = NumericalMethods.integration.adaptiveQuadrature
 
 NumericalMethods.integration.fivePointLaguerreGrid =
