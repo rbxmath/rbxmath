@@ -51,16 +51,16 @@ local function solveRoot(hDist: number, vDist: number, length: number): number
 end
 
 function Catenary.Interpolant.new(p0: Vector3, p1: Vector3, length: number, upVector: Vector3?)
-	if length < (p1 - p0).Magnitude then
+	if length < vector.magnitude(p1 - p0) then
 		-- Length of rope is too short; degenerate to a line
 		return Line.Interpolant.new(p0, p1)
 	end
 
-	local yAxis = if upVector then upVector.Unit else Vector3.yAxis
-	local vDist = (p1 - p0):Dot(yAxis)
+	local yAxis = if upVector then vector.normalize(upVector) else Vector3.yAxis
+	local vDist = vector.dot((p1 - p0), yAxis)
 	local ground = (p1 - p0) - yAxis * vDist
-	local xAxis = ground.Unit
-	local hDist = ground.Magnitude
+	local xAxis = vector.normalize(ground)
+	local hDist = vector.magnitude(ground)
 	local root = solveRoot(hDist, vDist, length)
 	local scale = hDist / (2 * root)
 
@@ -69,9 +69,11 @@ function Catenary.Interpolant.new(p0: Vector3, p1: Vector3, length: number, upVe
 
 	local self = setmetatable(Position.Interpolant.new(), Catenary.Interpolant)
 
+	if upVector then
+		self.upVector = vector.normalize(upVector)
+	end
 	self.p0 = p0
 	self.p1 = p1
-	self.upVector = upVector.Unit
 	self.ground = ground
 	self.xAxis = xAxis
 	self.yAxis = yAxis
@@ -99,7 +101,7 @@ function Catenary.Interpolant:SolvePosition(t: number): Point
 
 	local x = if self.IsUnitSpeed
 		then scale * asinh(arcLength / scale + math.sinh(-hShift / scale)) + hShift
-		else ground.Magnitude * t
+		else vector.magnitude(ground) * t
 	local y = scale * math.cosh((x - hShift) / scale) + vShift
 
 	return p0 + self.xAxis * x + self.yAxis * y
@@ -110,8 +112,8 @@ function Catenary.Interpolant:SolveBoundingBox(): (Point, Point)
 	local p0 = self.p0
 	local p1 = self.p1
 	local vertex = self:SolvePosition(0.5)
-	local p2 = p0 + (vertex - p0):Dot(self.upVector) * self.upVector
-	local p3 = p1 + (vertex - p1):Dot(self.upVector) * self.upVector
+	local p2 = p0 + vector.dot((vertex - p0), self.upVector) * self.upVector
+	local p3 = p1 + vector.dot((vertex - p1), self.upVector) * self.upVector
 
 	return p0:Min(p1):Min(p2):Min(p3), p0:Max(p1):Max(p2):Max(p3)
 end
